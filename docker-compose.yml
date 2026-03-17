@@ -1,0 +1,72 @@
+services:
+  # PostgreSQL 数据库服务 (集成自 docker-compose_postgresql.yml)
+  postgres:
+    image: postgres:17-alpine
+    container_name: 120JPH_postgres
+    restart: unless-stopped
+    # 显式加入网络
+    networks:
+      - app-network
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-root}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-root}
+      POSTGRES_DB: ${POSTGRES_DB:-rollerbed_tracking_db}
+    ports:
+      - "${POSTGRES_PORT:-5432}:5432"
+    volumes:
+      # 数据持久化
+      - pgdata:/var/lib/postgresql/data
+      # 自动初始化数据库表结构 (非常重要！)
+      - ./create_tables_postgresql.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-root} -d ${POSTGRES_DB:-rollerbed_tracking_db}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Python 数据保存服务
+  data-saver-service:
+    build: .
+    image: data-saver-service:v2
+    container_name: data_saver_service_v2.1
+    restart: unless-stopped
+    init: true # 解决 Python 进程可能不响应信号的问题
+    # 显式加入网络
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy # 等待数据库健康检查通过后再启动
+
+    # 环境变量配置
+    environment:
+      # 数据库配置
+      # 自动连接到同网络下的 postgres 服务
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=${POSTGRES_USER:-root}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-root}
+      - DB_NAME=${POSTGRES_DB:-rollerbed_tracking_db}
+
+      # WebSocket 配置
+      - WS_SERVER_HOST=${WS_SERVER_HOST:-172.21.12.73}
+      - WS_SERVER_PORT=${WS_SERVER_PORT:-8088}
+      - WS_SERVER_PATH=${WS_SERVER_PATH:-/ws/emosweb}
+
+      # 其他配置
+      - LOG_LEVEL=INFO
+      - DEVICE_CONFIG_PATH=/app/deviceConfig.json
+
+    # 文件挂载
+    volumes:
+      # 挂载配置文件，允许主机修改
+      - ./deviceConfig.json:/app/deviceConfig.json:ro
+
+volumes:
+  pgdata:
+    driver: local
+
+# 定义自定义网络
+networks:
+  app-network:
+    driver: bridge

@@ -1,0 +1,98 @@
+---
+description: 
+globs: 
+alwaysApply: false
+---
+# 筛选条件组件规范
+
+## 筛选条件布局规范
+
+筛选条件组件应遵循以下布局规范：
+
+```html
+<!-- 筛选条件 -->
+<el-card class="mb-4">
+  <div class="flex flex-wrap gap-4">
+    <!-- 输入框筛选 -->
+    <el-input 
+      placeholder="雪橇编号" 
+      v-model="filters.skidId" 
+      style="width: 200px"
+      clearable>
+    </el-input>
+    
+    <!-- 下拉选择筛选 -->
+    <el-select 
+      placeholder="上下线状态" 
+      v-model="filters.onlineStatus" 
+      style="width: 200px"
+      clearable>
+      <el-option label="在线" value="online"></el-option>
+      <el-option label="离线" value="offline"></el-option>
+      <el-option label="清洁中" value="cleaning"></el-option>
+    </el-select>
+    
+    <!-- 日期范围筛选 -->
+    <el-date-picker
+      v-model="filters.statusChangeTimeRange"
+      type="datetimerange"
+      range-separator="至"
+      start-placeholder="状态变更开始时间"
+      end-placeholder="状态变更结束时间"
+      style="width: 380px"
+      clearable>
+    </el-date-picker>
+  </div>
+  <div class="flex justify-end mt-4">
+    <el-button type="primary" @click="searchData">搜索</el-button>
+    <el-button @click="resetFilters">重置</el-button>
+  </div>
+</el-card>
+```
+
+## 筛选条件组件样式规范
+
+1. **输入框和选择器宽度**
+   - 标准宽度: `200px`
+   - 使用 `clearable` 属性允许清除内容
+
+2. **日期选择器宽度**
+   - 标准宽度: `380px`
+   - 使用 `clearable` 属性允许清除内容
+
+3. **间距和布局**
+   - 使用 `flex flex-wrap gap-4` 实现灵活布局
+   - 按钮区域使用 `flex justify-end mt-4` 实现右对齐并添加上边距
+
+## 筛选条件重置函数规范
+
+```typescript
+// 重置筛选条件
+const resetFilters = () => {
+  filters.skidId = '';
+  filters.cleanStatus = '';
+  filters.onlineStatus = '';
+  filters.inspectionTimeRange = [];
+  filters.statusChangeTimeRange = [];
+  
+  // 重置页码
+  currentPage.value = 1;
+  
+  // 重置后自动查询
+  searchData();
+}
+```
+
+## 搜索函数规范
+
+```typescript
+// 查询数据
+const searchData = () => {
+  // 重置为第一页
+  currentPage.value = 1;
+  
+  // 调用加载数据函数
+  loadSkidList();
+}
+```
+

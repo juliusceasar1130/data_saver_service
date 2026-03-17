@@ -1,0 +1,52 @@
+{
+  "theme": "GitHub",
+  "selectedAuthType": "oauth-personal", 
+  "mcpServers": {
+    "playwright": {
+    "command": "npx",
+    "args": ["-y", "@executeautomation/playwright-mcp-server"]
+    },
+    "shrimp-task-manager": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "mcp-shrimp-task-manager"
+      ],
+      "env": {
+        "DATA_DIR": "D:/Python/workplace/mcp/data",
+        "TEMPLATES_USE": "zh",
+        "ENABLE_GUI": "false"
+      }
+    },
+      "sequential-thinking": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\julius\\AppData\\Roaming\\npm\\node_modules\\@modelcontextprotocol\\server-sequential-thinking\\dist\\index.js"
+      ]
+    },
+      "mysql": {
+      "command": "npx",
+      "args": ["-y", "@f4ww4z/mcp-mysql-server"],
+      "env": {
+        "MYSQL_HOST": "localhost",
+        "MYSQL_PORT": "3306",
+        "MYSQL_USER": "root",
+        "MYSQL_PASSWORD": "root",
+        "MYSQL_DATABASE": "skid_management_system"
+      }
+    },
+     "Context 7": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "@upstash/context7-mcp@latest"
+      ]
+    },
+     "streamable-mcp-server": {
+      "type": "streamable-http",
+      "url": "http://127.0.0.1:12306/mcp"
+    }
+
+  },
+   "contextFileName": ["gemini_agent.md", "gemini_agent2.md", "gemini_agent3.md" ]
+}

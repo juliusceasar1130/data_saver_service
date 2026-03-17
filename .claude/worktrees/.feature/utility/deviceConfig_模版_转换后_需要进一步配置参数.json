@@ -1,0 +1,1522 @@
+{
+  "description": "设备参数配置文件 - WebSocket工业数据采集系统 (Skid信息提取v2.2.0)",
+  "version": "2.2.0",
+  "lastModified": "2025年9月12日14点05分",
+  "factor": {
+    "norm": "5",
+    "e5": "3"
+  },
+  "config": {
+    "L3F19": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A005RB_1A005RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A005RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A010RB_1A010RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A010RB",
+        "weight": 1,
+        "area": 6,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A015RB_1A015RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A015RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A020RB_1A020RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A020RB",
+        "weight": 1,
+        "area": 6,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A040RB_1A040RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A040RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A045RB_1A045RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A045RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A050RB_1A050RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A050RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A055RB_1A055RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A055RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A070RB_1A070RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A070RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A075RB_1A075RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A075RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A080RB_1A080RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A080RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1A_1A085RB_1A085RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A085RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1B_1B090RB_1B090RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B090RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1B_1B060RB_1B060RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B060RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1B_1B025RB_1B025RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B025RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1B_1B100TC_1B100RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B100RB",
+        "weight": 0,
+        "area": 3,
+        "sequence": 6
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1B_1B105RB_1B105RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B105RB",
+        "weight": 0,
+        "area": 3,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1B_1B110TT_1B110RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B110RB",
+        "weight": 0,
+        "area": 3,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1B_1B125RB_1B125RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B125RB",
+        "weight": 0,
+        "area": 3,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C135LT_1C135RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C135RB",
+        "weight": 0,
+        "area": 3,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C150RB_1C150RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C150RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 9
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C155RB_1C155RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C155RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 8
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C160RB_1C160RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C160RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C140LT_1C140RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C140RB",
+        "weight": 0,
+        "area": 3,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C250RB_1C250RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C250RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 9
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C255RB_1C255RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C255RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 8
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1C_1C260RB_1C260RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C260RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1D_1D265RB_1D265RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D265RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 6
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1D_1D170RB_1D170RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D170RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1D_1D175RB_1D175RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D175RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1D_1D270RB_1D270RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D270RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1D_1D275RB_1D275RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D275RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1D_1D280TC_1D280RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D280RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1E_1E185RB_1E185RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E185RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1E_1E190RB_1E190RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E190RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1E_15AS_1E200ST_1E200RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E200RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1E_1E210RB_1E210RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E210RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 20
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1F_1F215TT_1F215RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1F215RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 21
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1F_1F225RB_1F225RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1F225RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 22
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1F_16AS_1F230EL_1F230RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1F230RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 10
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1G_1G285RB_1G285RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1G285RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1G_17AS_1G295ST_1G295RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1G295RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1G_1G305RB_1G305RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1G305RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 999
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1H_1H310TT_1H310RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1H310RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 19
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1H_1H320RB_1H320RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1H320RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 18
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1H_18AS_1H330EL_1H330RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1H330RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 17
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1I_1I355TT_1I355RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1I355RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1J_1J365TT_1J365RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1J365RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1K_1K370RB_1K370RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1K370RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1K_1K375TT_1K375RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1K375RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1K_1K385RB_1K385RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1K385RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1K_19AS_1K390EL_1K390RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1K390RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1L_1L400RB_1L400RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1L400RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 6
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1L_1L405TT_1L405RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1L405RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1L_1L415RB_1L415RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1L415RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 8
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1L_1AAS_1L420EL_1L420RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1L420RB",
+        "weight": 2,
+        "area": 0,
+        "sequence": 9
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1M_1M455TT_1M455RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1M455RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 16
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1M_1M465TT_1M465RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1M465RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 15
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1M_1M470RB_1M470RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1M470RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 14
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1N_1N475TT_1N475RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1N475RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 13
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1N_1N485RB_1N485RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1N485RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 14
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1O_1O495RB_1O495RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1O495RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 12
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1O_1O500TT_1O500RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1O500RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 11
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F19",
+        "tag": ".L3F19_1O_1BAS_1O515ST_1O515RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1O515RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 10
+      }
+    ],
+    "L3F24": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1A_1A035RB_1A035RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A035RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 18
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1A_1A030RB_1A030RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A030RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 19
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1A_1A025RB_1A025RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A025RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 20
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1A_1A020RB_1A020RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A020RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 21
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1A_1A015RB_1A015RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A015RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 22
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1A_1A010RB_1A010RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A010RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 23
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1A_1A005RB_1A005RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1A005RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 24
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1B_1B070RB_1B070RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B070RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 11
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1B_1B065RB_1B065RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B065RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 12
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1B_1B060RB_1B060RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B060RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 13
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1B_1B055RB_1B055RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B055RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 14
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1B_1B050RB_1B050RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B050RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 15
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1B_1B045RB_1B045RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B045RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 16
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1B_1B040RB_1B040RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1B040RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 17
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1C_1C105RB_1C105RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C105RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1C_1C100RB_1C100RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C100RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1C_1C095RB_1C095RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C095RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 6
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1C_1C090RB_1C090RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C090RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1C_1C085RB_1C085RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C085RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 8
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1C_1C080RB_1C080RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C080RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 9
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1C_1C075RB_1C075RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1C075RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 10
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1D_1D140TC_1D140RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D140RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1D_14AS_1D130SL_1D130RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D130RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1D_1D120TT_1D120RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1D120RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E175RB_1E175RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E175RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 6
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E170RB_1E170RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E170RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E165RB_1E165RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E165RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 8
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E160RB_1E160RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E160RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 9
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E155RB_1E155RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E155RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 10
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E150RB_1E150RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E150RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 11
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E215RB_1E215RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E215RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 6
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E210RB_1E210RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E210RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E205RB_1E205RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E205RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 8
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E200RB_1E200RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E200RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 9
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E195RB_1E195RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E195RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 10
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E190RB_1E190RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E190RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 11
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E255RB_1E255RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E255RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 6
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E250RB_1E250RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E250RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 7
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E245RB_1E245RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E245RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 8
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E240RB_1E240RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E240RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 9
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E235RB_1E235RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E235RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 10
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F24",
+        "tag": ".L3F24_1E_1E230RB_1E230RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "3"
+        },
+        "RBindex": "1E230RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 11
+      }
+    ]
+  },
+  "metadata": {
+    "totalDevices": 106,
+    "deviceTypes": [
+      "L3F19",
+      "L3F24"
+    ],
+    "configSchema": {
+      "id": "设备唯一标识符",
+      "type": "消息通信类型",
+      "plc": "PLC控制器标识",
+      "tag": "数据点位路径"
+    },
+    "dataFields": {
+      "factor": "雪橇数量计算系数",
+      "RBindex": "滚床编号，提取自tag路径",
+      "weight": "权重值，用于特殊计算逻辑",
+      "area": "区域标识，用于标识设备所属区域",
+      "sequence": "区域内序号，表示在特定区域内的位置序号"
+    },
+    "calculations": {
+      "skidCount": "见文档"
+    }
+  }
+}

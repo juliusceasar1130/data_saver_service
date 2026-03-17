@@ -1,0 +1,810 @@
+{
+  "description": "设备参数配置文件",
+  "version": "2.3.0",
+  "lastModified": "2026年1月20日",
+  "config": {
+    "L3F13": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A010LT_1A010RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A010RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A015LT_1A015RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A015RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A025LT_1A025RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B025RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A030LT_1A030RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B030RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A035RB_1A035RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B035RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A090RB_1A090RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A090RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A150RB_1A150RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A150RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1A_1A280RB_1A280RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A280RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B040RB_1B040RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B040RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B045RB_1B045RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B045RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B050RB_1B050RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B050RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B055RB_1B055RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B055RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B060RB_1B060RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B060RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B095RB_1B095RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B095RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B100RB_1B100RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B100RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B105RB_1B105RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B105RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B110RB_1B110RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B110RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B115RB_1B115RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B115RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B155RB_1B155RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B155RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B160RB_1B160RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B160RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B165RB_1B165RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B165RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B170RB_1B170RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B170RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1B_1B175RB_1B175RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B175RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C065RB_1C065RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C065RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C070RB_1C070RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C070RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C075RB_1C075RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C075RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C080RB_1C080RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C080RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C120RB_1C120RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C120RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C125RB_1C125RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C125RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C130RB_1C130RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C130RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C135RB_1C135RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C135RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C180RB_1C180RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C180RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C185RB_1C185RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C185RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C190RB_1C190RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C190RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1C_1C195RB_1C195RB.IL.SD.M1003_BodyID",
+        "RBindex": "1C195RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D085RB_1D085RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D085RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D140RB_1D140RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D140RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D200RB_1D200RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D200RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D215LT_1D215RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D215RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D220LT_1D220RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D220RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D225LT_1D225RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D225RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D240LT_1D240RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D240RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D260RB_1D260RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D260RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1D_1D261RB_1D261RB.IL.SD.M1003_BodyID",
+        "RBindex": "1D261RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E285RB_1E285RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E285RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E290RB_1E290RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E290RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E295RB_1E295RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E295RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E300RB_1E300RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E300RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E305RB_1E305RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E305RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E310RB_1E310RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E310RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E315RB_1E315RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E315RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E375RB_1E375RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E375RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E380RB_1E380RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E380RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E385RB_1E385RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E385RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E390RB_1E390RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E390RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1E_1E395RB_1E395RB.IL.SD.M1003_BodyID",
+        "RBindex": "1E395RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F320RB_1F320RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F320RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F330LT_1F330RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F330RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F335LT_1F335RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F335RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F340LT_1F340RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F340RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F355LT_1F355RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F355RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F360LT_1F360RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F360RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F370RB_1F370RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F370RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F405RB_1F405RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F405RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F450RB_1F450RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F450RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1F_1F485RB_1F485RB.IL.SD.M1003_BodyID",
+        "RBindex": "1F485RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G410RB_1G410RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G410RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G415RB_1G415RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G415RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G420RB_1G420RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G420RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G425RB_1G425RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G425RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G430RB_1G430RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G430RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G455RB_1G455RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G455RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G460RB_1G460RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G460RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G465RB_1G465RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G465RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G470RB_1G470RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G470RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G475RB_1G475RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G475RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G490RB_1G490RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G490RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G495RB_1G495RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G495RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G500RB_1G500RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G500RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G505RB_1G505RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G505RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1G_1G510RB_1G510RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G510RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H400RB_1H400RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H400RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H435RB_1H435RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H435RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H480RB_1H480RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H480RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H515RB_1H515RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H515RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H525LT_1H525RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H525RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H530LT_1H530RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H530RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H545LT_1H545RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H545RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
+        "tag": ".L3F13_1H_1H550LT_1H550RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H550RB",
+        "remark": "面漆存储线"
+      }
+    ],
+    "L3FCC2": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1L_1L270TC_1L270RB.IL.SD.M1003_BodyID",
+        "RBindex": "1L270RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1L_1L275RB_1L275RB.IL.SD.M1003_BodyID",
+        "RBindex": "1L275RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1M_1M280TT_1M280RB.IL.SD.M1003_BodyID",
+        "RBindex": "1M280RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1M_1M285RB_1M285RB.IL.SD.M1003_BodyID",
+        "RBindex": "1M285RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1M_1M295RB_1M295RB.ILO.SD.M1003_BodyID",
+        "RBindex": "1M295RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1M_1M300RB_1M300RB.IL.SD.M1003_BodyID",
+        "RBindex": "1M300RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1M_1M305RB_1M305RB.IL.SD.M1003_BodyID",
+        "RBindex": "1M305RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1M_1M310RB_1M310RB.IL.SD.M1003_BodyID",
+        "RBindex": "1M310RB",
+        "remark": "面漆存储线"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC2",
+        "tag": ".L3FCC2_1M_1M315RB_1M315RB.IL.SD.M1003_BodyID",
+        "RBindex": "1M315RB",
+        "remark": "面漆存储线"
+      }
+    ]
+  },
+  "metadata": {
+    "totalDevices": 98,
+    "deviceTypes": [
+      "L3F13",
+      "L3FCC2"
+    ],
+    "configSchema": {
+      "id": "设备唯一标识符",
+      "type": "消息通信类型",
+      "plc": "PLC控制器标识",
+      "tag": "数据点位路径唯一标识符",
+      "RBindex": "滚床索引",
+      "remark": "备注说明"
+    }
+  }
+}

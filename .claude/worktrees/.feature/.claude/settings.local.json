@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "mcp__context7",
+      "mcp__ide__executeCode",
+      "WebFetch(domain:unsloth.ai)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

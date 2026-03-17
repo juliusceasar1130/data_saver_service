@@ -1,0 +1,258 @@
+/**
+ * 修改时间：2025年9月1日14点05分
+ * 修改内容：创建全局样式文件，优化用户体验
+ */
+
+/* 全局样式重置和优化 */
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+:root {
+  /* 主题色彩变量 */
+  --primary-color: #409EFF;
+  --success-color: #67C23A;
+  --warning-color: #E6A23C;
+  --danger-color: #F56C6C;
+  --info-color: #909399;
+  
+  /* 渐变色 */
+  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  --gradient-bg: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  
+  /* 阴影 */
+  --shadow-light: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+  --shadow-medium: 0 4px 20px 0 rgba(0, 0, 0, 0.15);
+  
+  /* 边距 */
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 16px;
+  --spacing-lg: 24px;
+  --spacing-xl: 32px;
+}
+
+/* 滚动条美化 */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
+
+/* 动画效果 */
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(64, 158, 255, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 10px rgba(64, 158, 255, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(64, 158, 255, 0);
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* 连接状态指示器动画 */
+.connection-status .el-tag.el-tag--success {
+  animation: pulse 2s infinite;
+}
+
+/* 卡片进入动画 */
+.el-card {
+  animation: fadeInUp 0.6s ease-out;
+}
+
+/* 表格行悬停效果增强 */
+.el-table .el-table__row:hover > td {
+  background-color: #f5f7fa !important;
+}
+
+/* 按钮增强效果 */
+.el-button {
+  transition: all 0.3s ease;
+}
+
+.el-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-medium);
+}
+
+/* 输入框聚焦效果 */
+.el-input__wrapper {
+  transition: all 0.3s ease;
+}
+
+.el-input__wrapper:hover,
+.el-input__wrapper.is-focus {
+  box-shadow: 0 0 0 1px var(--primary-color);
+}
+
+/* 表格美化 */
+.el-table {
+  border-radius: 8px;
+  overflow: hidden;
+  box-shadow: var(--shadow-light);
+}
+
+.el-table .el-table__header-wrapper th {
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  color: #495057;
+  font-weight: 600;
+}
+
+/* 标签美化 */
+.el-tag {
+  border-radius: 12px;
+  font-weight: 500;
+}
+
+/* 描述列表美化 */
+.el-descriptions {
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+/* 响应式字体大小 */
+@media (max-width: 768px) {
+  .system-title {
+    font-size: 18px !important;
+  }
+  
+  .card-header {
+    font-size: 14px !important;
+  }
+  
+  .el-table {
+    font-size: 12px;
+  }
+}
+
+/* 加载状态美化 */
+.el-loading-mask {
+  background-color: rgba(255, 255, 255, 0.9);
+}
+
+.el-loading-spinner .path {
+  stroke: var(--primary-color);
+}
+
+/* 消息提示美化 */
+.el-message {
+  border-radius: 8px;
+  box-shadow: var(--shadow-medium);
+}
+
+.el-notification {
+  border-radius: 8px;
+  box-shadow: var(--shadow-medium);
+}
+
+/* 对话框美化 */
+.el-dialog {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.el-dialog__header {
+  background: var(--gradient-primary);
+  color: white;
+  padding: var(--spacing-lg);
+}
+
+.el-dialog__body {
+  padding: var(--spacing-lg);
+}
+
+/* 工具提示美化 */
+.el-tooltip__popper {
+  border-radius: 8px;
+  box-shadow: var(--shadow-medium);
+}
+
+/* 自定义状态指示器 */
+.status-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--spacing-xs);
+}
+
+.status-indicator::before {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background-color: currentColor;
+}
+
+.status-indicator.success::before {
+  background-color: var(--success-color);
+  animation: pulse 2s infinite;
+}
+
+.status-indicator.warning::before {
+  background-color: var(--warning-color);
+}
+
+.status-indicator.danger::before {
+  background-color: var(--danger-color);
+}
+
+/* 数据行交替背景色 */
+.el-table--striped .el-table__body tr.el-table__row--striped td {
+  background: #fafafa;
+}
+
+/* 空状态美化 */
+.el-empty {
+  padding: var(--spacing-xl);
+}
+
+.el-empty__image {
+  margin-bottom: var(--spacing-md);
+}
+
+/* 统计卡片特殊样式 */
+.statistics .el-descriptions__label {
+  font-weight: 600;
+  color: #666;
+}
+
+.statistics .el-descriptions__content {
+  color: var(--primary-color);
+  font-weight: 500;
+}

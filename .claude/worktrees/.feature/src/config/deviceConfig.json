@@ -1,0 +1,526 @@
+{
+  "description": "设备参数配置文件 - 7区域数据显示测试版本",
+  "version": "2.3.0",
+  "lastModified": "2025年9月12日14点05分",
+  "factor": {
+    "norm": "5",
+    "e5": "5"
+  },
+  "config": {
+    "L3FUB2": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1A_1A005TC_1A005RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1A005RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1A_1A010RB_1A010RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1A010RB",
+        "weight": 1,
+        "area": 0,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B020RB_1B020RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B020RB",
+        "weight": 1,
+        "area": 1,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B025RB_1B025RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B025RB",
+        "weight": 1,
+        "area": 1,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B030RB_1B030RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B030RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B035RB_1B035RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B035RB",
+        "weight": 2,
+        "area": 2,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B040RB_1B040RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B040RB",
+        "weight": 2,
+        "area": 2,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B045RB_1B045RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B045RB",
+        "weight": 2,
+        "area": 2,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B055TC_1B055RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B055RB",
+        "weight": 2,
+        "area": 3,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1B_1B065RB_1B065RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B065RB",
+        "weight": 2,
+        "area": 3,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1C_16AS_1C060EH_1C060RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1C060RB",
+        "weight": 2,
+        "area": 3,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1C_16AS_1C100EL_1C100RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1C100RB",
+        "weight": 2,
+        "area": 3,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1D_1D110RB_1D110RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D110RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1D_1D115RB_1D115RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D115RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1D_1D120RB_1D120RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D120RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1D_1D125RB_1D125RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D125RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1D_1D130RB_1D130RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D130RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1E_1E135RB_1E135RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1E135RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1E_1E140RB_1E140RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1E140RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1E_1E145RB_1E145RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1E145RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1F_1F150RB_1F150RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1F150RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1F_1F155RB_1F155RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1F155RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1F_1F160RB_1F160RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1F160RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1F_1F165RB_1F165RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1F165RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 4
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1F_1F170RB_1F170RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1F170RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 1
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1G_15AS_1G175EL_1G175RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1G175RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 2
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1G_15AS_1G400EH_1G400RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1G400RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 3
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FUB2",
+        "tag": ".L3FUB2_1H_1H410RB_1H410RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1H410RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 4
+      }
+    ],
+    "L3FKT1": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FKT1",
+        "tag": ".L3FKT1_1B_1B030TT_1B030RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B030RB",
+        "weight": 0,
+        "area": 1,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FKT1",
+        "tag": ".L3FKT1_1B_1B040LT_1B040RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1B040RB",
+        "weight": 0,
+        "area": 2,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FKT1",
+        "tag": ".L3FKT1_1C_1C050LT_1C050RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1C050RB",
+        "weight": 0,
+        "area": 3,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FKT1",
+        "tag": ".L3FKT1_1C_1C055RB_1C055RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1C055RB",
+        "weight": 0,
+        "area": 4,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FKT1",
+        "tag": ".L3FKT1_1D_1D060LT_1D060RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D060RB",
+        "weight": 0,
+        "area": 5,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FKT1",
+        "tag": ".L3FKT1_1D_1DAS_1D325EL_1D325RB.IL.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D325RB",
+        "weight": 0,
+        "area": 6,
+        "sequence": 5
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FKT1",
+        "tag": ".L3FKT1_1D_1D080LT_1D080RB.ILO.SD.I1030_RBDataSkidNo",
+        "factor": {
+          "norm": "5",
+          "e5": "5"
+        },
+        "RBindex": "1D080RB",
+        "weight": 0,
+        "area": 7,
+        "sequence": 5
+      }
+    ]
+  },
+  "metadata": {
+    "totalDevices": 35,
+    "deviceTypes": [
+      "L3FUB2",
+      "L3FKT1"
+    ],
+    "areas": [1, 2, 3, 4, 5, 6, 7],
+    "configSchema": {
+      "id": "设备唯一标识符",
+      "type": "消息通信类型",
+      "plc": "PLC控制器标识",
+      "tag": "数据点位路径"
+    },
+    "dataFields": {
+      "factor": "雪橇数量计算系数",
+      "RBindex": "滚床编号，提取自tag路径",
+      "weight": "权重值，用于特殊计算逻辑",
+      "area": "区域标识，用于标识设备所属区域(1-7)",
+      "sequence": "区域内序号，表示在特定区域内的位置序号"
+    }
+  }
+}

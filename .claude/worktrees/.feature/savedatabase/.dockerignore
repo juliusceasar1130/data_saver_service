@@ -1,0 +1,15 @@
+__pycache__/
+*.py[cod]
+*$py.class
+.env
+.git/
+.gitignore
+*.log
+backup/
+docs/
+mysql/
+111/
+README*.md
+docker-compose*.yml
+create_tables_postgresql.sql
+deviceConfig.json

@@ -1,0 +1,7 @@
+---
+description: CSS样式
+globs: 
+alwaysApply: false
+---
+-不要使用 Tailwind CSS
+-使用Element Plus 的样式类

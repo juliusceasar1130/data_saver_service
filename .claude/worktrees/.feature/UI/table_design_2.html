@@ -1,0 +1,103 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Table Design 2</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .table-container {
+            width: 80%;
+            max-width: 1200px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            border-radius: 8px;
+            overflow: hidden;
+            background-color: #ffffff;
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid #dee2e6;
+        }
+        thead th {
+            background-color: #f1f3f5;
+            font-weight: 600;
+            color: #495057;
+        }
+        tbody tr:hover {
+            background-color: #f8f9fa;
+        }
+        td:first-child, th:first-child {
+            padding-left: 24px;
+        }
+        td:last-child, th:last-child {
+            padding-right: 24px;
+        }
+    </style>
+</head>
+<body>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>序号</th>
+                    <th>滚床编号</th>
+                    <th>雪橇编号</th>
+                    <th>雪橇数量</th>
+                    <th>更新时间</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>1</td>
+                    <td>RB200</td>
+                    <td>6000</td>
+                    <td>1</td>
+                    <td>2025-09-09 11:05:10</td>
+                </tr>
+                <tr>
+                    <td>2</td>
+                    <td>RB200</td>
+                    <td>6001</td>
+                    <td>1</td>
+                    <td>2025-09-09 11:05:45</td>
+                </tr>
+                <tr>
+                    <td>3</td>
+                    <td>RB300</td>
+                    <td>6002</td>
+                    <td>1</td>
+                    <td>2025-09-09 11:06:22</td>
+                </tr>
+                <tr>
+                    <td>4</td>
+                    <td>RB300</td>
+                    <td>6003</td>
+                    <td>1</td>
+                    <td>2025-09-09 11:07:18</td>
+                </tr>
+                 <tr>
+                    <td>5</td>
+                    <td>RB200</td>
+                    <td>6004</td>
+                    <td>1</td>
+                    <td>2025-09-09 11:08:03</td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</body>
+</html>

@@ -1,0 +1,24 @@
+{
+  "name": "websocket-client-demo",
+  "private": true,
+  "version": "1.0.0",
+  "type": "module",
+  "description": "WebSocket客户端演示项目 - 工业数据采集系统",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "vue": "^3.4.0",
+    "element-plus": "^2.4.0",
+    "@element-plus/icons-vue": "^2.3.0",
+    "axios": "^1.6.0"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^4.5.0",
+    "vite": "^5.0.0",
+    "unplugin-vue-components": "^0.25.0",
+    "unplugin-auto-import": "^0.16.0"
+  }
+}

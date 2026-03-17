@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!-- 
+  修改时间：2025年9月1日14点05分
+  修改内容：创建WebSocket客户端演示项目入口文件
+  技术栈：Vue3 + Element Plus + Vite + WebSocket
+-->
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>WebSocket工业数据采集演示系统</title>
+  <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+  <style>
+    /* 全局样式重置 */
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
+    body {
+      font-family: 'Helvetica Neue', Helvetica, 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', Arial, sans-serif;
+      background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+      min-height: 100vh;
+    }
+    
+    #app {
+      height: 100vh;
+      padding: 0;
+    }
+    
+    /* 加载动画 */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      font-size: 18px;
+      color: #409EFF;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div class="loading">
+      正在加载WebSocket数据采集系统...
+    </div>
+  </div>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>
