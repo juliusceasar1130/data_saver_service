@@ -8,30 +8,40 @@
 
 | 文件名 | 说明 | 用途 |
 |--------|------|------|
-| `create_tables.sql` | 数据库表结构 DDL | 创建 rb_position_data 主表和3个字典表 |
+| `create_tables_postgresql.sql` | 数据库表结构 DDL (PostgreSQL) | 创建 rb_position_data 主表和5个字典表（工艺区域、载体类型等） |
+| `alter_add_process_area.sql` | 增量迁移脚本 | 为已有数据库追加 `process_area` 相关支持 |
+| `alter_add_carrier_fields.sql` | 增量迁移脚本 | 为已有数据库追加 `carrier_id` / `carrier_type` 相关支持 |
 | `init_rb_positions.py` | 位置数据初始化脚本 | 读取 deviceConfig.json,初始化98个位置记录 |
-| `rb_position_manager.py` | 数据库操作封装类 | 提供车辆数据更新、查询、统计等方法 |
-| `deviceConfig.json` | 设备配置文件 | 包含98个RB位置的配置信息 |
+| `deviceConfig.json` | 设备配置文件 | 包含98个RB位置的配置信息 (含 process_area) |
+| `data_saver_service_v3_docker.py` | V3 数据保存服务 (Docker版) | **[推荐]** 同时支持车身数据(30字符)和载体ID的自动订阅与保存 |
+| `rb_position_manager_postgresql.py` | 数据库操作封装类 (PostgreSQL) | 提供车辆数据更新、载体更新、查询、统计等方法 |
 
 ## 🚀 快速开始
 
-### 步骤 1: 创建数据库表
+### 步骤 1: 创建/升级数据库表
 
-使用 MySQL 客户端或工具执行 SQL 脚本:
-
+#### 情况 A: 全新部署
+使用 PostgreSQL 客户端执行全量建表脚本:
 ```bash
-mysql -u root -p your_database < create_tables.sql
+psql -U postgres -d your_database -f create_tables_postgresql.sql
 ```
 
-或者在 MySQL 命令行中:
-
-```sql
-USE your_database;
-SOURCE d:/Python/workplace/skid_count_websoket/savedatabase/create_tables.sql;
+#### 情况 B: 增量升级 (新增工艺区域支持)
+如果数据库已存在且存有历史数据，执行增量迁移脚本:
+```bash
+psql -U postgres -d your_database -f alter_add_process_area.sql
 ```
 
-**创建的表:**
-- `rb_position_data` - RB位置车辆数据主表
+#### 情况 C: 增量升级 (新增载体标识/类型支持)
+执行对应的增量迁移脚本:
+```bash
+psql -U postgres -d your_database -f alter_add_carrier_fields.sql
+```
+
+**创建/更新的表:**
+- `rb_position_data` - 主表（新增 `process_area`, `carrier_id`, `carrier_type` 字段）
+- `process_areas` - 生产工艺区域字典表
+- `carrier_types` - **[新增]** 载体类型字典表 (hanger/skid)
 - `vehicle_body_types` - 车身类型字典表
 - `vehicle_color_codes` - 颜色代码字典表
 - `vehicle_platforms` - 车型平台字典表
@@ -119,7 +129,23 @@ with RBPositionDataManager(db_config) as manager:
 - 自动更新 `vehicle_updated_at` 时间戳
 - 自动发现未知的车型/颜色/平台代码并插入字典表
 
-#### 2. 查询位置信息
+#### 2. 更新载体 ID (独立于车身数据)
+
+```python
+with RBPositionDataManager(db_config) as manager:
+    # 从 WebSocket 接收到的载体数据
+    tag = ".L3F13_1A_1A010LT_1A010RB.IL.SD.M1003_CarrierID"
+    carrier_id = "C20240001"
+    ts = "2024-03-20 10:00:00" # 可选，默认为当前时间
+    
+    # 更新数据库中的 carrier_id
+    success = manager.update_carrier_id_by_tag(tag, carrier_id, ts)
+    
+    if success:
+        print("载体数据更新成功")
+```
+
+#### 3. 查询位置信息
 
 ```python
 with RBPositionDataManager(db_config) as manager:
@@ -200,17 +226,35 @@ class DataSaverService:
         self.db_manager.close()
 ```
 
+## 🐳 Docker 服务环境变量
+
+在使用 `data_saver_service_v2_docker.py` 或 `v3` 时，建议通过环境变量进行配置：
+
+| 变量名 | 说明 | 示例 |
+|--------|------|------|
+| `DB_HOST` | 数据库主机地址 | `localhost` 或 `172.17.0.1` |
+| `DB_PORT` | 数据库端口 | `5432` |
+| `DB_USER` | 数据库用户名 | `postgres` |
+| `DB_PASSWORD` | 数据库密码 | `******` |
+| `DB_NAME` | 数据库名称 | `vda_db` |
+| `WS_SERVER_HOST` | WebSocket 服务器地址 | `10.123.45.67` |
+| `WS_SERVER_PORT` | WebSocket 服务器端口 | `8081` |
+| `DEVICE_CONFIG_PATH` | 配置文件路径 | `./deviceConfig.json` |
+
 ## 📊 数据库表结构
 
 ### rb_position_data 主表
 
 | 字段 | 类型 | 说明 | 初始值 |
 |------|------|------|--------|
-| id | BIGINT | 主键 | 自增 |
+| id | BIGSERIAL | 主键 | 自增 |
 | plc | VARCHAR(20) | PLC名称 | 来自配置 |
 | tag | VARCHAR(200) | 标签(唯一) | 来自配置 |
-| RBindex | VARCHAR(20) | RB位置(唯一) | 来自配置 |
+| rb_index | VARCHAR(20) | RB位置(唯一) | 来自配置 |
 | remark | VARCHAR(100) | 备注 | 来自配置 |
+| **process_area** | **VARCHAR(50)** | **生产工艺区域(如:L2面漆存储线)** | **来自配置** |
+| **carrier_id** | **VARCHAR(50)** | **载体唯一标识(如挂具编号)** | **来自配置** |
+| **carrier_type** | **VARCHAR(20)** | **载体类型(hanger/skid)** | **来自配置** |
 | vehicle_id | VARCHAR(14) | 车辆ID | NULL |
 | body_type | VARCHAR(5) | 车型代码 | NULL |
 | color_code | VARCHAR(4) | 颜色代码 | NULL |
@@ -220,41 +264,75 @@ class DataSaverService:
 | reserved_1 | CHAR(1) | 预留1 | NULL |
 | reserved_2 | CHAR(1) | 预留2 | NULL |
 | raw_data | VARCHAR(30) | 原始数据 | NULL |
-| position_created_at | DATETIME | 位置创建时间 | 当前时间 |
-| vehicle_updated_at | DATETIME | 车辆更新时间 | NULL |
+| position_created_at | TIMESTAMP | 位置创建时间 | CURRENT_TIMESTAMP |
+| vehicle_updated_at | TIMESTAMP | 车辆更新时间 | NULL |
+
+### process_areas 字典表 [新增]
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | SERIAL | 主键 |
+| area_name | VARCHAR(50) | 工艺区域名称(唯一) |
+| description | VARCHAR(200)| 区域描述 |
+| sort_order | INT | 工艺流转顺序 |
+
+### carrier_types 字典表 [新增]
+
+| 字段 | 类型 | 说明 |
+|------|------|------|
+| id | SERIAL | 主键 |
+| type_code | VARCHAR(20) | 类型代码 (hanger/skid) |
+| type_name_cn | VARCHAR(50) | 中文名称 (吊架/滑橇/雪橇) |
+| description | VARCHAR(200)| 类型描述 |
+| sort_order | INT | 排序权重 |
 
 ## 🔍 常用查询示例
 
 ```sql
--- 查看所有有车的位置
-SELECT RBindex, vehicle_id, body_type, color_code, vehicle_updated_at
+-- 1. 查看特定工艺区域的有车位置
+SELECT rb_index, vehicle_id, body_type, vehicle_updated_at
 FROM rb_position_data
-WHERE vehicle_id IS NOT NULL
+WHERE process_area = 'L2面漆存储线' AND vehicle_id IS NOT NULL
 ORDER BY vehicle_updated_at DESC;
 
--- 按车型统计
-SELECT body_type, COUNT(*) as count
+-- 2. 按工艺区域统计在线车辆数
+SELECT process_area, COUNT(*) as count
 FROM rb_position_data
 WHERE vehicle_id IS NOT NULL
-GROUP BY body_type;
+GROUP BY process_area;
 
--- 查看未定义的车型代码
+-- 3. 关联字典表查看区域详细描述
+SELECT r.rb_index, r.vehicle_id, p.description
+FROM rb_position_data r
+JOIN process_areas p ON r.process_area = p.area_name;
+
+-- 4. 查看未定义的车型代码
 SELECT * FROM vehicle_body_types WHERE is_defined = FALSE;
 
--- 查看30分钟内更新的车辆
-SELECT * FROM rb_position_data
-WHERE vehicle_updated_at >= DATE_SUB(NOW(), INTERVAL 30 MINUTE);
+-- 5. 查看吊架(hanger)上的在线车辆数
+SELECT COUNT(*) FROM rb_position_data 
+WHERE carrier_type = 'hanger' AND vehicle_id IS NOT NULL;
+
+-- 6. 关联查询位置及其载体类型的实际描述
+SELECT r.rb_index, r.carrier_id, c.type_name_cn
+FROM rb_position_data r
+JOIN carrier_types c ON r.carrier_type = c.type_code;
+
+-- 7. 查看特定载体的当前位置
+SELECT rb_index, carrier_id, vehicle_id, vehicle_updated_at
+FROM rb_position_data
+WHERE carrier_id = 'C20240001';
 ```
 
 ## ⚠️ 注意事项
 
-1. **数据库连接**: 使用前确保 MySQL 服务已启动
-2. **依赖安装**: 需要安装 `mysql-connector-python`
+1. **数据库类型**: 本项目目前已全面转向 **PostgreSQL**。
+2. **依赖安装**: 需要安装 `psycopg2` 或 `psycopg2-binary`
    ```bash
-   pip install mysql-connector-python
+   pip install psycopg2-binary
    ```
 3. **权限**: 确保数据库用户有 INSERT, UPDATE, SELECT 权限
-4. **并发**: 如果有多个进程同时写入,考虑使用连接池
+4. **并发**: PostgreSQL 处理并发更新性能优异，推荐使用连接池。
 5. **备份**: 定期备份数据库
 
 ## 📝 后续开发建议

@@ -66,7 +66,9 @@ class RBPositionDataManager:
                 database=self.db_config['database']
             )
             self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
-            print(f"✓ PostgreSQL 数据库连接成功: {self.db_config['database']}")
+            # 设置会话时区为上海 (UTC+8)
+            self.cursor.execute("SET TIME ZONE 'Asia/Shanghai'")
+            print(f"✓ PostgreSQL 数据库连接成功: {self.db_config['database']} (时区: Asia/Shanghai)")
         except psycopg2.Error as err:
             print(f"✗ 数据库连接失败: {err}")
             raise
@@ -155,6 +157,49 @@ class RBPositionDataManager:
             self.connection.rollback()
             return False
     
+    def update_carrier_id_by_tag(self, tag: str, carrier_id: str, ts: str) -> bool:
+        """
+        根据 tag 更新载体ID数据
+
+        Args:
+            tag (str): BodyID的Tag标签（数据库格式）
+            carrier_id (str): 载体编号
+            ts (str): 时间戳字符串
+
+        Returns:
+            bool: 更新是否成功
+        """
+        try:
+            # 解析时间戳
+            try:
+                updated_at = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%fZ")
+            except (ValueError, TypeError):
+                # 如果解析失败，使用当前时间
+                updated_at = datetime.now()
+
+            update_sql = """
+            UPDATE rb_position_data
+            SET 
+                carrier_id = %s,
+                vehicle_updated_at = %s
+            WHERE tag = %s
+            """
+
+            self.cursor.execute(update_sql, (carrier_id, updated_at, tag))
+            self.connection.commit()
+
+            if self.cursor.rowcount > 0:
+                print(f"✓ 载体更新成功: tag={tag}, carrier_id={carrier_id}")
+                return True
+            else:
+                print(f"⚠ 未找到对应的 tag: {tag}")
+                return False
+
+        except Exception as e:
+            print(f"✗ 载体更新失败: {e}")
+            self.connection.rollback()
+            return False
+
     def _auto_discover_codes(self, vehicle_data: Dict[str, str]):
         """自动发现并插入未知的车型/颜色/平台代码"""
         self._insert_if_not_exists(

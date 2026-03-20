@@ -20,6 +20,10 @@ from datetime import datetime
 from typing import Optional, List, Dict
 import os
 import sys
+from dotenv import load_dotenv
+
+# 加载 .env 配置文件
+load_dotenv()
 
 # 导入 PostgreSQL 数据库操作类
 from rb_position_manager_postgresql import RBPositionDataManager, VehicleDataParser
@@ -36,19 +40,23 @@ logging.basicConfig(
 logger = logging.getLogger(__name__)
 
 # WebSocket服务器配置
-WS_SERVER_HOST = "172.21.12.73"
-WS_SERVER_PORT = 8088
-WS_SERVER_PATH = "/ws/emosweb"
-# WS_URL = f"ws://{WS_SERVER_HOST}:{WS_SERVER_PORT}{WS_SERVER_PATH}"
-WS_URL = f"ws://{WS_SERVER_HOST}{WS_SERVER_PATH}"
+WS_SERVER_HOST = os.getenv("WS_SERVER_HOST", "172.21.12.73")
+WS_SERVER_PORT = int(os.getenv("WS_SERVER_PORT", 8088))
+WS_SERVER_PATH = os.getenv("WS_SERVER_PATH", "/ws/emosweb")
+WS_USE_PORT_IN_URL = os.getenv("WS_USE_PORT_IN_URL", "false").lower() == "true"
+
+if WS_USE_PORT_IN_URL:
+    WS_URL = f"ws://{WS_SERVER_HOST}:{WS_SERVER_PORT}{WS_SERVER_PATH}"
+else:
+    WS_URL = f"ws://{WS_SERVER_HOST}{WS_SERVER_PATH}"
 
 # PostgreSQL 数据库配置
 DB_CONFIG = {
-    "host": "localhost",
-    "port": 5432,
-    "user": "root",
-    "password": "root",
-    "database": "rollerbed_tracking_db",
+    "host": os.getenv("DB_HOST", "localhost"),
+    "port": int(os.getenv("DB_PORT", 5432)),
+    "user": os.getenv("DB_USER", "root"),
+    "password": os.getenv("DB_PASSWORD", "root"),
+    "database": os.getenv("DB_NAME", "rollerbed_tracking_db"),
 }
 
 # 心跳间隔（秒）
@@ -68,9 +76,15 @@ def load_device_config() -> List[Dict]:
     从本地 deviceConfig.json 读取设备列表
     """
     try:
-        # 获取配置文件路径（相对于当前文件）
+        # 获取配置文件路径（优先从环境变量读取，否则使用默认值）
         current_dir = os.path.dirname(os.path.abspath(__file__))
-        config_path = os.path.join(current_dir, "deviceConfig.json")
+        env_config_path = os.getenv("DEVICE_CONFIG_PATH", "deviceConfig.json")
+        
+        # 如果是相对路径，则拼接到当前目录
+        if not os.path.isabs(env_config_path):
+            config_path = os.path.join(current_dir, env_config_path)
+        else:
+            config_path = env_config_path
 
         with open(config_path, "r", encoding="utf-8") as f:
             config = json.load(f)

@@ -9,6 +9,8 @@ import psycopg2
 from psycopg2.extras import RealDictCursor
 from datetime import datetime
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
 
 class RBPositionInitializer:
@@ -43,7 +45,9 @@ class RBPositionInitializer:
                 database=self.db_config["database"],
             )
             self.cursor = self.connection.cursor(cursor_factory=RealDictCursor)
-            print(f"✓ 成功连接到 PostgreSQL 数据库: {self.db_config['database']}")
+            # 设置会话时区为上海 (UTC+8)
+            self.cursor.execute("SET TIME ZONE 'Asia/Shanghai'")
+            print(f"✓ 成功连接到 PostgreSQL 数据库: {self.db_config['database']} (时区: Asia/Shanghai)")
         except psycopg2.Error as err:
             print(f"✗ 数据库连接失败: {err}")
             raise
@@ -101,9 +105,9 @@ class RBPositionInitializer:
         # 准备插入 SQL (PostgreSQL 使用 %s 占位符)
         insert_sql = """
         INSERT INTO rb_position_data 
-            (plc, tag, rb_index, remark)
+            (plc, tag, rb_index, remark, process_area, carrier_id, carrier_type)
         VALUES 
-            (%s, %s, %s, %s)
+            (%s, %s, %s, %s, %s, %s, %s)
         ON CONFLICT (tag) DO NOTHING
         """
 
@@ -127,6 +131,9 @@ class RBPositionInitializer:
                             device["tag"],
                             device["RBindex"],
                             device["remark"],
+                            device.get("process_area", ""),
+                            device.get("carrier_id", ""),
+                            device.get("carrier_type", ""),
                         ),
                     )
                     success_count += 1
@@ -180,13 +187,15 @@ class RBPositionInitializer:
 
 def main():
     """主函数"""
-    # ========== 配置数据库连接信息 ==========
+    # ========== 从 .env 读取配置 ==========
+    load_dotenv()
+    
     db_config = {
-        "host": "172.22.44.99",
-        "port": 5432,
-        "user": "root",
-        "password": "root",  # 请修改
-        "database": "rollerbed_tracking_db",  # 请修改
+        "host": os.getenv("DB_HOST", "172.22.44.99"),
+        "port": int(os.getenv("DB_PORT", 5432)),
+        "user": os.getenv("DB_USER", "root"),
+        "password": os.getenv("DB_PASSWORD", "root"),
+        "database": os.getenv("DB_NAME", "rollerbed_tracking_db"),
     }
 
     print("=" * 50)
@@ -201,7 +210,8 @@ def main():
         initializer.connect()
 
         # 2. 加载配置文件
-        config = initializer.load_device_config()
+        config_path = os.getenv("DEVICE_CONFIG_PATH", "deviceConfig.json")
+        config = initializer.load_device_config(config_path)
 
         # 3. 初始化位置数据
         success, error = initializer.initialize_positions(config, clear_first=False)

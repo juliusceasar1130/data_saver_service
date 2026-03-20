@@ -27,8 +27,8 @@ services:
   # Python 数据保存服务
   data-saver-service:
     build: .
-    image: data-saver-service:v2
-    container_name: data_saver_service_v2.1
+    image: data-saver-service:v3
+    container_name: data_saver_service_v3
     restart: unless-stopped
     init: true # 解决 Python 进程可能不响应信号的问题
     # 显式加入网络
