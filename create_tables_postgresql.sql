@@ -121,8 +121,8 @@ COMMENT ON TABLE rb_position_data IS '存储采集点及当前位置的车辆状
 COMMENT ON COLUMN rb_position_data.id IS '主键ID';
 COMMENT ON COLUMN rb_position_data.plc IS '所属PLC设备名称';
 COMMENT ON COLUMN rb_position_data.tag IS 'WebSocket订阅Tag,唯一标识采集点';
-COMMENT ON COLUMN rb_position_data.rb_index IS 'Robot位置索引(标识物理位置)';
-COMMENT ON COLUMN rb_position_data.remark IS '采集点物理位置备注';
+COMMENT ON COLUMN rb_position_data.rb_index IS '滚床/链条储存位编号(标识物理位置)';
+COMMENT ON COLUMN rb_position_data.remark IS '备用';
 COMMENT ON COLUMN rb_position_data.process_area IS '生产工艺区域名称（静态属性，初始化时从deviceConfig.json的process_area键读取），例如"L2面漆存储线"；值与 process_areas.area_name 对应，可JOIN查询区域描述和排序信息';
 COMMENT ON COLUMN rb_position_data.vehicle_id IS '车身唯一标识ID (0-13位)';
 COMMENT ON COLUMN rb_position_data.body_type IS '车身类型代码 (14-18位), 关联vehicle_body_types表';

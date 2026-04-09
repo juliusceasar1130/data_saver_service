@@ -1,4 +1,5 @@
 services:
+  # 注意：该docker文件在172.22.44.99服务器（docker desktop版本4.43.2）可以启动采集数据，但是在编程器中运行websocket服务器连接失败。可能和desktop的版本有关。
   # PostgreSQL 数据库服务 (集成自 docker-compose_postgresql.yml)
   postgres:
     image: postgres:17-alpine
@@ -19,7 +20,11 @@ services:
       # 自动初始化数据库表结构 (非常重要！)
       - ./create_tables_postgresql.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-root} -d ${POSTGRES_DB:-rollerbed_tracking_db}" ]
+      test:
+        [
+          "CMD-SHELL",
+          "pg_isready -U ${POSTGRES_USER:-root} -d ${POSTGRES_DB:-rollerbed_tracking_db}",
+        ]
       interval: 10s
       timeout: 5s
       retries: 5

@@ -22,7 +22,7 @@ RUN pip install --no-cache-dir \
     -i https://pypi.tuna.tsinghua.edu.cn/simple
 
 # 复制程序代码
-COPY data_saver_service_v2_docker.py .
+COPY data_saver_service_v3_docker.py .
 COPY rb_position_manager_postgresql.py .
 
 # 创建非特权用户运行程序
@@ -31,4 +31,4 @@ USER appuser
 
 # 启动命令
 # 使用 list 格式 (exec form) 是最佳实践
-CMD ["python", "data_saver_service_v2_docker.py"]
+CMD ["python", "data_saver_service_v3_docker.py"]

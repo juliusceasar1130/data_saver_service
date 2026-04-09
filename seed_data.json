@@ -1,0 +1,99 @@
+{
+  "metadata": {
+    "description": "字典表预填充数据源 — process_areas / carrier_types",
+    "version": "1.0",
+    "created_date": "2026-03-30",
+    "notes": "sort_order 决定查询排列顺序，数字越小越靠前。冲突时执行 DO UPDATE 覆盖更新。"
+  },
+  "process_areas": [
+    {
+      "area_name": "L1面漆色漆喷房",
+      "description": "L1面漆色漆喷房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆中间烘房",
+      "description": "L1面漆中间烘房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆清漆喷房",
+      "description": "L1面漆清漆喷房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆烘房",
+      "description": "L1面漆烘房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆储存线",
+      "description": "L1面漆储存线输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆色漆喷房",
+      "description": "L2面漆色漆喷房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆中间烘房",
+      "description": "L1面漆中间烘房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆清漆喷房",
+      "description": "L2面漆清漆喷房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆烘房",
+      "description": "L2面漆烘房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆储存线",
+      "description": "L2面漆储存线输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆色漆喷房",
+      "description": "L3面漆色漆喷房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆中间烘房",
+      "description": "L3面漆中间烘房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆清漆喷房",
+      "description": "L3面漆清漆喷房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆烘房",
+      "description": "L3面漆烘房输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆储存线",
+      "description": "L3面漆储存线输送线",
+      "sort_order": 10
+    }
+  ],
+  "carrier_types": [
+    {
+      "type_code": "hanger",
+      "type_name_cn": "吊架",
+      "description": "输送载体，车身悬挂在挂具上随线体运动",
+      "sort_order": 1000
+    },
+    {
+      "type_code": "Topcoat Skid",
+      "type_name_cn": "面漆雪橇",
+      "description": "输送载体，车身放置于雪橇上随线体移动",
+      "sort_order": 1000
+    }
+  ]
+}

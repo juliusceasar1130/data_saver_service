@@ -17,6 +17,7 @@ import asyncio
 import websockets
 import json
 import logging
+import socket
 import traceback
 from datetime import datetime
 from typing import Optional, List, Dict, Tuple, Set
@@ -48,7 +49,8 @@ logger = logging.getLogger("DataSaverService_V3_Docker")
 WS_SERVER_HOST = os.getenv("WS_SERVER_HOST", "172.21.12.73")
 WS_SERVER_PORT = int(os.getenv("WS_SERVER_PORT", "8088"))
 WS_SERVER_PATH = os.getenv("WS_SERVER_PATH", "/ws/emosweb")
-if os.getenv("WS_USE_PORT_IN_URL", "false").lower() == "true":
+WS_USE_PORT_IN_URL = os.getenv("WS_USE_PORT_IN_URL", "false").lower() == "true"
+if WS_USE_PORT_IN_URL:
      WS_URL = f"ws://{WS_SERVER_HOST}:{WS_SERVER_PORT}{WS_SERVER_PATH}"
 else:
      WS_URL = f"ws://{WS_SERVER_HOST}{WS_SERVER_PATH}"
@@ -77,6 +79,22 @@ CONFIG_FILE_PATH = os.getenv("DEVICE_CONFIG_PATH", "deviceConfig.json")
 
 # 全局数据库管理器
 db_manager: Optional[RBPositionDataManager] = None
+
+
+def get_effective_ws_port() -> int:
+    """获取当前实际使用的 WebSocket 目标端口。"""
+    return WS_SERVER_PORT if WS_USE_PORT_IN_URL else 80
+
+
+def probe_tcp_connectivity(host: str, port: int, timeout: float = 3.0) -> bool:
+    """启动前做一次轻量 TCP 探测，帮助判断容器网络是否可达。"""
+    try:
+        with socket.create_connection((host, port), timeout=timeout):
+            logger.info(f"✅ TCP 探测成功: {host}:{port} (timeout={timeout}s)")
+            return True
+    except Exception as e:
+        logger.warning(f"⚠️ TCP 探测失败: {host}:{port} (timeout={timeout}s), error={e}")
+        return False
 
 
 def normalize_tag(server_tag: str) -> str:
@@ -415,6 +433,8 @@ async def main():
 
     logger.info(f"配置信息:")
     logger.info(f"  - WebSocket: {WS_URL}")
+    logger.info(f"  - WebSocket目标主机: {WS_SERVER_HOST}")
+    logger.info(f"  - WebSocket目标端口: {get_effective_ws_port()}")
     logger.info(f"  - 数据库主机: {DB_CONFIG['host']}")
     logger.info(f"  - 数据库名: {DB_CONFIG['database']}")
     logger.info(f"  - 配置文件: {CONFIG_FILE_PATH}")
@@ -426,6 +446,9 @@ async def main():
         
     if not os.path.exists(check_path):
          logger.warning(f"⚠️ 警告: 配置文件 {check_path} 未找到。请确保 Docker 挂载正确。")
+
+    # 先确认容器当前对目标主机端口的 TCP 可达性
+    probe_tcp_connectivity(WS_SERVER_HOST, get_effective_ws_port())
 
     # 加载设备配置
     body_devices, carrier_devices, carrier_tag_to_body_tag = load_device_config()
