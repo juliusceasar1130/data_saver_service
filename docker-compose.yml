@@ -29,7 +29,7 @@ services:
       timeout: 5s
       retries: 5
 
-  # Python 数据保存服务
+  # Python 采集websocket数据保存到postgresql服务(目前访问宿主机的网络存在问题，不使用)
   data-saver-service:
     build: .
     image: data-saver-service:v3
@@ -66,6 +66,32 @@ services:
     volumes:
       # 挂载配置文件，允许主机修改
       - ./deviceConfig.json:/app/deviceConfig.json:ro
+
+  # defect_db 缺陷汇总增量刷新任务
+  # 修改时间：2026-04-13 18:05 Asia/Shanghai
+  # 主要修改内容：
+  # 1. 新增独立 defect-refresh 服务，用于一次性执行刷新脚本
+  # 2. 供 Windows 任务计划程序通过 docker compose --profile manual run --rm 定时触发
+  defect-refresh:
+    build:
+      context: .
+      dockerfile: Dockerfile.defect-refresh
+    image: defect-refresh:latest
+    profiles:
+      - manual
+    init: true
+    networks:
+      - app-network
+    depends_on:
+      postgres:
+        condition: service_healthy
+    env_file:
+      - .env
+    environment:
+      # 容器内访问 compose 中的 postgres 服务时，应使用服务名而不是 localhost
+      DEFECT_TARGET_DB_HOST: ${DEFECT_TARGET_DB_HOST_IN_DOCKER:-postgres}
+      DEFECT_TARGET_DB_PORT: ${DEFECT_TARGET_DB_PORT_IN_DOCKER:-5432}
+    command: ["--print-status"]
 
 volumes:
   pgdata:
