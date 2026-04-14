@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-04-14 19:56 Asia/Shanghai
+
+简要概括：将脚本目录迁移到 `defect_database/scripts` 并统一更新引用路径。
+
+主要修改内容：
+
+- 移动脚本目录
+  - 将根目录 `scripts` 迁移为 `defect_database/scripts`
+- 更新 `defect_database/scripts/refresh_history_station_defect_summary.ps1`
+  - 调整 `ProjectRoot` 解析逻辑，兼容新目录层级
+- 更新 `defect_database/scripts/refresh_history_station_defect_summary_docker.ps1`
+  - 调整 `ProjectRoot` 解析逻辑，兼容新目录层级
+- 更新 `README_DOCKER.md`
+  - 将宿主机与 Docker 计划任务命令路径切换到 `defect_database/scripts/...`
+- 更新 `defect_database/defect_database_from_agent/README.md`
+  - 将部署命令与说明中的脚本路径切换到 `defect_database/scripts/...`
+
+## 2026-04-14 19:47 Asia/Shanghai
+
+简要概括：将宿主机计划任务部署命令补充到缺陷汇总 README。
+
+主要修改内容：
+
+- 更新 `defect_database/defect_database_from_agent/README.md`
+  - 补充当前环境下可直接复制的 `--init-state`、`--refresh`、`--print-status` 部署命令
+  - 明确 `websoket` 环境的 `python.exe` 实际路径
+  - 更新任务计划程序中的 `Add arguments` 推荐写法
+
+## 2026-04-14 15:33 Asia/Shanghai
+
+简要概括：补齐宿主机计划任务执行缺陷汇总刷新脚本的落地文件，并调整文档推荐顺序。
+
+主要修改内容：
+
+- 新增 `defect_database/scripts/refresh_history_station_defect_summary.ps1`
+  - 提供宿主机执行 `refresh_history_station_defect_summary.py` 的 PowerShell 包装脚本
+  - 支持 `-Mode`、`-PythonExe`、`-CondaEnv`
+  - 仅在当前激活环境确实为目标 Conda 环境时才直接复用，否则优先尝试 `conda run -n websoket`
+  - 通过 `CONDA_NO_PLUGINS=true` 与 `conda --no-plugins run` 降低计划任务中的 Conda 插件干扰风险
+  - 兼容企业内网源库场景下的 Windows 任务计划程序调用
+- 更新 `README_DOCKER.md`
+  - 新增“企业内网源库优先宿主机”推荐方案
+  - 将 Docker Desktop 定时刷新调整为备选方案说明
+- 更新 `defect_database/defect_database_from_agent/README.md`
+  - 补充宿主机包装脚本已落地的信息
+  - 明确企业内网源库场景优先宿主机执行
+
+## 2026-04-14 13:57 Asia/Shanghai
+
+简要概括：补充 defect-refresh 容器环境变量传递关系说明文档。
+
+主要修改内容：
+
+- 新增 `docs/defect_refresh_docker_env_flow.md`
+  - 说明 `.env`、`docker-compose.yml`、容器环境与 `refresh_history_station_defect_summary.py` 之间的变量流转
+  - 明确 `DEFECT_SOURCE_DB_HOST` 在容器中默认来自 `.env`
+  - 明确 `DEFECT_TARGET_DB_HOST_IN_DOCKER` / `DEFECT_TARGET_DB_PORT_IN_DOCKER` 仅用于 compose 覆盖 target 变量
+
 ## 2026-04-13 18:05 Asia/Shanghai
 
 简要概括：落地 Docker Desktop 下最稳的缺陷汇总定时刷新方案。
@@ -12,7 +70,7 @@
 - 更新 `docker-compose.yml`
   - 新增 `defect-refresh` 服务
   - 为容器内运行场景补充 `DEFECT_TARGET_DB_HOST_IN_DOCKER` 覆盖逻辑
-- 新增 `scripts/refresh_history_station_defect_summary_docker.ps1`
+- 新增 `defect_database/scripts/refresh_history_station_defect_summary_docker.ps1`
   - 供 Windows 任务计划程序稳定触发 `docker compose --profile manual run --rm defect-refresh`
 - 更新 `.env_example`
   - 补充 Docker Desktop 下的目标库主机覆盖参数模板

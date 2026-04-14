@@ -67,7 +67,7 @@ services:
       # 挂载配置文件，允许主机修改
       - ./deviceConfig.json:/app/deviceConfig.json:ro
 
-  # defect_db 缺陷汇总增量刷新任务
+  # defect_db 缺陷汇总增量刷新任务，无法解决访问宿主机所在的其他网络，不适用docker部署。
   # 修改时间：2026-04-13 18:05 Asia/Shanghai
   # 主要修改内容：
   # 1. 新增独立 defect-refresh 服务，用于一次性执行刷新脚本

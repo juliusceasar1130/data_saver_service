@@ -1,6 +1,6 @@
 # Database Snapshots
 
-更新时间：2026-04-13 18:05 Asia/Shanghai
+更新时间：2026-04-14 19:56 Asia/Shanghai
 
 本目录用于保存缺陷数据库的结构快照、车型映射、初始化 SQL 与增量刷新说明，便于本地分析、上线初始化与后续运维。
 
@@ -421,6 +421,8 @@ python defect_database/refresh_history_station_defect_summary.py --print-status
 
 如果你的运行环境主要在 Windows，推荐使用“任务计划程序（Task Scheduler）”。
 
+如果源库位于企业内网，例如 `172.22.x.x` 网段，或依赖 VPN / 终端安全软件才能访问，优先推荐“宿主机直接运行脚本”，不要优先把刷新任务放进 Docker Desktop 容器。
+
 推荐配置如下：
 
 - 触发器（Trigger）
@@ -437,7 +439,37 @@ python defect_database/refresh_history_station_defect_summary.py --print-status
 - 工作目录
   - 建议显式设置为仓库根目录，避免 `.env`、相对路径和日志路径解析错误
 
-推荐的包装脚本逻辑：
+当前仓库已提供可直接调用的包装脚本：
+
+- `defect_database/scripts/refresh_history_station_defect_summary.ps1`
+
+脚本支持：
+
+- 默认执行 `--refresh`
+- 通过 `-Mode` 切换到 `--init-state` / `--print-status`
+- 通过 `-PythonExe` 显式指定 `websoket` 环境中的 `python.exe`
+- 未显式指定时，按“当前激活且名称匹配的 Conda 环境 -> conda run -n websoket -> PATH 中 python”顺序尝试
+
+基于当前环境，推荐直接使用下面这组部署命令：
+
+```powershell
+# 1. 初始化状态
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_history_station_defect_summary.ps1" -Mode --init-state -PythonExe "D:\000_software_install\miniconda3\envs\websoket\python.exe"
+
+# 2. 手工执行一次刷新
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_history_station_defect_summary.ps1" -Mode --refresh -PythonExe "D:\000_software_install\miniconda3\envs\websoket\python.exe"
+
+# 3. 查看状态
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_history_station_defect_summary.ps1" -Mode --print-status -PythonExe "D:\000_software_install\miniconda3\envs\websoket\python.exe"
+```
+
+正式加入任务计划程序时，推荐固定使用下面这条命令：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_history_station_defect_summary.ps1" -Mode --refresh -PythonExe "D:\000_software_install\miniconda3\envs\websoket\python.exe"
+```
+
+包装脚本逻辑如下：
 
 ```powershell
 # 修改时间：2026-04-13 17:10 Asia/Shanghai
@@ -466,7 +498,7 @@ exit $exitCode
 - Program/script：
   - `powershell.exe`
 - Add arguments：
-  - `-NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\scripts\refresh_history_station_defect_summary.ps1"`
+  - `-NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_history_station_defect_summary.ps1" -Mode --refresh -PythonExe "D:\000_software_install\miniconda3\envs\websoket\python.exe"`
 - Start in：
   - `F:\000_dev\Python\workplace\savedatabase-postgresql_v2`
 
@@ -493,9 +525,9 @@ exit $exitCode
 - 仍然把日志重定向到固定文件
 - 如果在容器里运行，优先让宿主机调度容器命令，不建议在业务脚本里自己做循环
 
-### 3.1 Docker Desktop 最稳方案
+### 3.1 Docker Desktop 备选方案
 
-如果当前环境是 Windows + Docker Desktop，推荐使用：
+如果当前环境是 Windows + Docker Desktop，且源库网络对容器同样可达，可使用：
 
 - Docker 负责提供 `postgres`、`data-saver-service` 和独立的 `defect-refresh` 运行环境
 - Windows 任务计划程序负责按固定周期触发一次 `defect-refresh`
@@ -507,7 +539,7 @@ exit $exitCode
   - 专门用于构建缺陷汇总刷新镜像
 - 根目录 `docker-compose.yml`
   - 新增 `defect-refresh` 服务定义
-- `scripts/refresh_history_station_defect_summary_docker.ps1`
+- `defect_database/scripts/refresh_history_station_defect_summary_docker.ps1`
   - 供 Windows 任务计划程序调用的包装脚本
 
 推荐执行模型：
@@ -539,7 +571,7 @@ docker compose --profile manual run --rm defect-refresh --print-status
 5. 最后由 Windows 任务计划程序定时执行：
 
 ```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\scripts\refresh_history_station_defect_summary_docker.ps1"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_history_station_defect_summary_docker.ps1"
 ```
 
 说明：
