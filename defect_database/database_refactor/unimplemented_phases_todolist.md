@@ -1,11 +1,12 @@
 # Agent 接分析库后未实施阶段待办清单
 
-修改时间：2026-04-12 Asia/Shanghai
+修改时间：2026-04-14 Asia/Shanghai
 
 主要修改内容：
 - 新增“Agent 接分析库”后续未实施阶段待办清单
 - 明确当前已完成边界与后续阶段优先级
 - 按“阶段目标 / 主要任务 / 完成标准 / 是否建议立即做”整理后续计划
+- 修正文档内 `analytics_db_architecture.md` 与 `analytics_db_todolist.md` 的旧仓库绝对路径
 
 ## 1. 文档目的
 
@@ -23,8 +24,8 @@
 
 不重复展开 `analytics_db` 已落地的底层建库步骤；相关内容请参考：
 
-- [analytics_db_architecture.md](/f:/000_dev/Python/workplace/rearch_agent/.tree/features/agent/docs/backend/database_refactor/analytics_db_architecture.md)
-- [analytics_db_todolist.md](/f:/000_dev/Python/workplace/rearch_agent/.tree/features/agent/docs/backend/database_refactor/analytics_db_todolist.md)
+- [analytics_db_architecture.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_architecture.md)
+- [analytics_db_todolist.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_todolist.md)
 
 ## 2. 当前已完成边界
 

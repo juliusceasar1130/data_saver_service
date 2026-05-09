@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-04-16 Asia/Shanghai
+
+简要概括：补充 Docker PostgreSQL 与 Windows PostgreSQL 端口冲突排故记录。
+
+主要修改内容：
+
+- 新增 `docs/docker_postgres_windows_port_conflict_troubleshooting.md`
+  - 总结 `120JPH_postgres` 与 Windows PostgreSQL 17 并存时的连接混淆原因
+  - 记录 `localhost:5432` 实际连接目标、角色验证结果与数据库验证结果
+  - 整理后续推荐方案，包括“Docker 改端口”与“停用 Windows PostgreSQL 服务”两种处理路径
+
 ## 2026-04-14 19:56 Asia/Shanghai
 
 简要概括：将脚本目录迁移到 `defect_database/scripts` 并统一更新引用路径。
@@ -191,3 +202,116 @@
   - 在“初始化状态”小节中补充 `--init-state` 的职责说明
   - 明确区分 `--init-state`、`--refresh`、`--print-status` 三个命令的作用
   - 补充 `from_summary` 与 `from_zero` 对首个水位的影响
+## 2026-04-14 20:25 Asia/Shanghai
+
+简要概括：核对 `analytics_db` 文档与实际数据库对象，并修正 `database_refactor` 文档中的旧仓库绝对路径。
+
+主要修改内容：
+
+- 核对 `analytics_db` 实际实现状态
+  - 对照数据库中的 `src_rb / src_defect / ods / dim / fct / mart / meta` schema、表、物化视图、刷新过程与样例数据量
+  - 确认 `defect_database/database_refactor` 目录下的核心落地文档与当前数据库实现基本一致
+- 更新文档引用路径
+  - 修正 `defect_database/database_refactor/analytics_db_architecture.md`
+  - 修正 `defect_database/database_refactor/why_analytics_db.md`
+  - 修正 `defect_database/database_refactor/unimplemented_phases_todolist.md`
+  - 将旧仓库 `rearch_agent` 的绝对路径更新为当前仓库 `savedatabase-postgresql_v2` 下的实际文件路径
+
+## 2026-04-14 21:17 Asia/Shanghai
+
+简要概括：将 `analytics_db_architecture.md` 收敛为唯一最终落地文档，并按实时 `analytics_db` 校验结果补齐口径说明。
+
+主要修改内容：
+
+- 更新 `defect_database/database_refactor/analytics_db_architecture.md`
+  - 明确该文档为 `analytics_db` 最终落地口径
+  - 补充基于 MCP 实时校验得到的对象、字段、数据量、异常分类与水位结果
+  - 合并 `current_vehicle_fact_refactor.md` 中仍需保留的设计解释、边界说明与查询入口建议
+- 更新 `defect_database/database_refactor/current_vehicle_fact_refactor.md`
+  - 明确该文档降级为历史设计记录
+  - 指向 `analytics_db_architecture.md` 作为唯一执行与落地基线
+
+## 2026-04-14 21:28 Asia/Shanghai
+
+简要概括：删除 `analytics_db` 最终文档中已过时的下一阶段优化建议章节。
+
+主要修改内容：
+
+- 更新 `defect_database/database_refactor/analytics_db_architecture.md`
+  - 删除 `10.4 下一阶段优化建议` 章节
+  - 避免该章节与当前已落地状态重复，减少“已实现内容仍被描述为下一阶段”的歧义
+
+## 2026-04-14 21:29 Asia/Shanghai
+
+简要概括：为 `analytics_db` 最终文档补充章节目录。
+
+主要修改内容：
+
+- 更新 `defect_database/database_refactor/analytics_db_architecture.md`
+  - 在文档开头新增目录
+  - 为长文档提供章节跳转入口，便于定位初始化、刷新、验证与接入部分
+
+## 2026-04-14 21:33 Asia/Shanghai
+
+简要概括：新增 `analytics_db` 新环境迁移专用初始化与刷新清单。
+
+主要修改内容：
+
+- 新增 `defect_database/database_refactor/analytics_db_migration_checklist.md`
+  - 提炼新环境迁移时的初始化顺序、首次刷新、验收、日常刷新与应用接入清单
+  - 引用最终落地手册中的正式 SQL，避免在迁移清单中重复维护大段对象定义
+
+## 2026-04-14 22:12 Asia/Shanghai
+
+简要概括：新增 `analytics_db` Windows 宿主机定时刷新包装脚本，并同步更新迁移文档。
+
+主要修改内容：
+
+- 新增 `defect_database/scripts/refresh_analytics_db.ps1`
+  - 封装 `psql` 调用 `CALL meta.refresh_analytics_all();`
+  - 默认写入 `logs/analytics_db_refresh.log`
+  - 支持 `-PsqlExe / -DbHost / -DbPort / -DbName / -DbUser / -DbPassword / -ProcedureName`
+- 更新 `defect_database/database_refactor/analytics_db_migration_checklist.md`
+  - 将 Windows 定时任务推荐入口切换为 `refresh_analytics_db.ps1`
+  - 补充 `pgpass.conf` 与 `-PsqlExe` 的使用提示
+- 更新 `defect_database/database_refactor/analytics_db_architecture.md`
+  - 在 `10.2 Windows 定时任务` 中补充包装脚本的推荐命令与参数示例
+
+## 2026-04-15 09:53 Asia/Shanghai
+
+简要概括：补充 `analytics_db` Windows 定时任务下的 `pgpass.conf` 密码认证说明。
+
+主要修改内容：
+
+- 更新 `defect_database/database_refactor/analytics_db_architecture.md`
+  - 在 `10.2 Windows 定时任务` 中补充 `pgpass.conf` 的路径、格式、示例与任务运行账号注意事项
+- 更新 `defect_database/database_refactor/analytics_db_migration_checklist.md`
+  - 在迁移前准备和 Windows 定时任务清单中补充 `pgpass.conf` 的配置要求
+
+## 2026-04-15 15:10 Asia/Shanghai
+
+简要概括：新增 `history_station_defect_summary` 固定窗口表参数化保留方案。
+
+主要修改内容：
+
+- 新增 `defect_database/defect_database_from_agent/history_station_defect_summary_retention_window_plan.md`
+  - 制定将 `history_station_defect_summary` 收敛为最近 `N` 条或最近 `N` 个月窗口表的参数化方案
+  - 说明与现有 watermark、replay window、UPSERT、状态表和下游 `analytics_db` 的兼容关系
+- 更新 `defect_database/defect_database_from_agent/README.md`
+  - 在文件列表与整体设计部分补充固定窗口表方案文档入口
+
+## 2026-04-15 15:24 Asia/Shanghai
+
+简要概括：为 `history_station_defect_summary` 增量刷新脚本落地固定窗口裁剪能力，并输出是否裁剪日志。
+
+主要修改内容：
+
+- 更新 `defect_database/refresh_history_station_defect_summary.py`
+  - 新增 retention 参数：`DEFECT_SUMMARY_RETENTION_MODE / MAX_ROWS / MAX_MONTHS / DELETE_BATCH_SIZE`
+  - 在整轮 `--refresh` 成功后执行窗口裁剪
+  - 输出 `retention_applied / retention_noop` 日志
+  - 在 `--print-status` 中补充 retention 配置与汇总表最小/最大范围
+- 更新 `.env_example`
+  - 补充 retention 相关环境变量模板
+- 更新 `defect_database/defect_database_from_agent/README.md`
+  - 补充 retention 参数说明、使用建议与状态输出说明

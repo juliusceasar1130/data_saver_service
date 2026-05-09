@@ -32,8 +32,8 @@ services:
   # Python 采集websocket数据保存到postgresql服务(目前访问宿主机的网络存在问题，不使用)
   data-saver-service:
     build: .
-    image: data-saver-service:v3
-    container_name: data_saver_service_v3
+    image: data-saver-service:v3.1
+    container_name: data_saver_service_v3.1
     restart: unless-stopped
     init: true # 解决 Python 进程可能不响应信号的问题
     # 显式加入网络
@@ -54,9 +54,10 @@ services:
       - DB_NAME=${POSTGRES_DB:-rollerbed_tracking_db}
 
       # WebSocket 配置
-      - WS_SERVER_HOST=${WS_SERVER_HOST:-172.21.12.73}
-      - WS_SERVER_PORT=${WS_SERVER_PORT:-8088}
+      - WS_SERVER_HOST=${WS_SERVER_HOST:-host.docker.internal}
+      - WS_SERVER_PORT=${WS_SERVER_PORT:-8082}
       - WS_SERVER_PATH=${WS_SERVER_PATH:-/ws/emosweb}
+      - WS_USE_PORT_IN_URL=${WS_USE_PORT_IN_URL:-true}
 
       # 其他配置
       - LOG_LEVEL=INFO
@@ -66,32 +67,6 @@ services:
     volumes:
       # 挂载配置文件，允许主机修改
       - ./deviceConfig.json:/app/deviceConfig.json:ro
-
-  # defect_db 缺陷汇总增量刷新任务，无法解决访问宿主机所在的其他网络，不适用docker部署。
-  # 修改时间：2026-04-13 18:05 Asia/Shanghai
-  # 主要修改内容：
-  # 1. 新增独立 defect-refresh 服务，用于一次性执行刷新脚本
-  # 2. 供 Windows 任务计划程序通过 docker compose --profile manual run --rm 定时触发
-  defect-refresh:
-    build:
-      context: .
-      dockerfile: Dockerfile.defect-refresh
-    image: defect-refresh:latest
-    profiles:
-      - manual
-    init: true
-    networks:
-      - app-network
-    depends_on:
-      postgres:
-        condition: service_healthy
-    env_file:
-      - .env
-    environment:
-      # 容器内访问 compose 中的 postgres 服务时，应使用服务名而不是 localhost
-      DEFECT_TARGET_DB_HOST: ${DEFECT_TARGET_DB_HOST_IN_DOCKER:-postgres}
-      DEFECT_TARGET_DB_PORT: ${DEFECT_TARGET_DB_PORT_IN_DOCKER:-5432}
-    command: ["--print-status"]
 
 volumes:
   pgdata:

@@ -1,6 +1,6 @@
 # Database Snapshots
 
-更新时间：2026-04-14 19:56 Asia/Shanghai
+更新时间：2026-04-15 15:24 Asia/Shanghai
 
 本目录用于保存缺陷数据库的结构快照、车型映射、初始化 SQL 与增量刷新说明，便于本地分析、上线初始化与后续运维。
 
@@ -10,6 +10,7 @@
 - `model_map.json`：`history.model` 到 `type_name`、`black_roof` 的本地映射来源
 - `history_station_defect_summary.sql`：本地 `defect_db` 初始化 SQL，负责创建汇总表、映射表、刷新状态表、刷新日志表与常用索引
 - `history_station_defect_summary_schema.md`：面向大模型分析的汇总表 Markdown schema 说明
+- `history_station_defect_summary_retention_window_plan.md`：将汇总表收敛为固定窗口表的参数化方案
 - `../refresh_history_station_defect_summary.py`：增量刷新脚本，支持本地 PostgreSQL target + PostgreSQL/SQL Server source
 
 来源说明：
@@ -34,6 +35,19 @@
 - `TARGET` 连接：始终写本地 `defect_db`
 - `SOURCE` 连接：读取 PostgreSQL 或 SQL Server 中的 `history`、`history_detail`
 - 每次执行一次 `--refresh`，处理完当前增量后退出
+
+如果后续要把：
+
+- `history_station_defect_summary`
+
+从长期累计表收敛为固定窗口表，例如：
+
+- 最近 `60000` 条
+- 最近 `3` 个月
+
+请参考：
+
+- [history_station_defect_summary_retention_window_plan.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/defect_database_from_agent/history_station_defect_summary_retention_window_plan.md)
 
 ## 刷新原理
 
@@ -284,6 +298,19 @@ python defect_database/refresh_history_station_defect_summary.py --refresh
 - `DEFECT_SUMMARY_TIMEZONE`
   - 数据库会话时区
   - 默认：`Asia/Shanghai`
+- `DEFECT_SUMMARY_RETENTION_MODE`
+  - 汇总表保留窗口模式
+  - 可选：`off`、`max_rows`、`max_months`、`both`
+  - 默认：`off`
+- `DEFECT_SUMMARY_RETENTION_MAX_ROWS`
+  - `max_rows / both` 模式下的保留条数上限
+  - 默认：`60000`
+- `DEFECT_SUMMARY_RETENTION_MAX_MONTHS`
+  - `max_months / both` 模式下的保留月份上限
+  - 默认：`3`
+- `DEFECT_SUMMARY_RETENTION_DELETE_BATCH_SIZE`
+  - 裁剪旧数据时的单批删除条数
+  - 默认：`5000`
 
 ### 5. 参数调优建议
 
@@ -299,6 +326,10 @@ python defect_database/refresh_history_station_defect_summary.py --refresh
   - 可以适当增大 `DEFECT_SUMMARY_REPLAY_HISTORY_WINDOW`
 - 如果调度会重叠触发：
   - 保持 `DEFECT_SUMMARY_LOCK_KEY` 不变，让后来的任务自动跳过
+- 如果你希望把汇总表控制成固定窗口表：
+  - 优先从 `DEFECT_SUMMARY_RETENTION_MODE=max_rows` 开始
+  - 推荐先设置 `DEFECT_SUMMARY_RETENTION_MAX_ROWS=60000`
+  - 裁剪会在整轮 `--refresh` 成功后执行，不会放到每个 batch 后面
 
 ## 使用方式
 
@@ -372,10 +403,12 @@ python defect_database/refresh_history_station_defect_summary.py --print-status
 
 会输出：
 
-- 本地汇总表当前行数与最大 `history_id`
+- 本地汇总表当前行数、最小/最大 `history_id`
+- 本地汇总表当前最小/最大 `date_time`
 - 最近一次成功水位
 - 最近状态
 - 最近 5 条刷新日志
+- 当前 retention 配置
 
 当前脚本运行日志中，批次会按以下类型输出：
 
@@ -384,6 +417,13 @@ python defect_database/refresh_history_station_defect_summary.py --print-status
 - `replay_only`
   - 当前批次只有 replay window，没有新增 `history_id`
   - 通常表示本次刷新已经进入收尾阶段
+
+如果启用了 retention，日志中还会额外输出：
+
+- `retention_applied`
+  - 本轮刷新后发生了窗口裁剪
+- `retention_noop`
+  - 本轮刷新后检查了窗口，但不需要裁剪
 
 ## 调度建议
 

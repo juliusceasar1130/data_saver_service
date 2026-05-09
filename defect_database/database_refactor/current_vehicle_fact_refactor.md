@@ -1,13 +1,21 @@
 # 当前车辆事实分层重构方案
 
-修改时间：2026-04-11 Asia/Shanghai
+修改时间：2026-04-14 21:17 Asia/Shanghai
 
 主要修改内容：
+- 补充“文档状态”说明，明确本文件已并入 `analytics_db_architecture.md`
+- 保留本文件作为第一阶段设计记录，不再作为最终落地执行口径
 - 新增围绕“正式产品车 / 异常车 / 全量占位”重构当前车辆事实层的设计方案
 - 说明当前 `fct_vehicle_position_current` 在异常车和重复调试 `vehicle_id` 场景下的局限
 - 提出新的 `fct` / `mart` 分层建议，为后续 Agent 查询与分析库演进提供实施依据
 - 补充 2026-04-11 已实际落地到 `analytics_db` 的第一阶段对象与验证结果
 - 明确哪些步骤已经完成，哪些仍属于下一阶段优化
+
+## 文档状态
+
+- 本文件为第一阶段分层重构的历史设计记录
+- 当前项目中的最终落地版本已统一收敛到 [analytics_db_architecture.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_architecture.md)
+- 若本文件与最终落地文档存在差异，以 `analytics_db_architecture.md` 和实时数据库对象定义为准
 
 ## 0. 当前已落地状态
 

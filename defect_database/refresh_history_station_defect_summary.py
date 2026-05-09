@@ -1,10 +1,13 @@
 #!/usr/bin/env python3
 """
-修改时间：2026-04-13 12:20 Asia/Shanghai
+修改时间：2026-04-15 15:24 Asia/Shanghai
 主要修改内容：
-1. 支持目标库固定 PostgreSQL、源库支持 PostgreSQL / SQL Server 双方言
-2. 新增源库类型、schema 等配置，并阻止不完整源库配置的静默回退
-3. 保留本地汇总表的 UPSERT、水位推进、日志记录与 advisory lock 控制
+1. 新增 `history_station_defect_summary` 固定窗口保留参数与裁剪逻辑
+2. 在整轮增量刷新成功后执行 retention cleanup，并输出是否裁剪日志
+3. 在 `--print-status` 中补充窗口配置与当前最小/最大范围
+4. 支持目标库固定 PostgreSQL、源库支持 PostgreSQL / SQL Server 双方言
+5. 新增源库类型、schema 等配置，并阻止不完整源库配置的静默回退
+6. 保留本地汇总表的 UPSERT、水位推进、日志记录与 advisory lock 控制
 """
 
 from __future__ import annotations
@@ -31,6 +34,7 @@ MODEL_MAP_FILE = PROJECT_ROOT / "defect_database" / "defect_database_from_agent"
 DEFAULT_TIMEZONE = "Asia/Shanghai"
 ALLOWED_BOOTSTRAP_MODES = {"from_summary", "from_zero"}
 ALLOWED_SOURCE_DB_TYPES = {"postgres", "sqlserver"}
+ALLOWED_RETENTION_MODES = {"off", "max_rows", "max_months", "both"}
 IDENTIFIER_PATTERN = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 SUMMARY_COLUMNS = [
     "history_id",
@@ -156,6 +160,10 @@ class RuntimeSettings:
     lock_key: int
     bootstrap_mode: str
     timezone_name: str
+    retention_mode: str
+    retention_max_rows: int
+    retention_max_months: int
+    retention_delete_batch_size: int
 
 
 @dataclass
@@ -180,6 +188,27 @@ class BatchResult:
     upserted_count: int
     watermark_before: int
     watermark_after: int
+
+
+@dataclass(frozen=True)
+class SummaryTableStats:
+    row_count: int
+    min_history_id: Optional[int]
+    max_history_id: Optional[int]
+    min_date_time: Optional[datetime]
+    max_date_time: Optional[datetime]
+
+
+@dataclass(frozen=True)
+class RetentionCleanupResult:
+    mode: str
+    deleted_count: int
+    row_count_before: int
+    row_count_after: int
+    min_history_id_after: Optional[int]
+    max_history_id_after: Optional[int]
+    min_date_time_after: Optional[datetime]
+    max_date_time_after: Optional[datetime]
 
 
 def load_project_env() -> None:
@@ -304,6 +333,10 @@ def build_runtime_settings() -> RuntimeSettings:
     lock_key = getenv_int("DEFECT_SUMMARY_LOCK_KEY", 20260413)
     bootstrap_mode = getenv_str("DEFECT_SUMMARY_BOOTSTRAP_MODE", "from_summary") or "from_summary"
     timezone_name = getenv_str("DEFECT_SUMMARY_TIMEZONE", DEFAULT_TIMEZONE) or DEFAULT_TIMEZONE
+    retention_mode = getenv_str("DEFECT_SUMMARY_RETENTION_MODE", "off") or "off"
+    retention_max_rows = getenv_int("DEFECT_SUMMARY_RETENTION_MAX_ROWS", 60000)
+    retention_max_months = getenv_int("DEFECT_SUMMARY_RETENTION_MAX_MONTHS", 3)
+    retention_delete_batch_size = getenv_int("DEFECT_SUMMARY_RETENTION_DELETE_BATCH_SIZE", 5000)
 
     if batch_size <= 0:
         raise ValueError("DEFECT_SUMMARY_BATCH_SIZE 必须大于 0")
@@ -313,6 +346,16 @@ def build_runtime_settings() -> RuntimeSettings:
         raise ValueError(
             f"DEFECT_SUMMARY_BOOTSTRAP_MODE 仅支持: {', '.join(sorted(ALLOWED_BOOTSTRAP_MODES))}"
         )
+    if retention_mode not in ALLOWED_RETENTION_MODES:
+        raise ValueError(
+            f"DEFECT_SUMMARY_RETENTION_MODE 仅支持: {', '.join(sorted(ALLOWED_RETENTION_MODES))}"
+        )
+    if retention_delete_batch_size <= 0:
+        raise ValueError("DEFECT_SUMMARY_RETENTION_DELETE_BATCH_SIZE 必须大于 0")
+    if retention_mode in {"max_rows", "both"} and retention_max_rows <= 0:
+        raise ValueError("DEFECT_SUMMARY_RETENTION_MAX_ROWS 在 max_rows/both 模式下必须大于 0")
+    if retention_mode in {"max_months", "both"} and retention_max_months <= 0:
+        raise ValueError("DEFECT_SUMMARY_RETENTION_MAX_MONTHS 在 max_months/both 模式下必须大于 0")
 
     return RuntimeSettings(
         target_db=target_db,
@@ -322,6 +365,10 @@ def build_runtime_settings() -> RuntimeSettings:
         lock_key=lock_key,
         bootstrap_mode=bootstrap_mode,
         timezone_name=timezone_name,
+        retention_mode=retention_mode,
+        retention_max_rows=retention_max_rows,
+        retention_max_months=retention_max_months,
+        retention_delete_batch_size=retention_delete_batch_size,
     )
 
 
@@ -683,6 +730,181 @@ def record_non_batch_result(
         message=message,
     )
     connection.commit()
+
+
+def fetch_summary_table_stats(connection) -> SummaryTableStats:
+    with connection.cursor(cursor_factory=RealDictCursor) as cursor:
+        cursor.execute(
+            """
+            SELECT
+                COUNT(*) AS row_count,
+                MIN(history_id) AS min_history_id,
+                MAX(history_id) AS max_history_id,
+                MIN(date_time) AS min_date_time,
+                MAX(date_time) AS max_date_time
+            FROM public.history_station_defect_summary
+            """
+        )
+        row = cursor.fetchone()
+
+    return SummaryTableStats(
+        row_count=int(row["row_count"]),
+        min_history_id=int(row["min_history_id"]) if row["min_history_id"] is not None else None,
+        max_history_id=int(row["max_history_id"]) if row["max_history_id"] is not None else None,
+        min_date_time=row["min_date_time"],
+        max_date_time=row["max_date_time"],
+    )
+
+
+def fetch_keep_min_history_id(connection, max_rows: int) -> Optional[int]:
+    with connection.cursor() as cursor:
+        cursor.execute(
+            """
+            SELECT MIN(history_id)
+            FROM (
+                SELECT history_id
+                FROM public.history_station_defect_summary
+                ORDER BY history_id DESC
+                LIMIT %s
+            ) recent_rows
+            """,
+            (max_rows,),
+        )
+        value = cursor.fetchone()[0]
+    return int(value) if value is not None else None
+
+
+def delete_rows_by_history_id(connection, boundary_history_id: int, batch_size: int) -> int:
+    total_deleted = 0
+    while True:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM public.history_station_defect_summary
+                WHERE ctid IN (
+                    SELECT ctid
+                    FROM public.history_station_defect_summary
+                    WHERE history_id < %s
+                    ORDER BY history_id ASC
+                    LIMIT %s
+                )
+                """,
+                (boundary_history_id, batch_size),
+            )
+            deleted = cursor.rowcount
+        total_deleted += deleted
+        if deleted == 0:
+            break
+    return total_deleted
+
+
+def delete_rows_by_cutoff_months(connection, max_months: int, batch_size: int) -> int:
+    total_deleted = 0
+    while True:
+        with connection.cursor() as cursor:
+            cursor.execute(
+                """
+                DELETE FROM public.history_station_defect_summary
+                WHERE ctid IN (
+                    SELECT ctid
+                    FROM public.history_station_defect_summary
+                    WHERE date_time < (CURRENT_TIMESTAMP - (%s * INTERVAL '1 month'))
+                    ORDER BY date_time ASC, history_id ASC
+                    LIMIT %s
+                )
+                """,
+                (max_months, batch_size),
+            )
+            deleted = cursor.rowcount
+        total_deleted += deleted
+        if deleted == 0:
+            break
+    return total_deleted
+
+
+def cleanup_summary_retention_window(
+    connection,
+    settings: RuntimeSettings,
+    state: RefreshState,
+) -> RetentionCleanupResult:
+    before_stats = fetch_summary_table_stats(connection)
+    deleted_count = 0
+
+    if settings.retention_mode == "off":
+        return RetentionCleanupResult(
+            mode=settings.retention_mode,
+            deleted_count=0,
+            row_count_before=before_stats.row_count,
+            row_count_after=before_stats.row_count,
+            min_history_id_after=before_stats.min_history_id,
+            max_history_id_after=before_stats.max_history_id,
+            min_date_time_after=before_stats.min_date_time,
+            max_date_time_after=before_stats.max_date_time,
+        )
+
+    if settings.retention_mode in {"max_rows", "both"}:
+        boundary_history_id = fetch_keep_min_history_id(connection, settings.retention_max_rows)
+        if boundary_history_id is not None:
+            deleted_count += delete_rows_by_history_id(
+                connection,
+                boundary_history_id,
+                settings.retention_delete_batch_size,
+            )
+
+    if settings.retention_mode in {"max_months", "both"}:
+        deleted_count += delete_rows_by_cutoff_months(
+            connection,
+            settings.retention_max_months,
+            settings.retention_delete_batch_size,
+        )
+
+    after_stats = fetch_summary_table_stats(connection)
+    if deleted_count > 0:
+        message = (
+            f"retention applied: mode={settings.retention_mode}, "
+            f"deleted_count={deleted_count}, "
+            f"row_count {before_stats.row_count}->{after_stats.row_count}, "
+            f"history_id_after={after_stats.min_history_id}->{after_stats.max_history_id}, "
+            f"date_time_after={after_stats.min_date_time}->{after_stats.max_date_time}"
+        )
+        status = "retention_applied"
+    else:
+        message = (
+            f"retention noop: mode={settings.retention_mode}, "
+            f"deleted_count=0, "
+            f"row_count={after_stats.row_count}, "
+            f"history_id_after={after_stats.min_history_id}->{after_stats.max_history_id}, "
+            f"date_time_after={after_stats.min_date_time}->{after_stats.max_date_time}"
+        )
+        status = "retention_noop"
+
+    logger.info(message)
+    insert_refresh_log(
+        connection,
+        settings,
+        started_at=utc_now(),
+        finished_at=utc_now(),
+        status=status,
+        candidate_count=deleted_count,
+        upserted_count=0,
+        batch_min_history_id=None,
+        batch_max_history_id=None,
+        watermark_before=state.last_success_history_id,
+        watermark_after=state.last_success_history_id,
+        message=message,
+    )
+    connection.commit()
+
+    return RetentionCleanupResult(
+        mode=settings.retention_mode,
+        deleted_count=deleted_count,
+        row_count_before=before_stats.row_count,
+        row_count_after=after_stats.row_count,
+        min_history_id_after=after_stats.min_history_id,
+        max_history_id_after=after_stats.max_history_id,
+        min_date_time_after=after_stats.min_date_time,
+        max_date_time_after=after_stats.max_date_time,
+    )
 
 
 def fetchall_dicts(cursor) -> List[Dict[str, Any]]:
@@ -1133,6 +1355,14 @@ def run_refresh(target_connection, source_connection, settings: RuntimeSettings)
             total_upserted,
             final_watermark,
         )
+        cleanup_result = cleanup_summary_retention_window(target_connection, settings, state)
+        logger.info(
+            "本次窗口裁剪结果: mode=%s, deleted_count=%s, row_count %s->%s",
+            cleanup_result.mode,
+            cleanup_result.deleted_count,
+            cleanup_result.row_count_before,
+            cleanup_result.row_count_after,
+        )
     finally:
         release_advisory_lock(target_connection, settings.lock_key)
 
@@ -1152,7 +1382,9 @@ def print_status(target_connection, settings: RuntimeSettings) -> None:
             """
             SELECT
                 COUNT(*) AS row_count,
+                MIN(history_id) AS min_history_id,
                 COALESCE(MAX(history_id), 0) AS max_history_id,
+                MIN(date_time) AS min_date_time,
                 MAX(date_time) AS max_date_time
             FROM public.history_station_defect_summary
             """
@@ -1187,8 +1419,14 @@ def print_status(target_connection, settings: RuntimeSettings) -> None:
     print(f"source_host: {settings.source_db.host}")
     print(f"source_database: {settings.source_db.database}")
     print(f"source_schema: {settings.source_db.schema}")
+    print(f"retention_mode: {settings.retention_mode}")
+    print(f"retention_max_rows: {settings.retention_max_rows}")
+    print(f"retention_max_months: {settings.retention_max_months}")
+    print(f"retention_delete_batch_size: {settings.retention_delete_batch_size}")
     print(f"summary_row_count: {summary_stats['row_count']}")
+    print(f"summary_min_history_id: {summary_stats['min_history_id']}")
     print(f"summary_max_history_id: {summary_stats['max_history_id']}")
+    print(f"summary_min_date_time: {summary_stats['min_date_time']}")
     print(f"summary_max_date_time: {summary_stats['max_date_time']}")
     if state is None:
         print("state: 尚未初始化")
@@ -1252,7 +1490,7 @@ def main() -> int:
         return 1
 
     logger.info(
-        "目标库: %s:%s/%s, 源库: %s:%s/%s, source_type=%s, source_schema=%s",
+        "目标库: %s:%s/%s, 源库: %s:%s/%s, source_type=%s, source_schema=%s, retention_mode=%s, retention_max_rows=%s, retention_max_months=%s, retention_delete_batch_size=%s",
         settings.target_db.host,
         settings.target_db.port,
         settings.target_db.database,
@@ -1261,6 +1499,10 @@ def main() -> int:
         settings.source_db.database,
         settings.source_db.db_type,
         settings.source_db.schema,
+        settings.retention_mode,
+        settings.retention_max_rows,
+        settings.retention_max_months,
+        settings.retention_delete_batch_size,
     )
 
     args = parse_args()

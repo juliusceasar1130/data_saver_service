@@ -1,6 +1,6 @@
 # 为什么设计 Analytics DB
 
-修改时间：2026-04-11 Asia/Shanghai
+修改时间：2026-04-14 Asia/Shanghai
 
 主要修改内容：
 - 新增 `analytics_db` 设计动机说明，补充“为什么要有统一分析库”而不只是“如何落地”
@@ -9,6 +9,7 @@
 - 补充当前“异常车 / 调试车”场景下的事实建模限制说明
 - 补充下一阶段需要将“正式产品车事实”和“异常车事实”分开的设计依据
 - 同步 2026-04-11 已实际落地的当前车辆事实分层结果
+- 修正文档内指向旧仓库的 `current_vehicle_fact_refactor.md` 引用路径
 
 ## 1. 背景
 
@@ -422,7 +423,7 @@
 
 详细方案可参考：
 
-- [current_vehicle_fact_refactor.md](/F:/000_dev/Python/workplace/rearch_agent/.tree/features/agent/docs/backend/database_refactor/current_vehicle_fact_refactor.md)
+- [current_vehicle_fact_refactor.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/current_vehicle_fact_refactor.md)
 
 ## 12. 一句话总结
 

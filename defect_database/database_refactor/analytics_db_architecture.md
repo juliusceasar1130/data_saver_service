@@ -1,8 +1,15 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-04-11 Asia/Shanghai
+修改时间：2026-04-15 09:53 Asia/Shanghai
 
 主要修改内容：
+- 补充 Windows 定时任务下 `pgpass.conf` 认证方案，解决 `psql` 无法交互输入密码的问题
+- 新增 `defect_database/scripts/refresh_analytics_db.ps1` Windows 宿主机刷新包装脚本说明
+- 新增文档目录，便于在长文档中快速定位章节
+- 删除已过时的“10.4 下一阶段优化建议”章节，避免与当前已落地状态重复或混淆
+- 明确本手册为 `analytics_db` 最终落地口径，`current_vehicle_fact_refactor.md` 仅保留为历史设计记录
+- 补充基于 MCP 对实时 `analytics_db` 的实际对象、字段、物化视图定义与数据量校验结果
+- 将 `current_vehicle_fact_refactor.md` 中仍有参考价值的设计解释、适用边界与查询入口合并进本手册
 - 将旧版 `analytics_db` 架构图文档重写为可直接执行的落地与刷新操作手册
 - 修正旧版流程中遗漏 `dim` 刷新、`meta.refresh_watermark` 更新、刷新口径错误等问题
 - 以当前数据库中已经验证成功的对象结构为准，统一后续执行口径
@@ -11,6 +18,48 @@
 - 将“当前车辆事实分层优化”第一阶段落地结果同步到手册
 - 补充 `fct_position_current_all`、`fct_abnormal_vehicle_current`、`mart_abnormal_vehicle_current` 与 `dim_vehicle_profile.current_*` 最新对象说明
 - 补充 `mart_position_current_overview` 当前现场总览对象与对应刷新、验证口径
+- 修正文档内失效的旧仓库绝对路径引用，改为当前仓库实际文件路径
+
+## 目录
+
+- [1. 适用范围](#1-适用范围)
+- [2. 当前已验证的最新状态](#2-当前已验证的最新状态)
+- [3. 旧版流程中已修正的错误](#3-旧版流程中已修正的错误)
+- [3.1 当前已知限制](#31-当前已知限制)
+- [3.2 为什么必须拆分“全部占位 / 正式产品车 / 异常车”](#32-为什么必须拆分全部占位--正式产品车--异常车)
+- [3.2.1 重复调试 `vehicle_id` 会被错误压缩](#321-重复调试-vehicle_id-会被错误压缩)
+- [3.2.2 产品车与异常车的建模依据不同](#322-产品车与异常车的建模依据不同)
+- [3.2.3 为什么不能再把 `fct_vehicle_position_current` 当成总入口](#323-为什么不能再把-fct_vehicle_position_current-当成总入口)
+- [3.3 建议查询入口](#33-建议查询入口)
+- [4. 前置确认](#4-前置确认)
+- [5. 一次性初始化流程](#5-一次性初始化流程)
+- [5.1 检查 `analytics_db` 是否已存在](#51-检查-analytics_db-是否已存在)
+- [5.2 创建 `analytics_db`](#52-创建-analytics_db)
+- [5.3 创建 schema](#53-创建-schema)
+- [5.4 创建只读角色](#54-创建只读角色)
+- [5.5 创建 FDW 连接](#55-创建-fdw-连接)
+- [5.6 导入外部表](#56-导入外部表)
+- [6. 本地 ODS / DIM / FCT / MART 对象初始化](#6-本地-ods--dim--fct--mart-对象初始化)
+- [6.1 创建 ODS 表](#61-创建-ods-表)
+- [6.2 ODS 主键与索引](#62-ods-主键与索引)
+- [6.3 创建 `meta` 表](#63-创建-meta-表)
+- [6.4 创建 `dim` 表](#64-创建-dim-表)
+- [6.5 创建事实层与分析层物化视图](#65-创建事实层与分析层物化视图)
+- [6.6 授权](#66-授权)
+- [7. 最新正式版一键刷新过程](#7-最新正式版一键刷新过程)
+- [8. 首次刷新](#8-首次刷新)
+- [9. 日常验证 SQL](#9-日常验证-sql)
+- [9.1 验证 schema / 表 / 物化视图](#91-验证-schema--表--物化视图)
+- [9.2 验证数据量](#92-验证数据量)
+- [9.3 验证刷新日志与水位](#93-验证刷新日志与水位)
+- [9.4 验证异常车分类结果](#94-验证异常车分类结果)
+- [9.5 验证 `agent_ro` 权限](#95-验证-agent_ro-权限)
+- [10. 后续怎么执行](#10-后续怎么执行)
+- [10.1 手工刷新](#101-手工刷新)
+- [10.2 Windows 定时任务](#102-windows-定时任务)
+- [10.3 建议频率](#103-建议频率)
+- [11. 项目接入](#11-项目接入)
+- [12. 两个重要提醒](#12-两个重要提醒)
 
 ## 1. 适用范围
 
@@ -28,9 +77,15 @@
 - 将源表数据同步到本地 `ods` 表
 - 在 `fct` / `mart` 中生成给 Agent 使用的分析对象
 
+本手册与 `current_vehicle_fact_refactor.md` 的关系：
+
+- 本手册是当前项目后续执行、刷新、校验、接入时应采用的唯一落地基线
+- `current_vehicle_fact_refactor.md` 保留为第一阶段分层重构的历史设计记录
+- 若两份文档出现口径差异，以本手册和实时数据库对象定义为准
+
 ## 2. 当前已验证的最新状态
 
-截至 2026-04-11，数据库中已经验证存在以下对象：
+2026-04-14 通过 MCP 直连实时 `analytics_db` 校验，数据库中当前存在以下对象：
 
 - 数据库：
   - `analytics_db`
@@ -72,16 +127,39 @@
 
 本手册以下内容，以这套已验证状态为准。
 
-当次校验样例（2026-04-11）：
+当次实时校验结果（2026-04-14，当前数据水位仍停留在 2026-04-11 刷新批次）：
 
 - `ods.rb_position_data`：`520`
 - `ods.history_station_defect_summary`：`60370`
+- `dim.dim_process_area`：`15`
+- `dim.dim_vehicle_profile`：`54430`
 - `fct.fct_position_current_all`：`114`
 - `fct.fct_vehicle_position_current`：`102`
 - `fct.fct_abnormal_vehicle_current`：`12`
+- `fct.fct_vehicle_defect_detection`：`60370`
 - `mart.mart_vehicle_quality_360`：`60370`
 - `mart.mart_abnormal_vehicle_current`：`12`
 - `mart.mart_position_current_overview`：`114`
+
+当次实时校验还确认：
+
+- `dim.dim_vehicle_profile` 已实际存在以下当前绑定快照字段：
+  - `current_position_id`
+  - `current_carrier_id`
+  - `current_carrier_type`
+  - `current_process_area`
+  - `current_full_rb_code`
+  - `current_position_updated_at`
+- `fct.fct_position_current_all` 的真实定义已按当前占位进行分类：
+  - `product_vehicle`
+  - `abnormal_vehicle`
+- `fct.fct_abnormal_vehicle_current` 当前实时分类结果为：
+  - `empty_vehicle_id_with_carrier`：`8`
+  - `non_product_prefix`：`4`
+- `meta.refresh_watermark` 当前记录为：
+  - `ods.rb_position_data.max_vehicle_updated_at = 2026-04-03 06:11:32.191541+00`
+  - `ods.history_station_defect_summary.max_date_time = 2026-04-08 11:54:19`
+  - `ods.history_station_defect_summary.max_history_id = 1301806`
 
 ## 3. 旧版流程中已修正的错误
 
@@ -128,20 +206,83 @@
 - 位置历史快照层
 - 检测时位置或停留时长关联分析
 
-详细方案见：
+以上边界与后续方向，原本分散记录在 `current_vehicle_fact_refactor.md` 中，现已并入本手册。
 
-- [current_vehicle_fact_refactor.md](/F:/000_dev/Python/workplace/rearch_agent/.tree/features/agent/docs/backend/database_refactor/current_vehicle_fact_refactor.md)
+## 3.2 为什么必须拆分“全部占位 / 正式产品车 / 异常车”
+
+本次分层优化的根本原因，不是命名调整，而是业务实体唯一性不同。
+
+### 3.2.1 重复调试 `vehicle_id` 会被错误压缩
+
+旧版 `fct.fct_vehicle_position_current` 的核心逻辑是：
+
+- 从 `ods.rb_position_data` 中取数
+- 按 `vehicle_id` 使用 `DISTINCT ON (vehicle_id)` 保留最新一条
+
+这套逻辑对正式产品车基本成立，但对异常车或调试车不成立。  
+如果现场有多台调试车共用同一个临时 `vehicle_id`，例如 `88888888888888`，那么按 `vehicle_id` 去重后只能保留一条，无法代表“当前全部占位”。
+
+### 3.2.2 产品车与异常车的建模依据不同
+
+正式产品车当前采用的识别口径是：
+
+- `vehicle_id LIKE '782026%'`
+- `body_type <> '-----'`
+- `carrier_id <> '0'`
+
+异常车则可能出现以下情况：
+
+- `vehicle_id` 前缀不是 `782026`
+- `vehicle_id = '--------------'`
+- `vehicle_id` 为空
+- `vehicle_id` 虽是产品前缀，但 `body_type = '-----'`
+
+因此异常车不能继续与正式产品车共用同一个“按 `vehicle_id` 唯一化”的事实表。
+
+### 3.2.3 为什么不能再把 `fct_vehicle_position_current` 当成总入口
+
+如果继续把 `fct.fct_vehicle_position_current` 当成“全部车辆当前事实”，会导致：
+
+1. 多台调试车共用 `vehicle_id` 时被错误合并
+2. 异常车统计被系统性低估
+3. `carrier_id -> vehicle_id` 的当前绑定关系不完整
+4. Agent 容易把“正式产品车事实”误认为“全部现场事实”
+
+因此当前正式落地口径已经拆为：
+
+- `fct.fct_position_current_all`：当前全部有效占位
+- `fct.fct_vehicle_position_current`：当前正式产品车
+- `fct.fct_abnormal_vehicle_current`：当前异常车
+
+## 3.3 建议查询入口
+
+为避免 Agent 或后续开发继续混用口径，当前建议的查询入口固定如下：
+
+- 正式产品车当前分布：
+  - `fct.fct_vehicle_position_current`
+- 当前异常车监控：
+  - `fct.fct_abnormal_vehicle_current`
+  - `mart.mart_abnormal_vehicle_current`
+- 当前现场总览：
+  - `fct.fct_position_current_all`
+  - `mart.mart_position_current_overview`
+- 质量与当前位置关联：
+  - `mart.mart_vehicle_quality_360`
+
+一句话原则：
+
+- 不再试图让一张表同时承担“全部占位、正式产品车、异常车”三种不同口径
 
 ## 4. 前置确认
 
 首次搭建前，请先确认源表已存在：
 
 - `rollerbed_tracking_db` 中的基础表来自：
-  - [create_tables_postgresql.sql](/F:/000_dev/Python/workplace/rearch_agent/.tree/features/agent/tracking_database/create_tables_postgresql.sql)
+  - [create_tables_postgresql.sql](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/create_tables_postgresql.sql)
 - `defect_db` 中需要先存在：
   - `history_station_defect_summary`
 - 缺陷汇总表说明文档：
-  - [history_station_defect_summary_schema.md](/F:/000_dev/Python/workplace/rearch_agent/.tree/features/agent/defect_database/history_station_defect_summary_schema.md)
+  - [history_station_defect_summary_schema.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/defect_database_from_agent/history_station_defect_summary_schema.md)
 
 默认 PostgreSQL 环境：
 
@@ -1128,10 +1269,55 @@ CALL meta.refresh_analytics_all();
 
 ### 10.2 Windows 定时任务
 
-如果 `psql` 已经在 PATH 中，可以直接使用：
+推荐直接调用仓库中的 PowerShell 包装脚本：
 
 ```powershell
-psql -U root -h localhost -p 5432 -d analytics_db -c "CALL meta.refresh_analytics_all();"
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_analytics_db.ps1"
+```
+
+脚本说明：
+
+- 默认执行 `CALL meta.refresh_analytics_all();`
+- 日志写入宿主机 `logs/analytics_db_refresh.log`
+- 默认优先从 PATH 查找 `psql`
+- 如需显式指定 `psql.exe`，可追加：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_analytics_db.ps1" -PsqlExe "C:\Program Files\PostgreSQL\17\bin\psql.exe"
+```
+
+- 如需显式传入连接信息，可追加：
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_analytics_db.ps1" -DbHost "localhost" -DbPort "5432" -DbName "analytics_db" -DbUser "root"
+```
+
+建议优先通过 `pgpass.conf` 提供密码；如仅用于临时排障，也可短期传入 `-DbPassword`。
+
+`pgpass.conf` 推荐配置方式：
+
+- Windows 路径：
+  - `%APPDATA%\postgresql\pgpass.conf`
+- 常见实际路径示例：
+  - `C:\Users\你的用户名\AppData\Roaming\postgresql\pgpass.conf`
+- 一行格式：
+  - `hostname:port:database:username:password`
+- 当前默认环境示例：
+
+```txt
+localhost:5432:analytics_db:root:root
+```
+
+补充说明：
+
+- 如果数据库不在本机，请将 `localhost` 改成真实主机名或 IP
+- 如果计划任务使用的不是当前登录用户，请把 `pgpass.conf` 放到“任务实际运行账号”的 `%APPDATA%\postgresql\` 下
+- `refresh_analytics_db.ps1` 会优先复用 `pgpass.conf`；只有在你显式传入 `-DbPassword` 时，才会临时设置 `PGPASSWORD`
+
+如果你不想使用包装脚本，而 `psql` 已经在 PATH 中，也可以直接使用：
+
+```powershell
+psql -U root -h localhost -p 5432 -d analytics_db -v ON_ERROR_STOP=1 -c "CALL meta.refresh_analytics_all();"
 ```
 
 如果 `psql` 不在 PATH 中，请使用 PostgreSQL 安装目录下的完整路径，或者使用 pgAdmin / 其他 SQL 客户端执行。
@@ -1142,29 +1328,6 @@ psql -U root -h localhost -p 5432 -d analytics_db -c "CALL meta.refresh_analytic
 - 缺陷汇总相关分析：每 `15` 到 `30` 分钟
 
 当前正式版本是“全量刷新”，先以稳定为主，后续再考虑增量刷新。
-
-## 10.4 下一阶段优化建议
-
-如果后续要支持以下查询：
-
-- 调试车或异常车当前分布
-- 通过 `carrier_id` 反查当前车辆
-- 相同异常 `vehicle_id` 在不同位置同时存在
-- 正式产品车与异常车分开统计
-
-建议按以下方向演进：
-
-1. 保留当前 `ods` / `dim` / `fct` / `mart` 基础结构
-2. 新增 `fct_position_current_all`
-3. 将 `fct_vehicle_position_current` 明确收窄为正式产品车事实
-4. 新增 `fct_abnormal_vehicle_current`
-5. 将 `mart_vehicle_quality_360` 明确为正式产品车质量分析主表
-6. 将 `mart_position_current_overview` 作为当前现场总览统一入口
-7. 视需要继续新增更细的异常车或时序主题 `mart`
-
-详细方案见：
-
-- [current_vehicle_fact_refactor.md](/F:/000_dev/Python/workplace/rearch_agent/.tree/features/agent/docs/backend/database_refactor/current_vehicle_fact_refactor.md)
 
 ## 11. 项目接入
 
