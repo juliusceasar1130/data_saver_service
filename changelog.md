@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-05-10 15:35 Asia/Shanghai
+
+简要概括：整理并保存 `carbody_history` 表结构文档。
+
+主要修改内容：
+
+- 新增 `carbody_history/schema.md`
+  - 通过 PostgreSQL MCP 连接数据库获取了 `carbody_history` 表的完整 Schema
+  - 整理了字段名、数据类型、约束以及初步说明
+
 ## 2026-04-16 Asia/Shanghai
 
 简要概括：补充 Docker PostgreSQL 与 Windows PostgreSQL 端口冲突排故记录。

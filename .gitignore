@@ -22,6 +22,9 @@ build/
 # Claude Code 本地配置
 .claude/
 
+# antigravity
+.agent/
+
 # 临时文件
 *.tmp
 *.temp
