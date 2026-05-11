@@ -1,8 +1,13 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-04-15 09:53 Asia/Shanghai
+修改时间：2026-05-10 Asia/Shanghai
 
 主要修改内容：
+- 新增 `carbody_history` 数据库接入：FDW 连接、`src_carbody` 外部表、`ods.carbody_history` ODS 表
+- 新增 `dim.carbody_vehicle_profile` 维度表（首/末过站聚合，78 前缀过滤）
+- 新增 `meta.refresh_carbody()` 独立刷新存储过程
+- 补充 carbody 相关验证 SQL 和迁移清单项
+- 原始变动（2026-04-15）：
 - 补充 Windows 定时任务下 `pgpass.conf` 认证方案，解决 `psql` 无法交互输入密码的问题
 - 新增 `defect_database/scripts/refresh_analytics_db.ps1` Windows 宿主机刷新包装脚本说明
 - 新增文档目录，便于在长文档中快速定位章节
@@ -92,6 +97,7 @@
 - schema：
   - `src_rb`
   - `src_defect`
+  - `src_carbody`
   - `ods`
   - `dim`
   - `fct`
@@ -105,9 +111,11 @@
   - `vehicle_color_codes`
   - `vehicle_platforms`
   - `history_station_defect_summary`
+  - `carbody_history`
 - `dim` 表：
   - `dim_process_area`
   - `dim_vehicle_profile`
+  - `carbody_vehicle_profile`
 - `fct` 物化视图：
   - `fct_position_current_all`
   - `fct_abnormal_vehicle_current`
@@ -122,6 +130,7 @@
   - `refresh_watermark`
 - 刷新过程：
   - `meta.refresh_analytics_all()`
+  - `meta.refresh_carbody()`
 - 只读角色：
   - `agent_ro`
 
@@ -453,6 +462,47 @@ FROM SERVER defect_srv INTO src_defect;
 ```
 
 如果这些外部表已经存在，就不要重复执行上面的导入语句。
+
+### 5.7 创建 carbody FDW 连接与外部表
+
+```sql
+-- schema
+CREATE SCHEMA IF NOT EXISTS src_carbody;
+
+-- FDW server
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_foreign_server WHERE srvname = 'carbody_srv'
+  ) THEN
+    CREATE SERVER carbody_srv
+    FOREIGN DATA WRAPPER postgres_fdw
+    OPTIONS (host 'localhost', dbname 'carbody_history', port '5432');
+  END IF;
+END;
+$$;
+
+-- user mapping
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_user_mappings m
+    JOIN pg_foreign_server s ON m.srvid = s.oid
+    JOIN pg_roles r ON m.umuser = r.oid
+    WHERE s.srvname = 'carbody_srv' AND r.rolname = 'root'
+  ) THEN
+    CREATE USER MAPPING FOR root
+    SERVER carbody_srv
+    OPTIONS (user 'root', password 'root');
+  END IF;
+END;
+$$;
+
+-- 导入外部表（仅一次）
+IMPORT FOREIGN SCHEMA public
+LIMIT TO (carbody_history)
+FROM SERVER carbody_srv INTO src_carbody;
+```
 
 ## 6. 本地 ODS / DIM / FCT / MART 对象初始化
 
@@ -981,6 +1031,63 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA ods, dim, fct, mart, meta
 GRANT SELECT ON TABLES TO agent_ro;
 ```
 
+### 6.7 创建 `ods.carbody_history`
+
+```sql
+CREATE TABLE IF NOT EXISTS ods.carbody_history AS
+SELECT * FROM src_carbody.carbody_history WITH NO DATA;
+
+-- PK + 索引
+ALTER TABLE ods.carbody_history ADD PRIMARY KEY ("ID");
+CREATE INDEX IF NOT EXISTS idx_ods_carbody_body_id         ON ods.carbody_history("BODY_ID");
+CREATE INDEX IF NOT EXISTS idx_ods_carbody_date_evt        ON ods.carbody_history("DATE_EVT");
+CREATE INDEX IF NOT EXISTS idx_ods_carbody_body_id_date    ON ods.carbody_history("BODY_ID", "DATE_EVT");
+CREATE INDEX IF NOT EXISTS idx_ods_carbody_rw_station      ON ods.carbody_history("RW_STATION_ID");
+```
+
+### 6.8 创建 `dim.carbody_vehicle_profile`
+
+```sql
+-- 首/末过站聚合表，78 前缀过滤，每车一行
+-- MDS_DATA 提取规则见 carbody_history/MDS数据提取规则.md
+CREATE TABLE IF NOT EXISTS dim.carbody_vehicle_profile (
+    vehicle_id         VARCHAR(14) PRIMARY KEY,
+    first_seen_at      TIMESTAMP NOT NULL,      -- 首次过站时间
+    last_seen_at       TIMESTAMP NOT NULL,      -- 末次过站时间
+    first_rw_station   VARCHAR(64),             -- 首次过站位置
+    last_rw_station    VARCHAR(64),             -- 末次过站位置
+    first_body_type    VARCHAR(12),             -- 入口车身类型
+    last_body_type     VARCHAR(12),             -- 出口车身类型
+    station_pass_count INTEGER,                 -- 总过站次数
+    body_type          VARCHAR(5),              -- MDS_DATA 45-49
+    platform_code      VARCHAR(3),              -- MDS_DATA 51-53
+    color_code         VARCHAR(4),              -- MDS_DATA 59-62
+    black_roof_flag    VARCHAR(1),              -- MDS_DATA 137
+    rework_flag        VARCHAR(1),              -- MDS_DATA 139
+    reserved_1         VARCHAR(1),              -- MDS_DATA 138
+    reserved_2         VARCHAR(1),              -- MDS_DATA 140
+    etl_loaded_at      TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- 索引
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_seen   ON dim.carbody_vehicle_profile(first_seen_at);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_seen    ON dim.carbody_vehicle_profile(last_seen_at);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_station ON dim.carbody_vehicle_profile(first_rw_station);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_station  ON dim.carbody_vehicle_profile(last_rw_station);
+```
+
+如果表已存在（老版本升级），通过 ALTER TABLE 补齐 7 个 MDS 字段：
+
+```sql
+ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS body_type       VARCHAR(5);
+ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS platform_code   VARCHAR(3);
+ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS color_code      VARCHAR(4);
+ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS black_roof_flag VARCHAR(1);
+ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS rework_flag     VARCHAR(1);
+ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS reserved_1      VARCHAR(1);
+ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS reserved_2      VARCHAR(1);
+```
+
 ## 7. 最新正式版一键刷新过程
 
 以下过程是当前数据库已经验证通过的正式刷新版本。
@@ -1161,10 +1268,185 @@ END;
 $$;
 ```
 
-## 8. 首次刷新
+### 7.2 carbody 刷新过程（增量 UPSERT）
+
+不纳入 `refresh_analytics_all()`，原因是 carbody 数据量（101 万行）和刷新频率可能不同，出错时隔离影响面。
+
+**增量策略**：ODS 纯增量（INSERT only，不 TRUNCATE）+ DIM 增量 UPSERT。水位基于 `max("ID")`（自增主键，无重复、无时区问题）。
 
 ```sql
+CREATE OR REPLACE PROCEDURE meta.refresh_carbody()
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  v_log_id    BIGINT;
+  v_last_id   NUMERIC;
+  v_new_count INTEGER;
+BEGIN
+  INSERT INTO meta.sync_job_log(job_name, status, message)
+  VALUES ('refresh_carbody', 'running', 'start')
+  RETURNING id INTO v_log_id;
+
+  -- 1. 读取 ODS 水位
+  SELECT COALESCE(watermark_value::numeric, 0)
+  INTO v_last_id
+  FROM meta.refresh_watermark
+  WHERE source_name = 'ods.carbody_history.max_id';
+
+  -- 2. ODS 增量插入
+  INSERT INTO ods.carbody_history
+  SELECT * FROM src_carbody.carbody_history
+  WHERE "ID" > v_last_id;
+
+  GET DIAGNOSTICS v_new_count = ROW_COUNT;
+
+  -- 3. DIM UPSERT（仅处理增量批次中的车辆）
+  IF v_new_count > 0 THEN
+    WITH new_records AS (
+        SELECT * FROM ods.carbody_history
+        WHERE "ID" > v_last_id
+          AND "BODY_ID" LIKE '78%'
+    ),
+    vehicle_agg AS (
+        SELECT
+            "BODY_ID" AS vehicle_id,
+            MIN("DATE_EVT") AS first_seen_at,
+            MAX("DATE_EVT") AS last_seen_at,
+            (ARRAY_AGG("RW_STATION_ID" ORDER BY "DATE_EVT"))[1]      AS first_rw_station,
+            (ARRAY_AGG("RW_STATION_ID" ORDER BY "DATE_EVT" DESC))[1] AS last_rw_station,
+            (ARRAY_AGG("BODY_TYPE"    ORDER BY "DATE_EVT"))[1]      AS first_body_type,
+            (ARRAY_AGG("BODY_TYPE"    ORDER BY "DATE_EVT" DESC))[1] AS last_body_type,
+            count(*) AS station_pass_count
+        FROM new_records
+        GROUP BY "BODY_ID"
+    ),
+    last_mds AS (
+        SELECT DISTINCT ON ("BODY_ID")
+            "BODY_ID",
+            substring("MDS_DATA", 45, 5)  AS mds_body_type,
+            substring("MDS_DATA", 51, 3)  AS mds_platform_code,
+            substring("MDS_DATA", 59, 4)  AS mds_color_code,
+            substring("MDS_DATA", 137, 1) AS mds_black_roof_flag,
+            substring("MDS_DATA", 139, 1) AS mds_rework_flag,
+            substring("MDS_DATA", 138, 1) AS mds_reserved_1,
+            substring("MDS_DATA", 140, 1) AS mds_reserved_2
+        FROM new_records
+        WHERE length("MDS_DATA") >= 140
+        ORDER BY "BODY_ID", "DATE_EVT" DESC
+    )
+    INSERT INTO dim.carbody_vehicle_profile (
+        vehicle_id, first_seen_at, last_seen_at,
+        first_rw_station, last_rw_station,
+        first_body_type, last_body_type, station_pass_count,
+        body_type, platform_code, color_code,
+        black_roof_flag, rework_flag, reserved_1, reserved_2
+    )
+    SELECT
+        va.vehicle_id,
+        va.first_seen_at,
+        va.last_seen_at,
+        va.first_rw_station,
+        va.last_rw_station,
+        va.first_body_type,
+        va.last_body_type,
+        va.station_pass_count,
+        lm.mds_body_type,
+        lm.mds_platform_code,
+        lm.mds_color_code,
+        lm.mds_black_roof_flag,
+        lm.mds_rework_flag,
+        lm.mds_reserved_1,
+        lm.mds_reserved_2
+    FROM vehicle_agg va
+    LEFT JOIN last_mds lm ON lm."BODY_ID" = va.vehicle_id
+    ON CONFLICT (vehicle_id) DO UPDATE SET
+        last_seen_at       = EXCLUDED.last_seen_at,
+        last_rw_station    = EXCLUDED.last_rw_station,
+        last_body_type     = EXCLUDED.last_body_type,
+        station_pass_count = dim.carbody_vehicle_profile.station_pass_count
+                           + EXCLUDED.station_pass_count,
+        body_type          = EXCLUDED.body_type,
+        platform_code      = EXCLUDED.platform_code,
+        color_code         = EXCLUDED.color_code,
+        black_roof_flag    = EXCLUDED.black_roof_flag,
+        rework_flag        = EXCLUDED.rework_flag,
+        reserved_1         = EXCLUDED.reserved_1,
+        reserved_2         = EXCLUDED.reserved_2;
+  END IF;
+
+  -- 4. 更新水位
+  INSERT INTO meta.refresh_watermark(source_name, watermark_value, updated_at)
+  VALUES
+    ('ods.carbody_history.max_id',
+     (SELECT COALESCE(MAX("ID")::text, v_last_id::text) FROM ods.carbody_history), now()),
+    ('dim.carbody_vehicle_profile.last_sync_at', now()::text, now())
+  ON CONFLICT (source_name) DO UPDATE
+  SET watermark_value = EXCLUDED.watermark_value,
+      updated_at      = EXCLUDED.updated_at;
+
+  -- 5. 权限
+  GRANT SELECT ON ALL TABLES IN SCHEMA src_carbody TO agent_ro;
+  GRANT SELECT ON ods.carbody_history TO agent_ro;
+  GRANT SELECT ON dim.carbody_vehicle_profile TO agent_ro;
+  ALTER DEFAULT PRIVILEGES IN SCHEMA src_carbody GRANT SELECT ON TABLES TO agent_ro;
+
+  UPDATE meta.sync_job_log
+  SET finished_at = now(), status = 'success',
+      message = format('ods_new: %s rows', v_new_count)
+  WHERE id = v_log_id;
+EXCEPTION WHEN OTHERS THEN
+  UPDATE meta.sync_job_log
+  SET finished_at = now(), status = 'failed', message = SQLERRM
+  WHERE id = v_log_id;
+  RAISE;
+END;
+$$;
+```
+
+**UPSERT 语义**：
+
+| 字段 | INSERT（新车） | UPDATE（已有车） |
+|------|---------------|------------------|
+| `vehicle_id` | 写入 | 不变（PK） |
+| `first_seen_at` / `first_rw_station` / `first_body_type` | 写入 | **不更新** |
+| `last_seen_at` / `last_rw_station` / `last_body_type` | 写入 | **覆盖** |
+| `station_pass_count` | 写入 | **累加**（旧值 + 批次计数） |
+| MDS 7 字段 | 写入（末次 MDS_DATA） | **覆盖** |
+
+**每周兜底**：ODS 纯增量不清理过期行。建议每周一次全量重刷以同步源库的 1 个月滚动窗口：
+
+```sql
+-- 重置水位为 0 + 清空 ODS/DIM + 调用增量过程（等价全量）
+UPDATE meta.refresh_watermark SET watermark_value = '0'
+WHERE source_name = 'ods.carbody_history.max_id';
+TRUNCATE TABLE ods.carbody_history;
+TRUNCATE TABLE dim.carbody_vehicle_profile;
+CALL meta.refresh_carbody();
+```
+
+## 8. 首次刷新
+
+首次执行前，先初始化增量水位。根据环境选择：
+
+```sql
+-- 新环境（空库）：水位从 0 开始，首次调用即全量
+INSERT INTO meta.refresh_watermark(source_name, watermark_value)
+VALUES ('ods.carbody_history.max_id', '0')
+ON CONFLICT (source_name) DO NOTHING;
+
+-- 老环境（已有全量数据）：跳过全量重刷，从当前最大 ID 开始增量
+-- INSERT INTO meta.refresh_watermark(source_name, watermark_value)
+-- VALUES ('ods.carbody_history.max_id',
+--         (SELECT COALESCE(MAX("ID")::text, '0') FROM ods.carbody_history))
+-- ON CONFLICT (source_name) DO NOTHING;
+```
+
+```sql
+-- analytics 主刷新
 CALL meta.refresh_analytics_all();
+
+-- carbody 首次刷新（新环境为全量，老环境为增量）
+CALL meta.refresh_carbody();
 ```
 
 ## 9. 日常验证 SQL
@@ -1257,14 +1539,70 @@ SELECT
   has_table_privilege('agent_ro', 'fct.fct_position_current_all', 'SELECT') AS position_all_select;
 ```
 
+### 9.6 验证 carbody 对象
+
+```sql
+-- 水位是否存在
+SELECT * FROM meta.refresh_watermark
+WHERE source_name IN ('ods.carbody_history.max_id', 'dim.carbody_vehicle_profile.last_sync_at');
+
+-- 对象存在性
+SELECT table_schema, table_name
+FROM information_schema.tables
+WHERE table_schema IN ('src_carbody','ods') AND table_name LIKE '%carbody%'
+UNION ALL
+SELECT table_schema, table_name
+FROM information_schema.tables
+WHERE table_schema = 'dim' AND table_name = 'carbody_vehicle_profile';
+
+-- 数据量（期待 ods ~101 万，dim ~1.3 万）
+SELECT 'ods.carbody_history' AS tbl, count(*) AS rows FROM ods.carbody_history
+UNION ALL
+SELECT 'dim.carbody_vehicle_profile' AS tbl, count(*) AS rows FROM dim.carbody_vehicle_profile;
+
+-- 首末时间合理性（应为 0）
+SELECT count(*) AS invalid_count
+FROM dim.carbody_vehicle_profile
+WHERE first_seen_at > last_seen_at;
+
+-- 78 前缀一致性（应为 0）
+SELECT count(*) AS non_78_prefix
+FROM dim.carbody_vehicle_profile
+WHERE vehicle_id NOT LIKE '78%';
+
+-- vehicle_id 唯一性（应为 0）
+SELECT vehicle_id, count(*) AS dup
+FROM dim.carbody_vehicle_profile
+GROUP BY vehicle_id HAVING count(*) > 1;
+
+-- MDS 字段非 NULL 率
+SELECT
+    round(count(body_type)     * 100.0 / count(*), 1) AS body_type_pct,
+    round(count(platform_code) * 100.0 / count(*), 1) AS platform_pct,
+    round(count(color_code)    * 100.0 / count(*), 1) AS color_pct
+FROM dim.carbody_vehicle_profile;
+
+-- 数据样本
+SELECT * FROM dim.carbody_vehicle_profile ORDER BY first_seen_at DESC LIMIT 10;
+
+-- 刷新日志
+SELECT * FROM meta.sync_job_log WHERE job_name = 'refresh_carbody' ORDER BY id DESC LIMIT 5;
+
+-- 增量幂等性：连续执行两次 CALL meta.refresh_carbody()，第二次 ods_new 应为 0
+```
+
 ## 10. 后续怎么执行
 
 ### 10.1 手工刷新
 
-后续日常刷新只需要执行：
+后续日常刷新执行：
 
 ```sql
+-- analytics 主刷新
 CALL meta.refresh_analytics_all();
+
+-- carbody 刷新
+CALL meta.refresh_carbody();
 ```
 
 ### 10.2 Windows 定时任务
@@ -1326,8 +1664,8 @@ psql -U root -h localhost -p 5432 -d analytics_db -v ON_ERROR_STOP=1 -c "CALL me
 
 - `rb_position_data` 相关分析：每 `5` 分钟
 - 缺陷汇总相关分析：每 `15` 到 `30` 分钟
-
-当前正式版本是“全量刷新”，先以稳定为主，后续再考虑增量刷新。
+- carbody 增量刷新：每 `5` 分钟（增量批次几十~几百条，开销低）
+- carbody 每周兜底：全量重刷 ODS + DIM，清理源库已滚动删除的过期行
 
 ## 11. 项目接入
 

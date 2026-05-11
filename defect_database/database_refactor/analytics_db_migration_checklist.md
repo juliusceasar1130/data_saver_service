@@ -1,12 +1,14 @@
 # Analytics DB 新环境迁移清单
 
-修改时间：2026-04-15 09:53 Asia/Shanghai
+修改时间：2026-05-10 Asia/Shanghai
 
 主要修改内容：
-- 补充 Windows 定时任务场景下 `pgpass.conf` 的认证准备与配置说明
-- 新增面向新环境迁移的独立初始化与刷新指导清单
-- 从最终落地手册中提炼执行顺序、验收点与常见注意事项
-- 保留对最终 SQL 手册的引用，避免在清单中重复维护大段 DDL
+- 新增 carbody_history 数据库接入相关初始化、验收、刷新清单项
+- 原始变动（2026-04-15）：
+  - 补充 Windows 定时任务场景下 `pgpass.conf` 的认证准备与配置说明
+  - 新增面向新环境迁移的独立初始化与刷新指导清单
+  - 从最终落地手册中提炼执行顺序、验收点与常见注意事项
+  - 保留对最终 SQL 手册的引用，避免在清单中重复维护大段 DDL
 
 ## 适用范围
 
@@ -30,8 +32,10 @@
 - [ ] 确认 PostgreSQL 已安装并可登录
 - [ ] 确认目标机可以访问 `rollerbed_tracking_db`
 - [ ] 确认目标机可以访问 `defect_db`
+- [ ] 确认目标机可以访问 `carbody_history`
 - [ ] 确认 `rollerbed_tracking_db` 已具备基础表
 - [ ] 确认 `defect_db` 已具备 `history_station_defect_summary`
+- [ ] 确认 `carbody_history` 已具备 `carbody_history` 表
 - [ ] 确认你有 `root` 或等价管理员权限
 - [ ] 确认计划给 `agent_ro` 设置新密码，而不是沿用示例密码
 - [ ] 如果准备使用 Windows 定时任务，提前为任务运行账号准备 `pgpass.conf`
@@ -105,13 +109,15 @@ localhost:5432:analytics_db:root:root
 - [ ] 执行 `CREATE EXTENSION IF NOT EXISTS postgres_fdw;`
 - [ ] 创建 `rollerbed_srv`
 - [ ] 创建 `defect_srv`
-- [ ] 为 `root` 创建两个 `USER MAPPING`
+- [ ] 创建 `carbody_srv`
+- [ ] 为 `root` 创建三个 `USER MAPPING`
 - [ ] 确认外部连接参数与新环境一致，不要直接照抄老环境主机名
 
 对应正式 SQL：
 
 - [analytics_db_architecture.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_architecture.md)
   - `5.5 创建 FDW 连接`
+  - `5.7 创建 carbody FDW 连接与外部表`
 
 ### 4. 导入外部表
 
@@ -124,12 +130,15 @@ localhost:5432:analytics_db:root:root
   - `vehicle_platforms`
 - [ ] 从 `defect_srv` 导入：
   - `history_station_defect_summary`
+- [ ] 从 `carbody_srv` 导入：
+  - `carbody_history`
 - [ ] 只在外部表尚未导入时执行 `IMPORT FOREIGN SCHEMA`
 
 对应正式 SQL：
 
 - [analytics_db_architecture.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_architecture.md)
   - `5.6 导入外部表`
+  - `5.7 创建 carbody FDW 连接与外部表`
 
 ### 5. 初始化本地 ODS / DIM / FCT / MART / META
 
@@ -140,6 +149,10 @@ localhost:5432:analytics_db:root:root
 - [ ] 创建 `dim.dim_process_area`
 - [ ] 创建 `dim.dim_vehicle_profile`
 - [ ] 若迁移的是旧版库，补齐 `dim.dim_vehicle_profile.current_*` 字段
+- [ ] 创建 `ods.carbody_history`
+- [ ] 创建 `dim.carbody_vehicle_profile`
+- [ ] 若表已存在（老版本升级），执行 ALTER TABLE 补齐 7 个 MDS 字段（`body_type / platform_code / color_code / black_roof_flag / rework_flag / reserved_1 / reserved_2`）
+- [ ] 初始化增量水位：`ods.carbody_history.max_id`，新环境设为 `'0'`，老环境设为当前 `MAX("ID")`
 - [ ] 创建 `fct` 物化视图
 - [ ] 创建 `mart` 物化视图
 - [ ] 完成 `agent_ro` 的最终 `SELECT` 授权
@@ -165,18 +178,29 @@ localhost:5432:analytics_db:root:root
   - 刷新 `mart` 物化视图
   - 更新 `meta.refresh_watermark`
   - 记录 `meta.sync_job_log`
+- [ ] 创建 `meta.refresh_carbody()`
+- [ ] 确认 carbody 刷新为增量模式：
+  - ODS 增量 INSERT（基于 `max("ID")` 水位，不 TRUNCATE）
+  - DIM 增量 UPSERT（`ON CONFLICT DO UPDATE`，`first_*` 保留、`last_*` 覆盖、`station_pass_count` 累加）
+  - MDS_DATA 提取 7 个字段（取末次 `MDS_DATA`）
+  - 更新 `meta.refresh_watermark`
 
 对应正式 SQL：
 
 - [analytics_db_architecture.md](/F:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_architecture.md)
   - `7. 最新正式版一键刷新过程`
+  - `7.2 carbody 刷新过程`
 
 ## 三、首次刷新清单
 
+- [ ] 初始化增量水位（若尚未在初始化阶段完成）：
+  - 新环境：`INSERT INTO meta.refresh_watermark VALUES ('ods.carbody_history.max_id', '0') ON CONFLICT DO NOTHING;`
+  - 老环境：设为当前 `SELECT MAX("ID") FROM ods.carbody_history`
 - [ ] 执行 `CALL meta.refresh_analytics_all();`
-- [ ] 确认过程执行成功，没有异常中断
-- [ ] 检查 `meta.sync_job_log` 最新一条状态是否为 `success`
-- [ ] 检查 `meta.refresh_watermark` 是否已写入
+- [ ] 执行 `CALL meta.refresh_carbody();`（新环境为全量，老环境为增量）
+- [ ] 确认两个过程都执行成功，没有异常中断
+- [ ] 检查 `meta.sync_job_log` 最新两条状态是否为 `success`
+- [ ] 检查 `meta.refresh_watermark` 是否已写入（含 carbody 水位）
 - [ ] 检查 `fct` / `mart` 物化视图是否已有数据
 
 最小执行命令：
@@ -194,8 +218,9 @@ CALL meta.refresh_analytics_all();
 
 ### 1. 验证对象是否齐全
 
-- [ ] schema：`src_rb / src_defect / ods / dim / fct / mart / meta`
-- [ ] `dim` 表：`dim_process_area / dim_vehicle_profile`
+- [ ] schema：`src_rb / src_defect / src_carbody / ods / dim / fct / mart / meta`
+- [ ] `dim` 表：`dim_process_area / dim_vehicle_profile / carbody_vehicle_profile`
+- [ ] `ods` 表：含 `carbody_history`
 - [ ] `fct` 物化视图：
   - `fct_position_current_all`
   - `fct_vehicle_position_current`
@@ -205,7 +230,7 @@ CALL meta.refresh_analytics_all();
   - `mart_vehicle_quality_360`
   - `mart_abnormal_vehicle_current`
   - `mart_position_current_overview`
-- [ ] 过程：`meta.refresh_analytics_all()`
+- [ ] 过程：`meta.refresh_analytics_all() / meta.refresh_carbody()`
 
 ### 2. 验证关键数据是否已刷新
 
@@ -219,6 +244,11 @@ CALL meta.refresh_analytics_all();
 - [ ] `mart.mart_vehicle_quality_360` 有数据
 - [ ] `mart.mart_abnormal_vehicle_current` 有数据
 - [ ] `mart.mart_position_current_overview` 有数据
+- [ ] `ods.carbody_history` 有数据（~101 万行）
+- [ ] `dim.carbody_vehicle_profile` 有数据（~1.3 万行）
+- [ ] `dim.carbody_vehicle_profile.first_seen_at <= last_seen_at`（无不合理的首末时间）
+- [ ] `dim.carbody_vehicle_profile` 全为 78 前缀
+- [ ] MDS 7 字段非 NULL 率合理（`body_type / platform_code / color_code` 覆盖率 > 90%）
 
 ### 3. 验证权限
 
@@ -239,6 +269,7 @@ CALL meta.refresh_analytics_all();
 ### 手工刷新
 
 - [ ] 执行 `CALL meta.refresh_analytics_all();`
+- [ ] 执行 `CALL meta.refresh_carbody();`
 - [ ] 检查 `meta.sync_job_log`
 - [ ] 如有需要，再检查 `meta.refresh_watermark`
 
@@ -262,6 +293,8 @@ powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workp
 
 - [ ] `rb_position_data` 相关分析：每 `5` 分钟
 - [ ] 缺陷汇总相关分析：每 `15` 到 `30` 分钟
+- [ ] carbody 增量刷新：每 `5` 分钟
+- [ ] carbody 每周兜底：重置水位为 `'0'` + TRUNCATE ODS + TRUNCATE DIM + `CALL meta.refresh_carbody()`（清理源库已滚动删除的过期行）
 
 ## 六、迁移后应用接入清单
 
@@ -282,16 +315,18 @@ ANALYTICS_DATABASE_URL='postgresql://agent_ro:你的密码@localhost:5432/analyt
 - [ ] `IMPORT FOREIGN SCHEMA` 不要重复执行到已存在对象上
 - [ ] 新环境迁移时，FDW 的主机、端口、账号密码必须按目标环境重填
 - [ ] `agent_ro` 示例密码必须替换
-- [ ] 当前正式版刷新是“全量刷新”，不是增量刷新
+- [ ] carbody 为增量刷新（ODS 只增不删 + DIM UPSERT），首次使用前必须初始化水位，否则会重复全量插入
+- [ ] 老环境已有全量数据时，水位应设为当前 `MAX(“ID”)`，跳过全量重刷
 
 ## 八、推荐执行顺序摘要
 
 1. 准备源库与账号
 2. 创建 `analytics_db`
-3. 创建 schema、角色、FDW、外部表
-4. 创建本地 ODS / DIM / FCT / MART / META 对象
-5. 创建 `meta.refresh_analytics_all()`
-6. 首次执行 `CALL meta.refresh_analytics_all();`
-7. 跑完整体验证 SQL
-8. 配置 `agent_ro` 与应用接入
-9. 配置定时刷新
+3. 创建 schema、角色、FDW、外部表（含 `carbody_srv`）
+4. 创建本地 ODS / DIM / FCT / MART / META 对象（含 `ods.carbody_history`、`dim.carbody_vehicle_profile`）
+5. 创建 `meta.refresh_analytics_all()` + `meta.refresh_carbody()`（增量版）
+6. 初始化增量水位（`ods.carbody_history.max_id`，新环境 `'0'` / 老环境 `MAX("ID")`）
+7. 首次执行 `CALL meta.refresh_analytics_all();` + `CALL meta.refresh_carbody();`
+8. 跑完整体验证 SQL（含 9.6 carbody 验证 + MDS 字段检查）
+9. 配置 `agent_ro` 与应用接入
+10. 配置定时刷新（含 carbody 增量 5min + 每周兜底）
