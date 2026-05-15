@@ -2,12 +2,12 @@
 
 ## 2026-05-11 Asia/Shanghai
 
-简要概括：`dim.carbody_vehicle_profile` 从全量刷新重构为增量 UPSERT，新增 MDS_DATA 7 字段提取。
+简要概括：`dim.carbody_registry` 从全量刷新重构为增量 UPSERT，新增 MDS_DATA 7 字段提取。
 
 主要修改内容：
 
 - 更新 `defect_database/database_refactor/analytics_db_architecture.md`
-  - 6.8 DDL：`dim.carbody_vehicle_profile` 新增 7 个 MDS 字段（`body_type / platform_code / color_code / black_roof_flag / rework_flag / reserved_1 / reserved_2`）+ ALTER TABLE 升级语句
+  - 6.8 DDL：`dim.carbody_registry` 新增 7 个 MDS 字段（`body_type / platform_code / color_code / black_roof_flag / rework_flag / reserved_1 / reserved_2`）+ ALTER TABLE 升级语句
   - 7.2 存储过程：从 TRUNCATE + INSERT 全量刷新重写为增量 UPSERT（水位 `max("ID")`、ODS 纯增量、DIM `ON CONFLICT DO UPDATE`）
   - 新增 UPSERT 语义表（`first_*` 保留、`last_*` 覆盖、`station_pass_count` 累加）
   - 新增每周兜底流程（重置水位 + TRUNCATE ODS/DIM + 全量重建）
@@ -37,7 +37,7 @@
 - 更新 `defect_database/database_refactor/analytics_db_architecture.md`
   - 新增 `src_carbody` schema、`carbody_srv` FDW server 与 user mapping（5.7）
   - 新增 `ods.carbody_history` 表结构、PK 与索引（6.7）
-  - 新增 `dim.carbody_vehicle_profile` 维度表（78 前缀过滤，首/末过站聚合）（6.8）
+  - 新增 `dim.carbody_registry` 维度表（78 前缀过滤，首/末过站聚合）（6.8）
   - 新增 `meta.refresh_carbody()` 独立存储过程（7.2）
   - 新增 9.6 carbody 验证 SQL 与 10.3 建议频率
   - 更新对象列表、目录、刷新命令

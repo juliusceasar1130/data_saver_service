@@ -1,6 +1,6 @@
 # Analytics DB 后续待办清单
 
-修改时间：2026-04-11 Asia/Shanghai
+修改时间：2026-05-12 Asia/Shanghai
 
 主要修改内容：
 - 新增 `analytics_db` 数据库重构待办清单，按“已完成 / 建议下一步 / 可选增强”分层整理
@@ -25,7 +25,8 @@
 - `fct.fct_position_current_all`
 - `fct.fct_vehicle_position_current`
 - `fct.fct_abnormal_vehicle_current`
-- `fct.fct_vehicle_defect_detection`
+- `fct.fct_vehicle_defect_detection` (缺陷中心)
+- `fct.fct_vehicle_defect_enriched` (车身中心分析宽表)
 - `mart.mart_vehicle_quality_360`
 - `mart.mart_abnormal_vehicle_current`
 - `mart.mart_position_current_overview`
@@ -39,7 +40,8 @@
 - 正式产品车当前分布
 - 异常车当前分布
 - 当前现场总览
-- 缺陷汇总分析
+- 缺陷汇总分析 (多维、跨系统属性分析)
+- 缺陷覆盖率与漏检分析 (可识别未检测车辆)
 - 产品车缺陷与当前位置的关联分析
 
 ## 3. 建议下一步

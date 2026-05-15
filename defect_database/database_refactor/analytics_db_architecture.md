@@ -1,12 +1,13 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-05-10 Asia/Shanghai
+修改时间：2026-05-12 Asia/Shanghai
 
 主要修改内容：
-- 新增 `carbody_history` 数据库接入：FDW 连接、`src_carbody` 外部表、`ods.carbody_history` ODS 表
-- 新增 `dim.carbody_vehicle_profile` 维度表（首/末过站聚合，78 前缀过滤）
-- 新增 `meta.refresh_carbody()` 独立刷新存储过程
-- 补充 carbody 相关验证 SQL 和迁移清单项
+- 新增 `fct.fct_vehicle_defect_enriched` 物化视图：以 carbody 为中心，整合缺陷检测记录的全量分析宽表
+- 优化 `refresh_analytics_all()` 过程：在 MART 刷新后增加 `fct_vehicle_defect_enriched` 的刷新步骤
+- 补充属性一致性验证与漏检分析 SQL
+- 优化 JOIN 性能：移除 JOIN 条件中的 `trim()`，强调 ODS 层清洗数据
+- (2026-05-10)：新增 `carbody_history` 数据库接入、`dim.carbody_registry` 与 `meta.refresh_carbody()`
 - 原始变动（2026-04-15）：
 - 补充 Windows 定时任务下 `pgpass.conf` 认证方案，解决 `psql` 无法交互输入密码的问题
 - 新增 `defect_database/scripts/refresh_analytics_db.ps1` Windows 宿主机刷新包装脚本说明
@@ -115,12 +116,13 @@
 - `dim` 表：
   - `dim_process_area`
   - `dim_vehicle_profile`
-  - `carbody_vehicle_profile`
+  - `carbody_registry`
 - `fct` 物化视图：
   - `fct_position_current_all`
   - `fct_abnormal_vehicle_current`
   - `fct_vehicle_position_current`
-  - `fct_vehicle_defect_detection`
+  - `fct_vehicle_defect_detection` (仅缺陷事件)
+  - `fct_vehicle_defect_enriched` (车身中心全量视图)
 - `mart` 物化视图：
   - `mart_abnormal_vehicle_current`
   - `mart_position_current_overview`
@@ -146,6 +148,7 @@
 - `fct.fct_vehicle_position_current`：`102`
 - `fct.fct_abnormal_vehicle_current`：`12`
 - `fct.fct_vehicle_defect_detection`：`60370`
+- `fct.fct_vehicle_defect_enriched`：`>= 54430` (取决于 carbody 记录数)
 - `mart.mart_vehicle_quality_360`：`60370`
 - `mart.mart_abnormal_vehicle_current`：`12`
 - `mart.mart_position_current_overview`：`114`
@@ -786,6 +789,72 @@ ON fct.fct_vehicle_defect_detection(history_id);
 CREATE INDEX IF NOT EXISTS idx_fct_vehicle_defect_detection_vehicle_id
 ON fct.fct_vehicle_defect_detection(vehicle_id);
 
+-- ---------------------------------------------------------
+-- fct.fct_vehicle_defect_enriched
+-- 以 carbody 为中心，LEFT JOIN 缺陷事件，保留双源属性
+-- ---------------------------------------------------------
+CREATE MATERIALIZED VIEW IF NOT EXISTS fct.fct_vehicle_defect_enriched AS
+SELECT
+  -- ===== carbody 权威车身维度（驱动表）=====
+  cvp.vehicle_id,
+  cvp.body_type,
+  cvp.platform_code,
+  cvp.color_code,
+  cvp.black_roof_flag,
+  cvp.rework_flag,
+  cvp.reserved_1,
+  cvp.reserved_2,
+  cvp.first_seen_at,
+  cvp.last_seen_at,
+  cvp.first_rw_station,
+  cvp.last_rw_station,
+  cvp.first_body_type,
+  cvp.last_body_type,
+  cvp.station_pass_count,
+
+  -- ===== 缺陷检测事件（可为 NULL）=====
+  d.history_id,
+  d.model                     AS defect_model,
+  d.type_name                 AS defect_type_name,
+  d.black_roof                AS defect_black_roof,
+  d.color_code                AS defect_color_code,
+  d.date_time                 AS detect_time,
+  d.tunnel,
+  d.cycle,
+  d.station_1_defect_count,
+  d.station_2_defect_count,
+  d.station_3_defect_count,
+  d.station_4_defect_count,
+  d.station_5_defect_count,
+  d.total_defect_count,
+
+  -- ===== 检测覆盖标记 =====
+  CASE WHEN d.history_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_defect_record
+
+FROM dim.carbody_registry cvp
+LEFT JOIN ods.history_station_defect_summary d
+  -- 性能优化：此处不使用 trim() 以利用 ods 层的索引。要求 ODS 加载时已完成数据清洗。
+  ON cvp.vehicle_id = d.serial_number
+  AND d.serial_number <> ''
+WITH NO DATA;
+
+CREATE INDEX IF NOT EXISTS idx_fct_vehicle_defect_enriched_vehicle_id
+ON fct.fct_vehicle_defect_enriched(vehicle_id);
+
+CREATE INDEX IF NOT EXISTS idx_fct_vehicle_defect_enriched_detect_time
+ON fct.fct_vehicle_defect_enriched(detect_time);
+
+CREATE INDEX IF NOT EXISTS idx_fct_vehicle_defect_enriched_body_type
+ON fct.fct_vehicle_defect_enriched(body_type);
+
+CREATE INDEX IF NOT EXISTS idx_fct_vehicle_defect_enriched_has_defect
+ON fct.fct_vehicle_defect_enriched(has_defect_record);
+
+-- UNIQUE INDEX：支持 REFRESH MATERIALIZED VIEW CONCURRENTLY
+CREATE UNIQUE INDEX IF NOT EXISTS idx_fct_vehicle_defect_enriched_unique
+ON fct.fct_vehicle_defect_enriched(vehicle_id, COALESCE(history_id, -1));
+
+
 CREATE MATERIALIZED VIEW IF NOT EXISTS fct.fct_abnormal_vehicle_current AS
 SELECT
   position_id,
@@ -1027,6 +1096,7 @@ ON mart.mart_position_current_overview(vehicle_id);
 
 ```sql
 GRANT SELECT ON ALL TABLES IN SCHEMA ods, dim, fct, mart, meta TO agent_ro;
+GRANT SELECT ON fct.fct_vehicle_defect_enriched TO agent_ro; -- 明确授予新视图权限
 ALTER DEFAULT PRIVILEGES IN SCHEMA ods, dim, fct, mart, meta
 GRANT SELECT ON TABLES TO agent_ro;
 ```
@@ -1045,12 +1115,12 @@ CREATE INDEX IF NOT EXISTS idx_ods_carbody_body_id_date    ON ods.carbody_histor
 CREATE INDEX IF NOT EXISTS idx_ods_carbody_rw_station      ON ods.carbody_history("RW_STATION_ID");
 ```
 
-### 6.8 创建 `dim.carbody_vehicle_profile`
+### 6.8 创建 `dim.carbody_registry`
 
 ```sql
 -- 首/末过站聚合表，78 前缀过滤，每车一行
 -- MDS_DATA 提取规则见 carbody_history/MDS数据提取规则.md
-CREATE TABLE IF NOT EXISTS dim.carbody_vehicle_profile (
+CREATE TABLE IF NOT EXISTS dim.carbody_registry (
     vehicle_id         VARCHAR(14) PRIMARY KEY,
     first_seen_at      TIMESTAMP NOT NULL,      -- 首次过站时间
     last_seen_at       TIMESTAMP NOT NULL,      -- 末次过站时间
@@ -1070,22 +1140,22 @@ CREATE TABLE IF NOT EXISTS dim.carbody_vehicle_profile (
 );
 
 -- 索引
-CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_seen   ON dim.carbody_vehicle_profile(first_seen_at);
-CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_seen    ON dim.carbody_vehicle_profile(last_seen_at);
-CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_station ON dim.carbody_vehicle_profile(first_rw_station);
-CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_station  ON dim.carbody_vehicle_profile(last_rw_station);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_seen   ON dim.carbody_registry(first_seen_at);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_seen    ON dim.carbody_registry(last_seen_at);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_station ON dim.carbody_registry(first_rw_station);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_station  ON dim.carbody_registry(last_rw_station);
 ```
 
 如果表已存在（老版本升级），通过 ALTER TABLE 补齐 7 个 MDS 字段：
 
 ```sql
-ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS body_type       VARCHAR(5);
-ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS platform_code   VARCHAR(3);
-ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS color_code      VARCHAR(4);
-ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS black_roof_flag VARCHAR(1);
-ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS rework_flag     VARCHAR(1);
-ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS reserved_1      VARCHAR(1);
-ALTER TABLE dim.carbody_vehicle_profile ADD COLUMN IF NOT EXISTS reserved_2      VARCHAR(1);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS body_type       VARCHAR(5);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS platform_code   VARCHAR(3);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS color_code      VARCHAR(4);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS black_roof_flag VARCHAR(1);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS rework_flag     VARCHAR(1);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS reserved_1      VARCHAR(1);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS reserved_2      VARCHAR(1);
 ```
 
 ## 7. 最新正式版一键刷新过程
@@ -1117,147 +1187,146 @@ BEGIN
   INSERT INTO ods.process_areas SELECT * FROM src_rb.process_areas;
   INSERT INTO ods.carrier_types SELECT * FROM src_rb.carrier_types;
   INSERT INTO ods.vehicle_body_types SELECT * FROM src_rb.vehicle_body_types;
-      INSERT INTO ods.vehicle_color_codes SELECT * FROM src_rb.vehicle_color_codes;
-      INSERT INTO ods.vehicle_platforms SELECT * FROM src_rb.vehicle_platforms;
-      INSERT INTO ods.rb_position_data SELECT * FROM src_rb.rb_position_data;
-      INSERT INTO ods.history_station_defect_summary SELECT * FROM src_defect.history_station_defect_summary;
+  INSERT INTO ods.vehicle_color_codes SELECT * FROM src_rb.vehicle_color_codes;
+  INSERT INTO ods.vehicle_platforms SELECT * FROM src_rb.vehicle_platforms;
+  INSERT INTO ods.rb_position_data SELECT * FROM src_rb.rb_position_data;
+  INSERT INTO ods.history_station_defect_summary SELECT * FROM src_defect.history_station_defect_summary;
 
-      REFRESH MATERIALIZED VIEW fct.fct_position_current_all;
-      REFRESH MATERIALIZED VIEW fct.fct_vehicle_position_current;
-      REFRESH MATERIALIZED VIEW fct.fct_vehicle_defect_detection;
-      REFRESH MATERIALIZED VIEW fct.fct_abnormal_vehicle_current;
+  -- 刷新事实层物化视图
+  REFRESH MATERIALIZED VIEW fct.fct_position_current_all;
+  REFRESH MATERIALIZED VIEW fct.fct_vehicle_position_current;
+  REFRESH MATERIALIZED VIEW fct.fct_vehicle_defect_detection;
+  REFRESH MATERIALIZED VIEW fct.fct_vehicle_defect_enriched;
+  REFRESH MATERIALIZED VIEW fct.fct_abnormal_vehicle_current;
 
-      INSERT INTO dim.dim_process_area (
-          process_area_name,
-          source_area_id,
-      description,
-      sort_order,
-      created_at,
-      updated_at,
-      etl_loaded_at
+  -- 更新维度表
+  INSERT INTO dim.dim_process_area (
+    process_area_name,
+    source_area_id,
+    description,
+    sort_order,
+    created_at,
+    updated_at,
+    etl_loaded_at
   )
   SELECT
-      area_name,
-      id,
-      description,
-      sort_order,
-      created_at,
-      updated_at,
-      now()
+    area_name,
+    id,
+    description,
+    sort_order,
+    created_at,
+    updated_at,
+    now()
   FROM ods.process_areas;
 
-      INSERT INTO dim.dim_vehicle_profile (
-          vehicle_id,
-          body_type,
-          tracking_type_name,
-          defect_model,
-      defect_type_name,
-      platform_code,
-      platform_name,
+  INSERT INTO dim.dim_vehicle_profile (
+    vehicle_id,
+    body_type,
+    tracking_type_name,
+    defect_model,
+    defect_type_name,
+    platform_code,
+    platform_name,
+    color_code,
+    color_name,
+    is_black_roof,
+    black_roof_raw_tracking,
+    black_roof_raw_defect,
+    tracking_last_seen_at,
+    defect_last_seen_at,
+    current_position_id,
+    current_carrier_id,
+    current_carrier_type,
+    current_process_area,
+    current_full_rb_code,
+    current_position_updated_at,
+    etl_loaded_at
+  )
+  WITH latest_tracking AS (
+    SELECT
+      vehicle_id,
+      position_id,
+      carrier_id,
+      carrier_type,
+      process_area,
+      full_rb_code,
+      body_type,
       color_code,
-      color_name,
-          is_black_roof,
-          black_roof_raw_tracking,
-          black_roof_raw_defect,
-          tracking_last_seen_at,
-          defect_last_seen_at,
-          current_position_id,
-          current_carrier_id,
-          current_carrier_type,
-          current_process_area,
-          current_full_rb_code,
-          current_position_updated_at,
-          etl_loaded_at
-      )
-      WITH latest_tracking AS (
-          SELECT
-              vehicle_id,
-              position_id,
-              carrier_id,
-              carrier_type,
-              process_area,
-              full_rb_code,
-              body_type,
-              color_code,
-              platform_code,
-              black_roof_flag,
-              vehicle_updated_at
-          FROM fct.fct_vehicle_position_current
-      ),
-      latest_defect AS (
-          SELECT DISTINCT ON (trim(serial_number))
-              trim(serial_number) AS vehicle_id,
-          model AS defect_model,
-          type_name AS defect_type_name,
-          black_roof AS black_roof_raw_defect,
-          color_code AS defect_color_code,
-          date_time AS defect_last_seen_at,
-          history_id
-      FROM ods.history_station_defect_summary
-      WHERE serial_number IS NOT NULL
-        AND trim(serial_number) <> ''
-      ORDER BY trim(serial_number), date_time DESC NULLS LAST, history_id DESC
+      platform_code,
+      black_roof_flag,
+      vehicle_updated_at
+    FROM fct.fct_vehicle_position_current
+  ),
+  latest_defect AS (
+    SELECT DISTINCT ON (trim(serial_number))
+      trim(serial_number) AS vehicle_id,
+      model AS defect_model,
+      type_name AS defect_type_name,
+      black_roof AS black_roof_raw_defect,
+      color_code AS defect_color_code,
+      date_time AS defect_last_seen_at,
+      history_id
+    FROM ods.history_station_defect_summary
+    WHERE serial_number IS NOT NULL
+      AND trim(serial_number) <> ''
+    ORDER BY trim(serial_number), date_time DESC NULLS LAST, history_id DESC
   ),
   vehicle_union AS (
-      SELECT vehicle_id FROM latest_tracking
-      UNION
-      SELECT vehicle_id FROM latest_defect
+    SELECT vehicle_id FROM latest_tracking
+    UNION
+    SELECT vehicle_id FROM latest_defect
   )
   SELECT
-      u.vehicle_id,
-      t.body_type,
-      bt.type_name AS tracking_type_name,
-      d.defect_model,
-      d.defect_type_name,
-      t.platform_code,
-      vp.platform_name,
-      COALESCE(t.color_code, d.defect_color_code) AS color_code,
-      cc.color_name,
-      CASE
-          WHEN COALESCE(t.black_roof_flag, '') IN ('1', 'Y', 'y', 'T', 't') THEN TRUE
-          WHEN COALESCE(d.black_roof_raw_defect, '') ILIKE '%黑%' THEN TRUE
-          ELSE FALSE
-          END AS is_black_roof,
-          t.black_roof_flag AS black_roof_raw_tracking,
-          d.black_roof_raw_defect,
-          t.vehicle_updated_at AS tracking_last_seen_at,
-          d.defect_last_seen_at,
-          t.position_id AS current_position_id,
-          t.carrier_id AS current_carrier_id,
-          t.carrier_type AS current_carrier_type,
-          t.process_area AS current_process_area,
-          t.full_rb_code AS current_full_rb_code,
-          t.vehicle_updated_at AS current_position_updated_at,
-          now() AS etl_loaded_at
-      FROM vehicle_union u
-      LEFT JOIN latest_tracking t
-        ON t.vehicle_id = u.vehicle_id
-  LEFT JOIN latest_defect d
-    ON d.vehicle_id = u.vehicle_id
-  LEFT JOIN ods.vehicle_body_types bt
-    ON bt.body_type = t.body_type
-  LEFT JOIN ods.vehicle_color_codes cc
-        ON cc.color_code = COALESCE(t.color_code, d.defect_color_code)
-      LEFT JOIN ods.vehicle_platforms vp
-        ON vp.platform_code = t.platform_code;
+    u.vehicle_id,
+    t.body_type,
+    bt.type_name AS tracking_type_name,
+    d.defect_model,
+    d.defect_type_name,
+    t.platform_code,
+    vp.platform_name,
+    COALESCE(t.color_code, d.defect_color_code) AS color_code,
+    cc.color_name,
+    CASE
+      WHEN COALESCE(t.black_roof_flag, '') IN ('1', 'Y', 'y', 'T', 't') THEN TRUE
+      WHEN COALESCE(d.black_roof_raw_defect, '') ILIKE '%黑%' THEN TRUE
+      ELSE FALSE
+    END AS is_black_roof,
+    t.black_roof_flag AS black_roof_raw_tracking,
+    d.black_roof_raw_defect,
+    t.vehicle_updated_at AS tracking_last_seen_at,
+    d.defect_last_seen_at,
+    t.position_id AS current_position_id,
+    t.carrier_id AS current_carrier_id,
+    t.carrier_type AS current_carrier_type,
+    t.process_area AS current_process_area,
+    t.full_rb_code AS current_full_rb_code,
+    t.vehicle_updated_at AS current_position_updated_at,
+    now() AS etl_loaded_at
+  FROM vehicle_union u
+  LEFT JOIN latest_tracking t ON t.vehicle_id = u.vehicle_id
+  LEFT JOIN latest_defect d ON d.vehicle_id = u.vehicle_id
+  LEFT JOIN ods.vehicle_body_types bt ON bt.body_type = t.body_type
+  LEFT JOIN ods.vehicle_color_codes cc ON cc.color_code = COALESCE(t.color_code, d.defect_color_code)
+  LEFT JOIN ods.vehicle_platforms vp ON vp.platform_code = t.platform_code;
 
-      REFRESH MATERIALIZED VIEW mart.mart_vehicle_quality_360;
-      REFRESH MATERIALIZED VIEW mart.mart_abnormal_vehicle_current;
-      REFRESH MATERIALIZED VIEW mart.mart_position_current_overview;
+  -- 刷新汇总层物化视图
+  REFRESH MATERIALIZED VIEW mart.mart_vehicle_quality_360;
+  REFRESH MATERIALIZED VIEW mart.mart_abnormal_vehicle_current;
+  REFRESH MATERIALIZED VIEW mart.mart_position_current_overview;
 
-      INSERT INTO meta.refresh_watermark(source_name, watermark_value, updated_at)
-      VALUES
-        ('ods.rb_position_data.max_vehicle_updated_at', (SELECT COALESCE(MAX(vehicle_updated_at)::text, '') FROM ods.rb_position_data), now()),
-        ('ods.history_station_defect_summary.max_date_time', (SELECT COALESCE(MAX(date_time)::text, '') FROM ods.history_station_defect_summary), now()),
-        ('ods.history_station_defect_summary.max_history_id', (SELECT COALESCE(MAX(history_id)::text, '') FROM ods.history_station_defect_summary), now())
-      ON CONFLICT (source_name) DO UPDATE
-      SET watermark_value = EXCLUDED.watermark_value,
-          updated_at = EXCLUDED.updated_at;
+  INSERT INTO meta.refresh_watermark(source_name, watermark_value, updated_at)
+  VALUES
+    ('ods.rb_position_data.max_vehicle_updated_at', (SELECT COALESCE(MAX(vehicle_updated_at)::text, '') FROM ods.rb_position_data), now()),
+    ('ods.history_station_defect_summary.max_date_time', (SELECT COALESCE(MAX(date_time)::text, '') FROM ods.history_station_defect_summary), now()),
+    ('ods.history_station_defect_summary.max_history_id', (SELECT COALESCE(MAX(history_id)::text, '') FROM ods.history_station_defect_summary), now())
+  ON CONFLICT (source_name) DO UPDATE
+  SET watermark_value = EXCLUDED.watermark_value,
+      updated_at = EXCLUDED.updated_at;
 
-      GRANT SELECT ON ALL TABLES IN SCHEMA ods, dim, fct, mart, meta TO agent_ro;
+  GRANT SELECT ON ALL TABLES IN SCHEMA ods, dim, fct, mart, meta TO agent_ro;
 
-      UPDATE meta.sync_job_log
-      SET finished_at = now(), status = 'success', message = 'done'
+  UPDATE meta.sync_job_log
+  SET finished_at = now(), status = 'success', message = 'done'
   WHERE id = v_log_id;
 EXCEPTION WHEN OTHERS THEN
   UPDATE meta.sync_job_log
@@ -1334,7 +1403,7 @@ BEGIN
         WHERE length("MDS_DATA") >= 140
         ORDER BY "BODY_ID", "DATE_EVT" DESC
     )
-    INSERT INTO dim.carbody_vehicle_profile (
+    INSERT INTO dim.carbody_registry (
         vehicle_id, first_seen_at, last_seen_at,
         first_rw_station, last_rw_station,
         first_body_type, last_body_type, station_pass_count,
@@ -1363,7 +1432,7 @@ BEGIN
         last_seen_at       = EXCLUDED.last_seen_at,
         last_rw_station    = EXCLUDED.last_rw_station,
         last_body_type     = EXCLUDED.last_body_type,
-        station_pass_count = dim.carbody_vehicle_profile.station_pass_count
+        station_pass_count = dim.carbody_registry.station_pass_count
                            + EXCLUDED.station_pass_count,
         body_type          = EXCLUDED.body_type,
         platform_code      = EXCLUDED.platform_code,
@@ -1379,7 +1448,7 @@ BEGIN
   VALUES
     ('ods.carbody_history.max_id',
      (SELECT COALESCE(MAX("ID")::text, v_last_id::text) FROM ods.carbody_history), now()),
-    ('dim.carbody_vehicle_profile.last_sync_at', now()::text, now())
+    ('dim.carbody_registry.last_sync_at', now()::text, now())
   ON CONFLICT (source_name) DO UPDATE
   SET watermark_value = EXCLUDED.watermark_value,
       updated_at      = EXCLUDED.updated_at;
@@ -1387,7 +1456,7 @@ BEGIN
   -- 5. 权限
   GRANT SELECT ON ALL TABLES IN SCHEMA src_carbody TO agent_ro;
   GRANT SELECT ON ods.carbody_history TO agent_ro;
-  GRANT SELECT ON dim.carbody_vehicle_profile TO agent_ro;
+  GRANT SELECT ON dim.carbody_registry TO agent_ro;
   ALTER DEFAULT PRIVILEGES IN SCHEMA src_carbody GRANT SELECT ON TABLES TO agent_ro;
 
   UPDATE meta.sync_job_log
@@ -1420,7 +1489,7 @@ $$;
 UPDATE meta.refresh_watermark SET watermark_value = '0'
 WHERE source_name = 'ods.carbody_history.max_id';
 TRUNCATE TABLE ods.carbody_history;
-TRUNCATE TABLE dim.carbody_vehicle_profile;
+TRUNCATE TABLE dim.carbody_registry;
 CALL meta.refresh_carbody();
 ```
 
@@ -1481,9 +1550,22 @@ SELECT count(*) FROM fct.fct_position_current_all;
 SELECT count(*) FROM fct.fct_vehicle_position_current;
 SELECT count(*) FROM fct.fct_abnormal_vehicle_current;
 SELECT count(*) FROM fct.fct_vehicle_defect_detection;
+SELECT count(*) FROM fct.fct_vehicle_defect_enriched;
 SELECT count(*) FROM mart.mart_vehicle_quality_360;
 SELECT count(*) FROM mart.mart_abnormal_vehicle_current;
 SELECT count(*) FROM mart.mart_position_current_overview;
+
+-- 验证：fct_vehicle_defect_enriched 漏检与重复检测验证
+SELECT has_defect_record, count(*) 
+FROM fct.fct_vehicle_defect_enriched 
+GROUP BY has_defect_record;
+
+-- 验证：属性一致性（同一车身的 carbody 属性不应冲突）
+SELECT vehicle_id, count(DISTINCT body_type), count(DISTINCT color_code)
+FROM fct.fct_vehicle_defect_enriched
+WHERE has_defect_record
+GROUP BY vehicle_id
+HAVING count(DISTINCT body_type) > 1 OR count(DISTINCT color_code) > 1;
 ```
 
 ### 9.3 验证刷新日志与水位
@@ -1536,7 +1618,8 @@ SELECT
   has_table_privilege('agent_ro', 'mart.mart_position_current_overview', 'SELECT') AS overview_mart_select,
   has_schema_privilege('agent_ro', 'dim', 'USAGE') AS dim_usage,
   has_table_privilege('agent_ro', 'dim.dim_vehicle_profile', 'SELECT') AS dim_select,
-  has_table_privilege('agent_ro', 'fct.fct_position_current_all', 'SELECT') AS position_all_select;
+  has_table_privilege('agent_ro', 'fct.fct_position_current_all', 'SELECT') AS position_all_select,
+  has_table_privilege('agent_ro', 'fct.fct_vehicle_defect_enriched', 'SELECT') AS defect_enriched_select;
 ```
 
 ### 9.6 验证 carbody 对象
@@ -1544,7 +1627,7 @@ SELECT
 ```sql
 -- 水位是否存在
 SELECT * FROM meta.refresh_watermark
-WHERE source_name IN ('ods.carbody_history.max_id', 'dim.carbody_vehicle_profile.last_sync_at');
+WHERE source_name IN ('ods.carbody_history.max_id', 'dim.carbody_registry.last_sync_at');
 
 -- 对象存在性
 SELECT table_schema, table_name
@@ -1553,26 +1636,26 @@ WHERE table_schema IN ('src_carbody','ods') AND table_name LIKE '%carbody%'
 UNION ALL
 SELECT table_schema, table_name
 FROM information_schema.tables
-WHERE table_schema = 'dim' AND table_name = 'carbody_vehicle_profile';
+WHERE table_schema = 'dim' AND table_name = 'carbody_registry';
 
 -- 数据量（期待 ods ~101 万，dim ~1.3 万）
 SELECT 'ods.carbody_history' AS tbl, count(*) AS rows FROM ods.carbody_history
 UNION ALL
-SELECT 'dim.carbody_vehicle_profile' AS tbl, count(*) AS rows FROM dim.carbody_vehicle_profile;
+SELECT 'dim.carbody_registry' AS tbl, count(*) AS rows FROM dim.carbody_registry;
 
 -- 首末时间合理性（应为 0）
 SELECT count(*) AS invalid_count
-FROM dim.carbody_vehicle_profile
+FROM dim.carbody_registry
 WHERE first_seen_at > last_seen_at;
 
 -- 78 前缀一致性（应为 0）
 SELECT count(*) AS non_78_prefix
-FROM dim.carbody_vehicle_profile
+FROM dim.carbody_registry
 WHERE vehicle_id NOT LIKE '78%';
 
 -- vehicle_id 唯一性（应为 0）
 SELECT vehicle_id, count(*) AS dup
-FROM dim.carbody_vehicle_profile
+FROM dim.carbody_registry
 GROUP BY vehicle_id HAVING count(*) > 1;
 
 -- MDS 字段非 NULL 率
@@ -1580,10 +1663,10 @@ SELECT
     round(count(body_type)     * 100.0 / count(*), 1) AS body_type_pct,
     round(count(platform_code) * 100.0 / count(*), 1) AS platform_pct,
     round(count(color_code)    * 100.0 / count(*), 1) AS color_pct
-FROM dim.carbody_vehicle_profile;
+FROM dim.carbody_registry;
 
 -- 数据样本
-SELECT * FROM dim.carbody_vehicle_profile ORDER BY first_seen_at DESC LIMIT 10;
+SELECT * FROM dim.carbody_registry ORDER BY first_seen_at DESC LIMIT 10;
 
 -- 刷新日志
 SELECT * FROM meta.sync_job_log WHERE job_name = 'refresh_carbody' ORDER BY id DESC LIMIT 5;

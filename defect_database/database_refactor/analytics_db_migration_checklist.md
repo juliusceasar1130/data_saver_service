@@ -1,6 +1,6 @@
 # Analytics DB 新环境迁移清单
 
-修改时间：2026-05-10 Asia/Shanghai
+修改时间：2026-05-12 Asia/Shanghai
 
 主要修改内容：
 - 新增 carbody_history 数据库接入相关初始化、验收、刷新清单项
@@ -150,10 +150,10 @@ localhost:5432:analytics_db:root:root
 - [ ] 创建 `dim.dim_vehicle_profile`
 - [ ] 若迁移的是旧版库，补齐 `dim.dim_vehicle_profile.current_*` 字段
 - [ ] 创建 `ods.carbody_history`
-- [ ] 创建 `dim.carbody_vehicle_profile`
+- [ ] 创建 `dim.carbody_registry`
 - [ ] 若表已存在（老版本升级），执行 ALTER TABLE 补齐 7 个 MDS 字段（`body_type / platform_code / color_code / black_roof_flag / rework_flag / reserved_1 / reserved_2`）
 - [ ] 初始化增量水位：`ods.carbody_history.max_id`，新环境设为 `'0'`，老环境设为当前 `MAX("ID")`
-- [ ] 创建 `fct` 物化视图
+- [ ] 创建 `fct` 物化视图（含 `fct_vehicle_defect_enriched` 及 `UNIQUE INDEX`）
 - [ ] 创建 `mart` 物化视图
 - [ ] 完成 `agent_ro` 的最终 `SELECT` 授权
 
@@ -219,13 +219,14 @@ CALL meta.refresh_analytics_all();
 ### 1. 验证对象是否齐全
 
 - [ ] schema：`src_rb / src_defect / src_carbody / ods / dim / fct / mart / meta`
-- [ ] `dim` 表：`dim_process_area / dim_vehicle_profile / carbody_vehicle_profile`
+- [ ] `dim` 表：`dim_process_area / dim_vehicle_profile / carbody_registry`
 - [ ] `ods` 表：含 `carbody_history`
 - [ ] `fct` 物化视图：
   - `fct_position_current_all`
   - `fct_vehicle_position_current`
   - `fct_abnormal_vehicle_current`
   - `fct_vehicle_defect_detection`
+  - `fct_vehicle_defect_enriched`
 - [ ] `mart` 物化视图：
   - `mart_vehicle_quality_360`
   - `mart_abnormal_vehicle_current`
@@ -245,9 +246,10 @@ CALL meta.refresh_analytics_all();
 - [ ] `mart.mart_abnormal_vehicle_current` 有数据
 - [ ] `mart.mart_position_current_overview` 有数据
 - [ ] `ods.carbody_history` 有数据（~101 万行）
-- [ ] `dim.carbody_vehicle_profile` 有数据（~1.3 万行）
-- [ ] `dim.carbody_vehicle_profile.first_seen_at <= last_seen_at`（无不合理的首末时间）
-- [ ] `dim.carbody_vehicle_profile` 全为 78 前缀
+- [ ] `dim.carbody_registry` 有数据（~1.3 万行）
+- [ ] `fct.fct_vehicle_defect_enriched` 有数据，且 `has_defect_record` 标记准确
+- [ ] `dim.carbody_registry.first_seen_at <= last_seen_at`（无不合理的首末时间）
+- [ ] `dim.carbody_registry` 全为 78 前缀
 - [ ] MDS 7 字段非 NULL 率合理（`body_type / platform_code / color_code` 覆盖率 > 90%）
 
 ### 3. 验证权限
@@ -323,7 +325,7 @@ ANALYTICS_DATABASE_URL='postgresql://agent_ro:你的密码@localhost:5432/analyt
 1. 准备源库与账号
 2. 创建 `analytics_db`
 3. 创建 schema、角色、FDW、外部表（含 `carbody_srv`）
-4. 创建本地 ODS / DIM / FCT / MART / META 对象（含 `ods.carbody_history`、`dim.carbody_vehicle_profile`）
+4. 创建本地 ODS / DIM / FCT / MART / META 对象（含 `ods.carbody_history`、`dim.carbody_registry`）
 5. 创建 `meta.refresh_analytics_all()` + `meta.refresh_carbody()`（增量版）
 6. 初始化增量水位（`ods.carbody_history.max_id`，新环境 `'0'` / 老环境 `MAX("ID")`）
 7. 首次执行 `CALL meta.refresh_analytics_all();` + `CALL meta.refresh_carbody();`
