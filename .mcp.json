@@ -6,7 +6,26 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-postgres",
-        "postgresql://root:root@localhost:5432/carbody_history"
+        "postgresql://root:root@localhost:5432/analytics_db"
+      ],
+      "env": {}
+    },
+    "mssql": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@bluspace/mssql-mcp-server",
+        "--server",
+        "localhost",
+        "--port",
+        "1433",
+        "--database",
+        "DXQcontrol_SVWMEB_BI_DWH",
+        "--user",
+        "sa",
+        "--password",
+        "Sa123456!"
       ],
       "env": {}
     }

@@ -6,10 +6,10 @@
 
 - `data_saver_service_v3_docker.py`: 核心服务脚本，支持 Docker 环境运行。
 - `rb_position_manager_postgresql.py`: 数据库操作封装类。
-- `carbody_history/`: 包含生产历史相关的架构说明。
-  - `schema.md`: `carbody_history` 表的详细结构定义。
-- `defect_database/`: 缺陷数据库相关的脚本与重构文档。
-- `docs/`: 包含排故记录与环境配置说明。
+- `carbody_etl/`: 车辆过站历史 ETL 模块，直连 SQL Server 增量同步并触发 DIM 聚合处理。
+- `defect_summary_etl/`: 车辆缺陷汇总 ETL 模块，支持双数据库源（PostgreSQL/SQL Server）与数据保留裁剪。
+- `defect_database/`: 缺陷数据库重构的相关设计文档与主刷新过程。
+- `docs/`: 包含排污记录、环境配置说明与 carbody 数据源迁移详细方案。
 - `init_rb_positions_postgresql.py`: 数据库初始化脚本。
 - `create_tables_postgresql.sql`: 核心建表 SQL 脚本。
 - `AGENTS.md`: 项目协作与 Agent 行为准则。

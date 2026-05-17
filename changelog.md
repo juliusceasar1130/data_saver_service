@@ -1,5 +1,28 @@
 # Changelog
 
+## 2026-05-17 Asia/Shanghai
+
+简要概括：重构重组 ETL 模块目录，并实施 carbody 源库 PostgreSQL → SQL Server 迁移方案与字段/时间类型容错对齐。
+
+主要修改内容：
+
+- **重构并新增 `carbody_etl` 模块**
+  - 新增 `carbody_etl/refresh_carbody_ods.py` 增量同步脚本，直连 SQL Server 源库提取数据写入 PostgreSQL `ods.carbody_history`，并调用存储过程触发 DIM/FCT 刷新。
+  - 新增 `carbody_etl/README.md` 架构与部署文档。
+  - 迁移原 `carbody_history/` 下的 `schema.md` 与 `MDS数据提取规则.md` 进 `carbody_etl/carbody_history/`。
+- **重构并新增 `defect_summary_etl` 模块**
+  - 迁移并整合 `refresh_history_station_defect_summary.py` 脚本、`model_map.json` 及所有 SQL 和 Schema 文档到 `defect_summary_etl/` 目录下。
+  - 新建 `defect_summary_etl/README.md` 与缺陷协议历史文档归档 `defect_summary_etl/DOCS_ARCHIVE.md`。
+- **升级设计与迁移规划文档**
+  - 新建 `docs/plan/carbody_history_sqlserver_migration.md`，提供完整的 carbody_history 源库 PostgreSQL → SQL Server 架构转换与回退策略设计。
+  - 重构 `defect_database/database_refactor/analytics_db_architecture.md`：
+    - 废弃原 PostgreSQL FDW 连接方式，切换为直连 SQL Server 的 Python 管道。
+    - 显式定义 `ods.carbody_history` 结构，将 `SKID_ID` 与 `CYCLE_NUM` 容错修正为 `VARCHAR(64)` 兼容非数字 skid/cycle 现场数据。
+    - 统一时区处理，将 `dim.dim_vehicle_profile.defect_last_seen_at` 和 `dim.carbody_registry` 中的 `first_seen_at/last_seen_at` 统一修正为 `TIMESTAMPTZ`。
+- **基础配置适配**
+  - 修改 `.mcp.json`，切换 postgres 服务到本地 `analytics_db` 库，并追加 `mssql` (SQL Server) 调试服务配置。
+  - 新增项目级 `.env.example`，提供完整的 ETL 调试连接占位配置。
+
 ## 2026-05-11 Asia/Shanghai
 
 简要概括：`dim.carbody_registry` 从全量刷新重构为增量 UPSERT，新增 MDS_DATA 7 字段提取。

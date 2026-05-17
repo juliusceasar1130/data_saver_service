@@ -1,42 +1,20 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-05-12 Asia/Shanghai
+修改时间：2026-05-16 Asia/Shanghai
 
 主要修改内容：
+- **Carbody 数据链路重构**：彻底移除 `postgres_fdw` 连接，改为通过 Python 脚本直连 SQL Server 抽取数据。
+- **配置隔离**：在 `.env` 中引入 `CARBODY_TARGET_*` 独立变量，实现任务解耦。
+- **存储过程升级**：更新 `meta.refresh_carbody_dim`，支持增量聚合、日志监控及 FCT 自动刷新。
+- **字段类型对齐**：修正 `ods.carbody_history` 中 SKID 和 CYCLE 字段为 VARCHAR，适配源库真实数据。
 - 新增 `fct.fct_vehicle_defect_enriched` 物化视图：以 carbody 为中心，整合缺陷检测记录的全量分析宽表
 - 优化 `refresh_analytics_all()` 过程：在 MART 刷新后增加 `fct_vehicle_defect_enriched` 的刷新步骤
-- 补充属性一致性验证与漏检分析 SQL
-- 优化 JOIN 性能：移除 JOIN 条件中的 `trim()`，强调 ODS 层清洗数据
-- (2026-05-10)：新增 `carbody_history` 数据库接入、`dim.carbody_registry` 与 `meta.refresh_carbody()`
-- 原始变动（2026-04-15）：
-- 补充 Windows 定时任务下 `pgpass.conf` 认证方案，解决 `psql` 无法交互输入密码的问题
-- 新增 `defect_database/scripts/refresh_analytics_db.ps1` Windows 宿主机刷新包装脚本说明
-- 新增文档目录，便于在长文档中快速定位章节
-- 删除已过时的“10.4 下一阶段优化建议”章节，避免与当前已落地状态重复或混淆
-- 明确本手册为 `analytics_db` 最终落地口径，`current_vehicle_fact_refactor.md` 仅保留为历史设计记录
-- 补充基于 MCP 对实时 `analytics_db` 的实际对象、字段、物化视图定义与数据量校验结果
-- 将 `current_vehicle_fact_refactor.md` 中仍有参考价值的设计解释、适用边界与查询入口合并进本手册
-- 将旧版 `analytics_db` 架构图文档重写为可直接执行的落地与刷新操作手册
-- 修正旧版流程中遗漏 `dim` 刷新、`meta.refresh_watermark` 更新、刷新口径错误等问题
-- 以当前数据库中已经验证成功的对象结构为准，统一后续执行口径
-- 补充当前 `fct_vehicle_position_current` 对异常车与重复调试车场景的局限说明
-- 补充下一阶段“正式产品车 / 异常车 / 全量占位”分层优化入口
-- 将“当前车辆事实分层优化”第一阶段落地结果同步到手册
-- 补充 `fct_position_current_all`、`fct_abnormal_vehicle_current`、`mart_abnormal_vehicle_current` 与 `dim_vehicle_profile.current_*` 最新对象说明
-- 补充 `mart_position_current_overview` 当前现场总览对象与对应刷新、验证口径
-- 修正文档内失效的旧仓库绝对路径引用，改为当前仓库实际文件路径
 
 ## 目录
 
 - [1. 适用范围](#1-适用范围)
 - [2. 当前已验证的最新状态](#2-当前已验证的最新状态)
 - [3. 旧版流程中已修正的错误](#3-旧版流程中已修正的错误)
-- [3.1 当前已知限制](#31-当前已知限制)
-- [3.2 为什么必须拆分“全部占位 / 正式产品车 / 异常车”](#32-为什么必须拆分全部占位--正式产品车--异常车)
-- [3.2.1 重复调试 `vehicle_id` 会被错误压缩](#321-重复调试-vehicle_id-会被错误压缩)
-- [3.2.2 产品车与异常车的建模依据不同](#322-产品车与异常车的建模依据不同)
-- [3.2.3 为什么不能再把 `fct_vehicle_position_current` 当成总入口](#323-为什么不能再把-fct_vehicle_position_current-当成总入口)
-- [3.3 建议查询入口](#33-建议查询入口)
 - [4. 前置确认](#4-前置确认)
 - [5. 一次性初始化流程](#5-一次性初始化流程)
 - [5.1 检查 `analytics_db` 是否已存在](#51-检查-analytics_db-是否已存在)
@@ -52,12 +30,12 @@
 - [6.4 创建 `dim` 表](#64-创建-dim-表)
 - [6.5 创建事实层与分析层物化视图](#65-创建事实层与分析层物化视图)
 - [6.6 授权](#66-授权)
+- [6.7 Carbody 专用 ODS 表](#67-carbody-专用-ods-表)
+- [6.8 创建 `dim.carbody_registry`](#68-创建-dimcarbody_registry)
+- [6.9 聚合存储过程 `meta.refresh_carbody_dim`](#69-聚合存储过程-metarefresh_carbody_dim)
 - [7. 最新正式版一键刷新过程](#7-最新正式版一键刷新过程)
 - [8. 首次刷新](#8-首次刷新)
 - [9. 日常验证 SQL](#9-日常验证-sql)
-- [9.1 验证 schema / 表 / 物化视图](#91-验证-schema--表--物化视图)
-- [9.2 验证数据量](#92-验证数据量)
-- [9.3 验证刷新日志与水位](#93-验证刷新日志与水位)
 - [9.4 验证异常车分类结果](#94-验证异常车分类结果)
 - [9.5 验证 `agent_ro` 权限](#95-验证-agent_ro-权限)
 - [10. 后续怎么执行](#10-后续怎么执行)
@@ -466,46 +444,9 @@ FROM SERVER defect_srv INTO src_defect;
 
 如果这些外部表已经存在，就不要重复执行上面的导入语句。
 
-### 5.7 创建 carbody FDW 连接与外部表
-
-```sql
--- schema
-CREATE SCHEMA IF NOT EXISTS src_carbody;
-
--- FDW server
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_foreign_server WHERE srvname = 'carbody_srv'
-  ) THEN
-    CREATE SERVER carbody_srv
-    FOREIGN DATA WRAPPER postgres_fdw
-    OPTIONS (host 'localhost', dbname 'carbody_history', port '5432');
-  END IF;
-END;
-$$;
-
--- user mapping
-DO $$
-BEGIN
-  IF NOT EXISTS (
-    SELECT 1 FROM pg_user_mappings m
-    JOIN pg_foreign_server s ON m.srvid = s.oid
-    JOIN pg_roles r ON m.umuser = r.oid
-    WHERE s.srvname = 'carbody_srv' AND r.rolname = 'root'
-  ) THEN
-    CREATE USER MAPPING FOR root
-    SERVER carbody_srv
-    OPTIONS (user 'root', password 'root');
-  END IF;
-END;
-$$;
-
--- 导入外部表（仅一次）
-IMPORT FOREIGN SCHEMA public
-LIMIT TO (carbody_history)
-FROM SERVER carbody_srv INTO src_carbody;
-```
+---
+-- 注意：原 5.7 节 carbody FDW 已弃用，改由 Python ETL 直连 SQL Server。
+---
 
 ## 6. 本地 ODS / DIM / FCT / MART 对象初始化
 
@@ -627,7 +568,7 @@ CREATE TABLE IF NOT EXISTS dim.dim_vehicle_profile (
   black_roof_raw_tracking VARCHAR(32),
   black_roof_raw_defect VARCHAR(100),
   tracking_last_seen_at TIMESTAMPTZ,
-  defect_last_seen_at TIMESTAMP,
+  defect_last_seen_at TIMESTAMPTZ,
   current_position_id BIGINT,
   current_carrier_id VARCHAR(50),
   current_carrier_type VARCHAR(20),
@@ -1104,11 +1045,28 @@ GRANT SELECT ON TABLES TO agent_ro;
 ### 6.7 创建 `ods.carbody_history`
 
 ```sql
-CREATE TABLE IF NOT EXISTS ods.carbody_history AS
-SELECT * FROM src_carbody.carbody_history WITH NO DATA;
+-- 显式创建以确保时间字段为 TIMESTAMPTZ
+CREATE TABLE IF NOT EXISTS ods.carbody_history (
+    "ID"               NUMERIC PRIMARY KEY,
+    "DATE_EVT"         TIMESTAMPTZ,
+    "SHIFT_NR"         NUMERIC,
+    "RW_STATION_ID"    VARCHAR(64),
+    "RW_STATION_STATUS" NUMERIC,
+    "SKID_ID"          VARCHAR(64),
+    "SKID_TYPE"        VARCHAR(64),
+    "SKID_IS_EMPTY"    NUMERIC,
+    "BODY_ID"          VARCHAR(14),
+    "BODY_TYPE"        VARCHAR(12),
+    "MDS_DATA"         VARCHAR,
+    "MDS_TELEGRAM_TYPE" VARCHAR(10),
+    "FK_ERP_HIST_ID"   NUMERIC,
+    "CYCLE_NUM"        VARCHAR(64),
+    "PRODUCTION_SEGMENT_ID" NUMERIC,
+    "ETL_MODIFY_DATE"  TIMESTAMPTZ,
+    "ETL_SOURCE_ID"    NUMERIC
+);
 
--- PK + 索引
-ALTER TABLE ods.carbody_history ADD PRIMARY KEY ("ID");
+-- 索引
 CREATE INDEX IF NOT EXISTS idx_ods_carbody_body_id         ON ods.carbody_history("BODY_ID");
 CREATE INDEX IF NOT EXISTS idx_ods_carbody_date_evt        ON ods.carbody_history("DATE_EVT");
 CREATE INDEX IF NOT EXISTS idx_ods_carbody_body_id_date    ON ods.carbody_history("BODY_ID", "DATE_EVT");
@@ -1122,8 +1080,8 @@ CREATE INDEX IF NOT EXISTS idx_ods_carbody_rw_station      ON ods.carbody_histor
 -- MDS_DATA 提取规则见 carbody_history/MDS数据提取规则.md
 CREATE TABLE IF NOT EXISTS dim.carbody_registry (
     vehicle_id         VARCHAR(14) PRIMARY KEY,
-    first_seen_at      TIMESTAMP NOT NULL,      -- 首次过站时间
-    last_seen_at       TIMESTAMP NOT NULL,      -- 末次过站时间
+    first_seen_at      TIMESTAMPTZ NOT NULL,    -- 首次过站时间
+    last_seen_at       TIMESTAMPTZ NOT NULL,    -- 末次过站时间
     first_rw_station   VARCHAR(64),             -- 首次过站位置
     last_rw_station    VARCHAR(64),             -- 末次过站位置
     first_body_type    VARCHAR(12),             -- 入口车身类型

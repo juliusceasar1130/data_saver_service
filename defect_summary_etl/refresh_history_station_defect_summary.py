@@ -30,7 +30,7 @@ from psycopg2.extras import RealDictCursor, execute_values
 
 JOB_NAME = "refresh_history_station_defect_summary"
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
-MODEL_MAP_FILE = PROJECT_ROOT / "defect_database" / "defect_database_from_agent" / "model_map.json"
+MODEL_MAP_FILE = PROJECT_ROOT / "defect_summary_etl" / "model_map.json"
 DEFAULT_TIMEZONE = "Asia/Shanghai"
 ALLOWED_BOOTSTRAP_MODES = {"from_summary", "from_zero"}
 ALLOWED_SOURCE_DB_TYPES = {"postgres", "sqlserver"}
