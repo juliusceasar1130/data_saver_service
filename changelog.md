@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-05-17 21:00 Asia/Shanghai
+
+简要概括：全面落地分析数仓三链路（Carbody ODS ETL、缺陷汇总 ETL、分析库聚合过程）的 Docker 容器化定时同步调度器，实现免宿主机计划任务的后台静默、高可靠自动刷新架构。
+
+主要修改内容：
+
+- **实现常驻 Python 定时任务调度器**
+  - 在根目录新建了 [scheduler/](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/scheduler) 文件夹并编写 [scheduler_main.py](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/scheduler/scheduler_main.py)：
+    - 使用 `schedule` 库并支持从环境读取 `SCHEDULER_INTERVAL_MINUTES` 自定义配置（单位：分钟），实现极高灵活度。
+    - 串行依次调度 Carbody ETL 脚本 (`refresh_carbody_ods.py`)、缺陷汇总 ETL 脚本 (`refresh_history_station_defect_summary.py --refresh`)，最后利用 `psycopg2-binary` 执行 `CALL meta.refresh_analytics_all();`，确保数仓内数据逻辑顺序一致。
+    - 采用绝对路径与 `cwd` 自定义执行目录设计，确保容器与宿主机中在任意工作目录下运行均万无一失。
+    - 添加全局锁 `IS_RUNNING` 机制双重防御防重叠“叠跑”。
+    - 使用 `try-except` 闭环隔离单次网络闪断异常，并将每轮运行正常时间点写入健康检查文件 `/tmp/scheduler_health` 以供容器状态监控。
+- **配置 Docker 容器化与网络互连**
+  - 新增 [Dockerfile.scheduler](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/Dockerfile.scheduler)：基于 `python:3.10-slim` 构建并配置 `Asia/Shanghai` 时区，指令执行路径同步对齐。
+  - 修改 [docker-compose.yml](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docker-compose.yml)：
+    - 新增 `refresh-scheduler` 独立服务，与 `postgres` 同属 `app-network` 虚拟网，走内部服务名直连减少时延。
+    - 显式声明日志自动轮转选项（`max-size: 10m`，`max-file: 3`）防止容器日志撑爆磁盘。
+    - 挂载健康检查参数 `healthcheck`，支持定时探测 `/tmp/scheduler_health` 的变更情况防假死，且自动通过 Shell 算术 `SCHEDULER_INTERVAL_MINUTES + 2` 分钟安全窗口动态适应自定义刷新时间。
+    - 针对容器内的特殊运行环境进行环境变量精准覆写：`DB_HOST/CARBODY_TARGET_DB_HOST/DEFECT_TARGET_DB_HOST` 覆盖为 `postgres`；`CARBODY_SOURCE_DB_HOST/DEFECT_SOURCE_DB_HOST` 重定向至 WSL 的 `host.docker.internal`，并绑定代理端口 `14330/14331`，使得容器调度与宿主机本地调试配置完美兼容互不干扰。
+- **项目基础设施及环境配置**
+  - 重新规划调度器存放目录：将调度器文件独立收纳至根目录 `scheduler/` 文件夹，极其显眼易寻。
+  - 修改 [requirements.txt](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/requirements.txt)：追加 `schedule==1.2.2` 依赖。
+  - 修改 [.env](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/.env) 和 [.env.example](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/.env.example)：增加 `SCHEDULER_INTERVAL_MINUTES` 自定义调度时间段参数。
+  - 修改 [README.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/README.md)：在项目文件结构中加入调度器文件夹与其下的常驻脚本及 Docker 镜像的最新描述。
+
 ## 2026-05-17 18:50 Asia/Shanghai
 
 简要概括：新增双链路定时刷新技术方案设计，评估多种调度方案优劣并推荐基于 Docker Compose 容器化的 Python 调度器方案，实现分析数仓（`analytics_db`）2~5 分钟高频自动刷新的“一键式编排”与极致静默稳定运行。

@@ -9,6 +9,9 @@
 - `carbody_etl/`: 车辆过站历史 ETL 模块，直连 SQL Server 增量同步并触发 DIM 聚合处理。
 - `defect_summary_etl/`: 车辆缺陷汇总 ETL 模块，支持双数据库源（PostgreSQL/SQL Server）与数据保留裁剪。
 - `defect_database/`: 缺陷数据库重构的相关设计文档与主刷新过程。
+- `scheduler/`: 自动化定时数据同步与分析数仓刷新调度器服务。
+  - `scheduler/scheduler_main.py`: 自动化三链路定时刷新常驻调度器。
+- `Dockerfile.scheduler`: 定时同步调度器的 Docker 镜像封装。
 - `docs/`: 包含排污记录、环境配置说明与 carbody 数据源迁移详细方案。
 - `init_rb_positions_postgresql.py`: 数据库初始化脚本。
 - `create_tables_postgresql.sql`: 核心建表 SQL 脚本。

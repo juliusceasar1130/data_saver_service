@@ -1,0 +1,20 @@
+# Dockerfile for Analytics DB Refresh Scheduler
+# Created: 2026-05-17 21:00 Asia/Shanghai
+
+FROM python:3.10-slim
+
+# Set timezone
+ENV TZ=Asia/Shanghai
+RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
+
+WORKDIR /app
+
+# Install dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy source code
+COPY . .
+
+# Start the scheduler
+CMD ["python", "scheduler/scheduler_main.py"]
