@@ -1,5 +1,48 @@
 # Changelog
 
+## 2026-05-17 18:50 Asia/Shanghai
+
+简要概括：新增双链路定时刷新技术方案设计，评估多种调度方案优劣并推荐基于 Docker Compose 容器化的 Python 调度器方案，实现分析数仓（`analytics_db`）2~5 分钟高频自动刷新的“一键式编排”与极致静默稳定运行。
+
+主要修改内容：
+
+- **新增分析数仓双链路定时刷新技术方案**
+  - 新建了 [analytics_db_refresh_deployment_plan.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/plan/analytics_db_refresh_deployment_plan.md)：
+    - 分析了常规分析链路（`CALL meta.refresh_analytics_all();`）和 Carbody 链路（`refresh_carbody_ods.py`）的同步调度需求。
+    - 对比了 Windows 任务计划程序、WSL 2 Cron 和 Docker 容器化统一调度方案，明确了 Docker 容器化方案的绝对优势。
+    - 设计了基于 Docker Compose + Python `schedule` 守护进程的统一调度器架构，制定了具体的修改、容器化部署及双链路验证步骤。
+
+## 2026-05-17 14:15 Asia/Shanghai
+
+简要概括：彻底清理和纠正数仓架构手册及新环境迁移清单中遗留的旧版 FDW 及 `refresh_carbody` 废弃方法，消除多期/历史版本口径冲突，确保数仓文档与 Phase 2 的 Python ETL 新架构 100% 精准对齐。
+
+主要修改内容：
+
+- **重构架构设计手册中 Carbody 链路描述**
+  - 修改了 [analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_architecture.md)：
+    - 在 6.9 节正式补齐了增量维表聚合存储过程 `meta.refresh_carbody_dim()` 的 PL/pgSQL DDL 完整定义。
+    - 将 7.2 节重写为 `Carbody 刷新过程的重构与废弃说明`，详细阐述了取消 `postgres_fdw` 挂载后的“库内/外解耦”架构演进，明确声明 `meta.refresh_carbody()` 过程彻底废弃。
+    - 在 8 节（首次刷新）中，移除了旧的库内 `CALL meta.refresh_carbody();` 命令，替换为首选的水位初始化与运行 Python 直连抽取脚本 `python carbody_etl/refresh_carbody_ods.py` 指引。
+    - 将 2.2 节历史对象快照中的 `src_carbody` 和 `refresh_carbody()` 修正为遗留/废弃标注。
+- **全面重构新环境迁移清单以对齐 Phase 2 架构**
+  - 彻底覆写了 [analytics_db_migration_checklist.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_migration_checklist.md)：
+    - **移除旧版多期残留**：删除了所有关于创建 `carbody_srv` FDW 连接、外部表导入以及在 PG 中调用旧 `refresh_carbody()` 存储过程的清单项。
+    - **对齐 Python 架构**：增设 Python 运行环境验证（如 `conda activate websoket` 激活验证）、独立 `.env` 配置文件配置项、本地 `ods.carbody_history` 显式创建等清单要求。
+    - **重构同步与验收顺序**：将首次刷新流程调整为运行外部 Python ETL 脚本触发增量维表聚合的规范顺序；增设富集事实宽表 `fct.fct_vehicle_defect_enriched` 的数据完整性和 `agent_ro` USAGE 权限验收清单。
+
+## 2026-05-17 11:25 Asia/Shanghai
+
+简要概括：优化 `defect_summary_etl` 表结构时间类型，由 `TIMESTAMP` 变更为时区安全的 `TIMESTAMPTZ` 格式；同时补全并完善数仓架构手册中的物化视图删除依赖逻辑。
+
+主要修改内容：
+
+- **优化 `defect_summary_etl` 模块中的时间数据类型**
+  - 修改了 [history_station_defect_summary.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_summary_etl/history_station_defect_summary.sql)：将 `history_station_defect_summary.date_time` 和 `history_station_defect_summary_refresh_state.last_success_date_time` 字段类型由 `TIMESTAMP` 升级为 `TIMESTAMPTZ`。
+  - 修改了 [refresh_history_station_defect_summary.py](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_summary_etl/refresh_history_station_defect_summary.py)：同步更新了脚本中内置的 `TARGET_SCHEMA_SQL` 自动建表声明。
+  - **优化价值**：实现了整个分析数仓（`analytics_db`）时间维度的 100% 带时区一致性，彻底根治跨表比较时隐式类型转换引起的索引性能下降以及 LLM 时间戳时区（如 8 小时错位）差错。
+- **完善数仓架构手册依赖关系**
+  - 修改了 [analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_database/database_refactor/analytics_db_architecture.md)：在“物化视图升级删除旧视图”脚本中，补齐了遗漏的 `fct.fct_vehicle_defect_enriched` 与 `fct.fct_vehicle_defect_detection`，并按照拓扑依赖顺序（Mart 层 ➡️ Fact 富集层 ➡️ Fact 基础检测层）重新编排了 `DROP` 语句，彻底避免重建时的依赖报错冲突。
+
 ## 2026-05-17 Asia/Shanghai
 
 简要概括：重构重组 ETL 模块目录，并实施 carbody 源库 PostgreSQL → SQL Server 迁移方案与字段/时间类型容错对齐。

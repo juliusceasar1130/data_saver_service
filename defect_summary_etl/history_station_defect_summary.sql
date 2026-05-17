@@ -1,10 +1,13 @@
--- 更新时间：2026-04-13 11:20 Asia/Shanghai
+-- 更新时间：2026-05-17 11:20 Asia/Shanghai
 -- 主要内容：
--- 1. 将 history_station_defect_summary 初始化脚本调整为幂等建表，不再执行 DROP / TRUNCATE / 全量刷新
--- 2. 新增增量刷新所需的状态表与日志表
--- 3. 保留并同步 model_attribute_map 本地映射，补充汇总表常用索引
+-- 1. 将本地 history_station_defect_summary 汇总表与水位表中的 date_time / last_success_date_time 字段类型由 TIMESTAMP 变更为 TIMESTAMPTZ
+-- 2. 统一带时区时间格式，规避 LLM 与多表时间关联时的时区暗坑与隐式类型转换，保障索引和逻辑安全
+-- 3. 保持幂等建表、索引定义以及 model_attribute_map 初始化逻辑不变
 
 BEGIN;
+
+-- 强锁当前会话为上海时区，保障手动导入时时间字段在一致的时区语境下被初始化
+SET TIME ZONE 'Asia/Shanghai';
 
 CREATE TABLE IF NOT EXISTS model_attribute_map (
     model INTEGER PRIMARY KEY,
@@ -50,7 +53,7 @@ CREATE TABLE IF NOT EXISTS history_station_defect_summary (
     type_name VARCHAR(100),
     black_roof VARCHAR(100),
     serial_number VARCHAR(255),
-    date_time TIMESTAMP NOT NULL,
+    date_time TIMESTAMPTZ NOT NULL,
     color_code VARCHAR(255),
     tunnel INTEGER,
     cycle INTEGER,
@@ -119,7 +122,7 @@ ON history_station_defect_summary(serial_number);
 CREATE TABLE IF NOT EXISTS history_station_defect_summary_refresh_state (
     job_name TEXT PRIMARY KEY,
     last_success_history_id INTEGER NOT NULL DEFAULT 0,
-    last_success_date_time TIMESTAMP NULL,
+    last_success_date_time TIMESTAMPTZ NULL,
     last_run_started_at TIMESTAMPTZ NULL,
     last_run_finished_at TIMESTAMPTZ NULL,
     last_status TEXT NULL,

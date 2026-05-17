@@ -1,13 +1,10 @@
 #!/usr/bin/env python3
 """
-修改时间：2026-04-15 15:24 Asia/Shanghai
+修改时间：2026-05-17 11:20 Asia/Shanghai
 主要修改内容：
-1. 新增 `history_station_defect_summary` 固定窗口保留参数与裁剪逻辑
-2. 在整轮增量刷新成功后执行 retention cleanup，并输出是否裁剪日志
-3. 在 `--print-status` 中补充窗口配置与当前最小/最大范围
-4. 支持目标库固定 PostgreSQL、源库支持 PostgreSQL / SQL Server 双方言
-5. 新增源库类型、schema 等配置，并阻止不完整源库配置的静默回退
-6. 保留本地汇总表的 UPSERT、水位推进、日志记录与 advisory lock 控制
+1. 将本地 `history_station_defect_summary` 汇总表与水位表中的 `date_time` / `last_success_date_time` 字段由 `TIMESTAMP` 变更为 `TIMESTAMPTZ`。
+2. 实现全库统一的带时区绝对时间戳格式，规避 LLM 生成 SQL 以及跨表关联查询时的时区隐式转换与 8 小时偏差隐患。
+3. 保持本地汇总表的增量 UPSERT 水位推进、Advisory Lock 并发防护和 Retention 自动剪枝机制不变。
 """
 
 from __future__ import annotations
@@ -66,7 +63,7 @@ CREATE TABLE IF NOT EXISTS public.history_station_defect_summary (
     type_name VARCHAR(100),
     black_roof VARCHAR(100),
     serial_number VARCHAR(255),
-    date_time TIMESTAMP NOT NULL,
+    date_time TIMESTAMPTZ NOT NULL,
     color_code VARCHAR(255),
     tunnel INTEGER,
     cycle INTEGER,
@@ -87,7 +84,7 @@ ON public.history_station_defect_summary(serial_number);
 CREATE TABLE IF NOT EXISTS public.history_station_defect_summary_refresh_state (
     job_name TEXT PRIMARY KEY,
     last_success_history_id INTEGER NOT NULL DEFAULT 0,
-    last_success_date_time TIMESTAMP NULL,
+    last_success_date_time TIMESTAMPTZ NULL,
     last_run_started_at TIMESTAMPTZ NULL,
     last_run_finished_at TIMESTAMPTZ NULL,
     last_status TEXT NULL,
