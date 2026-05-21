@@ -32,8 +32,8 @@ services:
   # Python 采集websocket数据保存到postgresql服务(目前访问宿主机的网络存在问题，不使用)
   data-saver-service:
     build: .
-    image: data-saver-service:v3.1
-    container_name: data_saver_service_v3.1
+    image: data-saver-service:v3.2
+    container_name: data_saver_service_v3.2
     restart: unless-stopped
     init: true # 解决 Python 进程可能不响应信号的问题
     # 显式加入网络

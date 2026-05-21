@@ -6,7 +6,7 @@ RB位置数据表操作封装类 (PostgreSQL 版本)
 
 import psycopg2
 from psycopg2.extras import RealDictCursor
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, Dict, List
 
 
@@ -134,7 +134,7 @@ class RBPositionDataManager:
                 vehicle_data['reserved_1'],
                 vehicle_data['reserved_2'],
                 vehicle_data['raw_data'],
-                datetime.now(),
+                datetime.now(timezone.utc),
                 tag
             ))
             
@@ -172,10 +172,10 @@ class RBPositionDataManager:
         try:
             # 解析时间戳
             try:
-                updated_at = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%fZ")
+                updated_at = datetime.strptime(ts, "%Y-%m-%dT%H:%M:%S.%fZ").replace(tzinfo=timezone.utc)
             except (ValueError, TypeError):
                 # 如果解析失败，使用当前时间
-                updated_at = datetime.now()
+                updated_at = datetime.now(timezone.utc)
 
             update_sql = """
             UPDATE rb_position_data
@@ -237,7 +237,7 @@ class RBPositionDataManager:
             ON CONFLICT ({code_field}) DO NOTHING
             """
             
-            self.cursor.execute(insert_sql, (code, default_name, datetime.now()))
+            self.cursor.execute(insert_sql, (code, default_name, datetime.now(timezone.utc)))
             
             if self.cursor.rowcount > 0:
                 self.connection.commit()

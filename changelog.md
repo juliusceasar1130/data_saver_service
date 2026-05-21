@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-05-21 16:53 Asia/Shanghai
+
+简要概括：修复 PostgreSQL 数据管理器中因使用无时区（Naive）的 datetime 导致的入库时间与实际时间相差 8 小时的问题。
+
+主要修改内容：
+
+- **修复 `rb_position_manager_postgresql.py` 的时区处理**
+  - 引入了 `timezone` 模块。
+  - 将 `update_vehicle_by_tag` 与 `_insert_if_not_exists` 中的 `datetime.now()` 替换为带时区感知的 `datetime.now(timezone.utc)`。
+  - 将 `update_carrier_id_by_tag` 中解析 WebSocket 的 UTC 时间字符串后，显式加上了 `.replace(tzinfo=timezone.utc)`，避免被数据库错误按照本地会话时区去解读。
+
 ## 2026-05-21 14:12 Asia/Shanghai
 
 简要概括：优化分析库本地对象初始化的 DDL 依赖顺序，解决因物化视图提前创建而导致的底层表未定义报错，提升新环境一键部署的稳定性。
