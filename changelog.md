@@ -1,5 +1,32 @@
 # Changelog
 
+## 2026-05-21 14:12 Asia/Shanghai
+
+简要概括：优化分析库本地对象初始化的 DDL 依赖顺序，解决因物化视图提前创建而导致的底层表未定义报错，提升新环境一键部署的稳定性。
+
+主要修改内容：
+
+- **重构架构设计手册章节依赖顺序**
+  - 修改了 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md)：
+    - 将 `ods.carbody_history` 表、`dim.carbody_registry` 维表以及增量刷新存储过程 `meta.refresh_carbody_dim()` 整体调整到物化视图初始化章节之前。
+    - 全面重编排并对齐了 6.5 至 6.9 节的目录导航（TOC）与章节标题序号，修正了相关交叉引用超链接。
+    - 深度审查并修复了日常验证 SQL 章节中遗留的废弃存储过程名称 `refresh_carbody`，统一更正为 `refresh_carbody_dim`，并同步校正了幂等性验证 SQL 注释。
+    - 对目录中的 6.5、6.6、6.7 锚点与实际标题文本进行了高精度对齐，确保所有目录超链接在 Markdown 中能百分百精准跳转。
+
+## 2026-05-18 14:36 Asia/Shanghai
+
+简要概括：整合并重构 Docker Desktop WSL2 环境下后端容器访问外部私有网络及外部数据库/WebSocket 代理的配置指南，输出统一、规范的集成技术文档。
+
+主要修改内容：
+
+- **整合并新增集成技术指南文档**
+  - 在 `docs/` 目录下新建了 [Docker Desktop WSL2 后端容器访问外部私有网络与代理集成指南.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/Docker%20Desktop%20WSL2%20后端容器访问外部私有网络与代理集成指南.md)：
+    - 合并了原 `Docker Desktop WSL2 后端容器访问外部私有网络问题指南.md` 与 `sqlserver_wsl2_proxy_guide.md` 两份网络相关技术方案。
+    - 精准阐述了 Docker Desktop WSL2 宿主机与容器网卡之间在 RFC1918 私有网段（`172.21.x.x` 与 `172.22.x.x`）的路由缺陷成因。
+    - 提供了统一的多端口 `socat` 联合中继桥梁设计，包含 WebSocket 订阅（8082 端口）、Carbody SQL Server（14330 端口）和 Defect SQL Server（14331 端口）。
+    - 输出了合一的自启 Shell 脚本（包含开机时延 `sleep 10` 防死锁绑定）、开机 `boot.command` 写入、Docker Compose 和 `.env` 环境变量覆写指南。
+    - 补充了基于 `pytds` 库的端到端容器内数据库连通性验证命令和常见维护排障 FAQ 手册。
+
 ## 2026-05-17 21:00 Asia/Shanghai
 
 简要概括：全面落地分析数仓三链路（Carbody ODS ETL、缺陷汇总 ETL、分析库聚合过程）的 Docker 容器化定时同步调度器，实现免宿主机计划任务的后台静默、高可靠自动刷新架构。

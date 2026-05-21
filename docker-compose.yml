@@ -70,13 +70,13 @@ services:
 
   # 自动化定时数据同步与分析数仓刷新调度服务 (Added: 2026-05-17)
   refresh-scheduler:
-    build: 
+    build:
       context: .
       dockerfile: Dockerfile.scheduler
     image: refresh-scheduler:v1.0
     container_name: refresh_scheduler_v1.0
     restart: always
-    env_file: 
+    env_file:
       - .env
     networks:
       - app-network
@@ -86,14 +86,34 @@ services:
     environment:
       - DB_HOST=postgres
       - CARBODY_TARGET_DB_HOST=postgres
-      - DEFECT_TARGET_DB_HOST=postgres
+      - CARBODY_TARGET_DB_PORT=5432
+      - CARBODY_TARGET_DB_NAME=analytics_db
+      - CARBODY_TARGET_DB_USER=root
+      - CARBODY_TARGET_DB_PASSWORD=root
       - CARBODY_SOURCE_DB_HOST=host.docker.internal
       - CARBODY_SOURCE_DB_PORT=14330
+      - CARBODY_SOURCE_DB_NAME=DXQcontrol_SVWMEB_BI_DWH
+      - CARBODY_SOURCE_DB_USER=svw
+      - CARBODY_SOURCE_DB_PASSWORD=svw_pwd
+      - DEFECT_TARGET_DB_HOST=postgres
+      - DEFECT_TARGET_DB_PORT=5432
+      - DEFECT_TARGET_DB_NAME=defect_db
+      - DEFECT_TARGET_DB_USER=root
+      - DEFECT_TARGET_DB_PASSWORD=root
       - DEFECT_SOURCE_DB_HOST=host.docker.internal
       - DEFECT_SOURCE_DB_PORT=14331
+      - DEFECT_SOURCE_DB_NAME=DENTCHECK
+      - DEFECT_SOURCE_DB_USER=sa
+      - DEFECT_SOURCE_DB_PASSWORD=
+      - DEFECT_SOURCE_DB_TYPE=sqlserver
+      - DEFECT_SOURCE_DB_SCHEMA=dbo
       - SCHEDULER_INTERVAL_MINUTES=${SCHEDULER_INTERVAL_MINUTES:-3}
     healthcheck:
-      test: ["CMD-SHELL", "find /tmp/scheduler_health -mmin -$$(($${SCHEDULER_INTERVAL_MINUTES:-3} + 2)) | grep -q ."]
+      test:
+        [
+          "CMD-SHELL",
+          "find /tmp/scheduler_health -mmin -$$(($${SCHEDULER_INTERVAL_MINUTES:-3} + 2)) | grep -q .",
+        ]
       interval: 1m
       timeout: 10s
       retries: 3

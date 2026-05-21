@@ -4,11 +4,14 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 项目概述
 
-汽车涂装车间工业数据系统，包含两大子系统：
-- **实时车辆追踪** (`rollerbed_tracking_db`)：通过 WebSocket 从 PLC 采集 BodyID/CarrierID，写入 PostgreSQL
-- **缺陷汇总 ETL** (`defect_db`)：从 PostgreSQL/SQL Server 源库增量抽取缺陷检测结果，写回本地汇总表
+汽车涂装车间工业数据系统，包含三大子系统：
 
-另有一个 `analytics_db`（规划中/部分落地），通过 FDW 跨库整合车辆位置与质量缺陷数据，为 SQL Agent 提供统一只读分析面。
+- **实时车辆追踪** (`rollerbed_tracking_db`)：通过 WebSocket 从 PLC 采集 BodyID/CarrierID，写入 PostgreSQL
+- **分析数仓 ETL 三链路** (驻留在 `analytics_db`)：
+  1. **Carbody ODS 同步** (`carbody_etl/`)：从 SQL Server 源库增量抽取过站历史到 `ods.carbody_history`，聚合至 `dim.carbody_registry`
+  2. **缺陷汇总 ETL** (`defect_summary_etl/`)：从 PostgreSQL/SQL Server 源库增量抽取缺陷检测结果，写入 `history_station_defect_summary` 宽表
+  3. **分析库聚合** (`meta.refresh_analytics_all()`)：刷新物化视图和 FCT 层，产出最终分析数据
+- **统一调度器** (`scheduler/scheduler_main.py`)：常驻 Docker 容器，按可配置间隔（默认 3 分钟）串行执行以上三链路
 
 ## 环境与关键命令
 
@@ -32,19 +35,6 @@ docker compose logs -f data-saver-service
 docker compose down
 ```
 
-### 缺陷汇总 ETL（`defect_database/refresh_history_station_defect_summary.py`）
-
-```bash
-# 初始化水位（首次使用或切库后执行一次）
-python defect_database/refresh_history_station_defect_summary.py --init-state
-
-# 执行一次增量刷新
-python defect_database/refresh_history_station_defect_summary.py --refresh
-
-# 查看当前水位和状态
-python defect_database/refresh_history_station_defect_summary.py --print-status
-```
-
 ### 数据库初始化
 
 ```bash
@@ -58,18 +48,38 @@ python init_rb_positions_postgresql.py
 python init_seed_data_postgresql.py
 ```
 
-### Docker 缺陷刷新（备选方案，企业内网优先用宿主机）
+### Carbody ETL — ODS 同步与维表聚合
 
 ```bash
-docker compose --profile manual run --rm defect-refresh --init-state
-docker compose --profile manual run --rm defect-refresh --refresh
-docker compose --profile manual run --rm defect-refresh --print-status
+# 首次全量同步或重置（清空数据重头开始）
+python carbody_etl/refresh_carbody_ods.py --full-refresh
+
+# 日常增量同步
+python carbody_etl/refresh_carbody_ods.py
 ```
 
-### Windows 任务计划程序调度
+### 缺陷汇总 ETL（`defect_summary_etl/`）
 
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "F:\000_dev\Python\workplace\savedatabase-postgresql_v2\defect_database\scripts\refresh_history_station_defect_summary.ps1" -PythonExe "D:\000_software_install\miniconda3\envs\websoket\python.exe"
+```bash
+# 初始化水位（首次使用或切库后执行一次）
+python defect_summary_etl/refresh_history_station_defect_summary.py --init-state
+
+# 执行一次增量刷新
+python defect_summary_etl/refresh_history_station_defect_summary.py --refresh
+
+# 查看当前水位和状态
+python defect_summary_etl/refresh_history_station_defect_summary.py --print-status
+```
+
+### 统一调度器
+
+```bash
+# 宿主机直接运行（常驻进程，Ctrl+C 停止）
+python scheduler/scheduler_main.py
+
+# Docker 容器化部署
+docker compose up -d refresh-scheduler
+docker compose logs -f refresh-scheduler
 ```
 
 ## 架构概览
@@ -84,12 +94,21 @@ PLC 设备 → WebSocket Server (172.21.12.73:8088)
    rb_position_manager_postgresql.py  (psycopg2)
                 ↓
    rollerbed_tracking_db (PostgreSQL) :: rb_position_data (98 行固定位置)
-                ↓                                    ↓
-          (FDW 只读)                          defect_db :: history_station_defect_summary
-                ↓                                    ↑
-          analytics_db  ←── 跨库整合 ────────────────┘
-                ↓                      (refresh_history_station_defect_summary.py ETL)
-          SQL Agent (只读查询)
+                ↓
+          ┌──────────────────────────────────────────────────────┐
+          │                 scheduler/scheduler_main.py           │
+          │   ┌─────────────────┐  ┌───────────────────┐  ┌─────┐ │
+          │   │ Carbody ODS ETL │→│ Defect Summary ETL │→│ DB  │ │
+          │   │ (carbody_etl/)  │ │ (defect_summary_etl/)││CALL │ │
+          │   └─────────────────┘  └───────────────────┘  └─────┘ │
+          └──────────────────────────────────────────────────────┘
+                ↓
+          analytics_db (PostgreSQL)
+          ├── ods.carbody_history         (Carbody 原始过站数据)
+          ├── dim.carbody_registry        (一车一行聚合明细)
+          ├── public.history_station_defect_summary  (缺陷汇总宽表)
+          ├── fct.fct_vehicle_defect_enriched        (关联车辆与缺陷的物化视图)
+          └── meta.*                      (水位表、审计日志、聚合存储过程)
 ```
 
 ### 核心模块
@@ -104,25 +123,54 @@ PLC 设备 → WebSocket Server (172.21.12.73:8088)
 - 同时订阅 BodyID（30 字符车身数据）和 CarrierID（载体标识）
 - 支持心跳保活（默认 2s）、自动重连，通过环境变量配置
 
-**`defect_database/refresh_history_station_defect_summary.py`** — 缺陷汇总增量刷新：
-- "双连接、单次执行、增量落库" 模式：目标固定写本地 `defect_db`，源可选 PostgreSQL/SQL Server
-- 水位推进 + replay window：覆盖晚到的 `history_detail`，通过 `UPSERT` 幂等写入
+**`carbody_etl/refresh_carbody_ods.py`** — Carbody ODS 增量同步：
+- 从 SQL Server `DXQcontrol_SVWMEB_BI_DWH` 流式分批抽取增量数据
+- 同一事务内完成 PostgreSQL `ods.carbody_history` 写入与水位更新（Atomic Sync）
+- 完成后调用存储过程 `meta.refresh_carbody_dim()` 聚合 DIM 层
+- 基于 PostgreSQL Advisory Lock 并发控制
+
+**`defect_summary_etl/refresh_history_station_defect_summary.py`** — 缺陷汇总增量刷新：
+- "双连接、单次执行、增量落库" 模式：目标固定写本地 `analytics_db`，源可选 PostgreSQL/SQL Server
+- 水位推进 + replay window：覆盖晚到的缺陷数据，通过 `UPSERT` 幂等写入
 - PostgreSQL advisory lock 并发控制，状态表 + 日志表追踪执行历史
 - 支持 retention 窗口裁剪（max_rows / max_months / both）
+
+**`scheduler/scheduler_main.py`** — 统一常驻调度器：
+- 基于 `schedule` 库，通过 `SCHEDULER_INTERVAL_MINUTES` 环境变量配置间隔（默认 3 分钟）
+- 串行执行三链路：Carbody ETL → Defect Summary ETL → `CALL meta.refresh_analytics_all()`
+- 全局锁 `IS_RUNNING` 防止叠跑，健康检查文件 `/tmp/scheduler_health` 供容器监控
+- Docker 容器化部署（`Dockerfile.scheduler`），自动继承 `.env` 配置
 
 ### 数据库
 
 | 数据库 | 用途 | 部署方式 |
 |--------|------|----------|
-| `rollerbed_tracking_db` | 车辆位置状态（主库） | Docker `postgres` 或 Windows PostgreSQL |
-| `defect_db` | 缺陷汇总 + ETL 状态 | 本地 PostgreSQL |
-| `analytics_db` | 跨库分析层（ODS/DIM/FCT/MART） | 通过 FDW 从以上两库导入 |
+| `rollerbed_tracking_db` | 车辆位置实时状态（主库） | Docker `postgres` 或 Windows PostgreSQL |
+| `analytics_db` | 分析数仓，含 ODS/DIM/FCT/MART 层及 ETL 元数据表 | 本地 PostgreSQL（Docker 或 Windows） |
+
+注：`defect_db` 已合并至 `analytics_db`，不再独立存在。`analytics_db` 通过 ETL 脚本直写（非 FDW）完成数据整合。
+
+### 环境变量分组
+
+`.env` 中的环境变量按职责分为以下组：
+
+| 前缀 / 分组 | 用途 |
+|-------------|------|
+| `DB_*` | rollerbed_tracking_db 连接参数（Docker 内部服务默认） |
+| `CARBODY_SOURCE_DB_*` | Carbody SQL Server 源库连接 |
+| `CARBODY_TARGET_DB_*` | Carbody PostgreSQL 目标库连接（默认指向 analytics_db） |
+| `DEFECT_SOURCE_DB_*` | 缺陷源库连接（支持 postgres / sqlserver） |
+| `DEFECT_TARGET_DB_*` | 缺陷目标库连接（默认指向 analytics_db） |
+| `DEFECT_SUMMARY_*` | 缺陷 ETL 批大小、replay window、retention 策略 |
+| `SCHEDULER_INTERVAL_MINUTES` | 调度器执行间隔（默认 3 分钟） |
+| `WS_*` | WebSocket 服务器连接参数 |
 
 ### 配置文件
 
 - `.env` — 所有连接参数和环境变量（从 `.env_example` 复制）
 - `deviceConfig.json` — 98 个 RB 位置、8 个工艺区域、35 个 PLC 设备配置
 - `seed_data.json` — `process_areas` 和 `carrier_types` 字典表种子数据
+- `defect_summary_etl/model_map.json` — 车型编号 → type_name / black_roof 静态映射
 
 ## 项目约定
 

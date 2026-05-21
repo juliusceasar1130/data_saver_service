@@ -113,7 +113,7 @@
 |--------|---|------------|--------------|
 | **P0** | 1 | `CALL meta.refresh_analytics_all()` 是否存在 | ✅ 已确认：SP 已存在于 `analytics_db`，直接使用即可。 |
 | **P0** | 2 | `python:3.10-slim` 缺乏编译依赖 | ✅ **方案**：直接在 `requirements.txt` 中使用 `psycopg2-binary`，避免在 slim 镜像中额外安装 C 编译环境，极大加快镜像构建速度。`pytds` 为纯 Python 库无需额外编译。 |
-| **P0** | 11 | 跨网段连通两个 SQL Server 源库 | ✅ **方案**：配套 `sqlserver_wsl2_proxy_guide.md` 已完美覆盖，在 WSL2 配置两个 `socat` 代理，容器内通过 `host.docker.internal:14330/14331` 直连。 |
+| **P0** | 11 | 跨网段连通两个 SQL Server 源库 | ✅ **方案**：配套 [Docker Desktop WSL2 后端容器访问外部私有网络与代理集成指南.md](../Docker%20Desktop%20WSL2%20后端容器访问外部私有网络与代理集成指南.md) 已完美覆盖，在 WSL2 配置两个 `socat` 代理，容器内通过 `host.docker.internal:14330/14331` 直连。 |
 | **P1** | 3 | `schedule` 单线程 vs 多线程并发 | ✅ **方案**：业务需求为串行执行以保证 ODS 层数据先行落盘。`schedule` 单线程阻塞模型天然符合业务的串行时序诉求。 |
 | **P1** | 4 | 任务重叠与耗时风险 | ✅ **方案**：`schedule` 库是单线程阻塞的，单次耗时超长会自动推迟下次调度，天然防止“叠跑”。可在主循环内补充全局锁 `is_running` 作为双重防御。 |
 | **P1** | 5 | 缺失环境变量清单 | ✅ **方案**：在 `docker-compose.yml` 调度器节点配置 `env_file: .env`，使得所有代理端口和数据库账号密文能被容器读取。 |
