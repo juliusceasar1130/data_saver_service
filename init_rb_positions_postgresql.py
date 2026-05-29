@@ -191,7 +191,7 @@ def main():
     load_dotenv()
     
     db_config = {
-        "host": os.getenv("DB_HOST", "172.22.44.99"),
+        "host": os.getenv("DB_HOST", "localhost"),
         "port": int(os.getenv("DB_PORT", 5432)),
         "user": os.getenv("DB_USER", "root"),
         "password": os.getenv("DB_PASSWORD", "root"),

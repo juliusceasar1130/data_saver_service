@@ -56,6 +56,33 @@
 
 ## 变更记录
 
+### 2026-05-22 15:28 Asia/Shanghai
+
+主要修改内容：
+
+- 使用通用设备参数配置文件转换脚本 `utily/convert_device_config_v2.py` 对蜡腔/烘房原始配置文件 `deviceConfig——wax.json` 进行了转换，并在 `utily/wax/` 目录下生成了标准的 `deviceConfig.wax.json`。
+- 本次转换完美兼容了原配置中的 `"tagSkidNo"` 键，并无损地映射为标准的 `"tag_carrier_id"` 载具点位字段。
+- 字段内容均按要求做好了规范化填充（如 `process_area` 默认 `"待填充"`, `carrier_type` 默认 `"Topcoat Skid"`, `remark` 默认 `""`），并移除冗余字段，使每个设备项各字段完美对齐 `deviceConfig_sample.json` 规范。
+- 编写校验脚本 `validate_wax_config.py`，经 100% 深度校验，PLC控制器种类（11个）、设备总数（571个）、字段顺序及载具 ID 提取率成功达到 100%。
+
+### 2026-05-22 10:22 Asia/Shanghai
+
+主要修改内容：
+
+- 深度合并分色线大配置文件 `deviceConfig.color.json` 至主配置文件 `deviceConfig.json` 中。
+- 自动备份原文件为 `deviceConfig.json.bak`。
+- 基于 `tag` 点位路径唯一标识符完成了重叠 PLC 设备的冲突去重和安全增量合并。
+- 主配置文件总设备数成功扩充至 673 个，涵盖 9 个 PLC 控制器。
+- 编写多套自动化验证测试脚本完成对各新旧文件的细粒度结构和键值顺序 100% 对齐校验，并已全部确认无损通过。
+
+### 2026-05-22 10:05 Asia/Shanghai
+
+主要修改内容：
+
+- 优化通用设备配置文件转换脚本 `utily/convert_device_config_v2.py` 并对 L1/L2/L3 三个分色线设备参数配置文件（`deviceConfig1.json`、`deviceConfig2.json`、`deviceConfig3.json`）就地进行了转换和字段标准化对齐。
+- 新增分色线设备参数配置文件合并脚本 `utily/merge_device_configs.py`，全自动将分色线各 PLC 配置合并输出为统一大配置文件 `xxxx.color.json` 和标准的 `deviceConfig.color.json`。
+- 编写多套自动化验证测试脚本完成对各新旧文件的细粒度结构和键值顺序 100% 对齐校验，并已全部确认无损通过。
+
 ### 2026-03-23 00:00 Asia/Shanghai
 
 主要修改内容：

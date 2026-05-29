@@ -80,18 +80,85 @@
       "area_name": "L3面漆储存线",
       "description": "L3面漆储存线输送线",
       "sort_order": 10
-    }
+    },
+    {
+      "area_name": "L1分色线",
+      "description": "L1面漆分色线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2分色线",
+      "description": "L2面漆分色线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3分色线",
+      "description": "L3面漆分色线",
+      "sort_order": 10
+    },
+    {"area_name": "一线PVC预装进口离线口", "description": "一线PVC预装进口离线口", "sort_order": 10},
+    {"area_name": "一线PVC预装", "description": "一线PVC预装", "sort_order": 10},
+    {"area_name": "一线PVC预装出口离线口", "description": "一线PVC预装出口离线口", "sort_order": 10},
+    {"area_name": "一线PVC吊架进口", "description": "一线PVC吊架进口", "sort_order": 10},
+    {"area_name": "一线PVC底部预装", "description": "一线PVC底部预装", "sort_order": 10},
+    {"area_name": "一线PVC底部空橇返回线", "description": "一线PVC底部空橇返回线", "sort_order": 10},
+    {"area_name": "一线PVC吊架出口", "description": "一线PVC吊架出口", "sort_order": 10},
+    {"area_name": "一线吊架返回线", "description": "一线吊架返回线", "sort_order": 10},
+    {"area_name": "一线PVC底部机器人站", "description": "一线PVC底部机器人站", "sort_order": 10},
+    {"area_name": "一线PVC底部刷胶房", "description": "一线PVC底部刷胶房", "sort_order": 10},
+    {"area_name": "一线PVC内腔机器人站", "description": "一线PVC内腔机器人站", "sort_order": 10},
+    {"area_name": "一线PVC细密封线", "description": "一线PVC细密封线", "sort_order": 10},
+    {"area_name": "一线SDM站", "description": "一线SDM站", "sort_order": 10},
+    {"area_name": "二线PVC预装进口离线口", "description": "二线PVC预装进口离线口", "sort_order": 10},
+    {"area_name": "二线PVC预装", "description": "二线PVC预装", "sort_order": 10},
+    {"area_name": "二线PVC预装出口离线口", "description": "二线PVC预装出口离线口", "sort_order": 10},
+    {"area_name": "二线PVC吊架进口", "description": "二线PVC吊架进口", "sort_order": 10},
+    {"area_name": "二线PVC底部预装", "description": "二线PVC底部预装", "sort_order": 10},
+    {"area_name": "二线PVC底部空橇返回线", "description": "二线PVC底部空橇返回线", "sort_order": 10},
+    {"area_name": "二线PVC吊架出口", "description": "二线PVC吊架出口", "sort_order": 10},
+    {"area_name": "二线吊架返回线", "description": "二线吊架返回线", "sort_order": 10},
+    {"area_name": "二线PVC底部机器人站", "description": "二线PVC底部机器人站", "sort_order": 10},
+    {"area_name": "二线PVC底部刷胶房", "description": "二线PVC底部刷胶房", "sort_order": 10},
+    {"area_name": "二线PVC内腔机器人站", "description": "二线PVC内腔机器人站", "sort_order": 10},
+    {"area_name": "二线PVC细密封线", "description": "二线PVC细密封线", "sort_order": 10},
+    {"area_name": "二线SDM站", "description": "二线SDM站", "sort_order": 10},
+    {"area_name": "二线门槛机器人站", "description": "二线门槛机器人站", "sort_order": 10},
+    {"area_name": "二线门槛及SDM自动检查工位", "description": "二线门槛及SDM自动检查工位", "sort_order": 10},
+    {"area_name": "三线PVC预装进口离线口", "description": "三线PVC预装进口离线口", "sort_order": 10},
+    {"area_name": "三线PVC预装", "description": "三线PVC预装", "sort_order": 10},
+    {"area_name": "三线PVC预装出口离线口", "description": "三线PVC预装出口离线口", "sort_order": 10},
+    {"area_name": "三线PVC吊架进口", "description": "三线PVC吊架进口", "sort_order": 10},
+    {"area_name": "三线PVC底部预装", "description": "三线PVC底部预装", "sort_order": 10},
+    {"area_name": "三线PVC底部空橇返回线", "description": "三线PVC底部空橇返回线", "sort_order": 10},
+    {"area_name": "三线PVC吊架出口", "description": "三线PVC吊架出口", "sort_order": 10},
+    {"area_name": "三线吊架返回线", "description": "三线吊架返回线", "sort_order": 10},
+    {"area_name": "三线PVC底部机器人站", "description": "三线PVC底部机器人站", "sort_order": 10},
+    {"area_name": "三线PVC底部刷胶房", "description": "三线PVC底部刷胶房", "sort_order": 10},
+    {"area_name": "三线PVC内腔机器人站", "description": "三线PVC内腔机器人站", "sort_order": 10},
+    {"area_name": "三线PVC细密封线", "description": "三线PVC细密封线", "sort_order": 10},
+    {"area_name": "三线SDM站", "description": "三线SDM站", "sort_order": 10},
+    {"area_name": "三线门槛机器人站", "description": "三线门槛机器人站", "sort_order": 10},
+    {"area_name": "三线门槛及SDM自动检查工位", "description": "三线门槛及SDM自动检查工位", "sort_order": 10},
+    {"area_name": "电泳橇与面漆橇转换区域（F04_1A_200点）", "description": "电泳橇与面漆橇转换区域（F04_1A_200点）", "sort_order": 10},
+    {"area_name": "电泳橇与面漆橇转换区域（F04_1B_200点）", "description": "电泳橇与面漆橇转换区域（F04_1B_200点）", "sort_order": 10},
+    {"area_name": "PVC入口储存线", "description": "PVC入口储存线", "sort_order": 10}
   ],
   "carrier_types": [
     {
-      "type_code": "hanger",
-      "type_name_cn": "吊架",
+      "type_code": "Topcoat Skid",
+      "type_name_cn": "面漆雪橇",
+      "description": "输送载体，车身放置于雪橇上随线体移动",
+      "sort_order": 1000
+    },
+    {
+      "type_code": "PVC Hanger",
+      "type_name_cn": "PVC吊架",
       "description": "输送载体，车身悬挂在挂具上随线体运动",
       "sort_order": 1000
     },
     {
-      "type_code": "Topcoat Skid",
-      "type_name_cn": "面漆雪橇",
+      "type_code": "ED Skid",
+      "type_name_cn": "电泳雪橇",
       "description": "输送载体，车身放置于雪橇上随线体移动",
       "sort_order": 1000
     }

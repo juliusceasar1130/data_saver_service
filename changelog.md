@@ -1,5 +1,63 @@
 # Changelog
 
+## 2026-05-22 15:28 Asia/Shanghai
+
+简要概括：优化设备参数配置文件转换脚本 `convert_device_config_v2.py` 以兼容 `"tagSkidNo"` 载具点位字段，并成功将蜡腔/烘房原始配置文件 `deviceConfig——wax.json` 转换为对齐最新 sample 标准的规范化格式。
+
+主要修改内容：
+
+- **优化 `utily/convert_device_config_v2.py` 字段提取机制**
+  - 增强了载具 ID 提取的兼容性。在第 66 行获取逻辑中追加对原 `"tagSkidNo"` 键的支持，使其能够同时自如转换包含 `"DataSkidNo"`、`"tagSkidNo"` 或 `"tag_carrier_id"` 的不同历史版本配置文件。
+- **批量转换并校验蜡腔/烘房配置文件**
+  - 执行转换脚本，将原始 `utily/wax/deviceConfig——wax.json` 转换为了标准的对齐 sample 规范的 [deviceConfig.wax.json](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/utily/wax/deviceConfig.wax.json)。
+  - 对 11 个 PLC 控制器下共 571 个设备项完成了字段格式、顶级元数据的标准化，并自动剔除了多余的 factor 类似字段。
+  - 编写并运行了针对蜡腔配置文件的深度校验脚本 `validate_wax_config.py`。经全方位验证，元数据、设备数、字段拼写、键展现顺序 100% 通过，其中 `"tag_carrier_id"` 的载具 ID 提取率成功达到 100.00%。
+
+## 2026-05-22 10:22 Asia/Shanghai
+
+简要概括：将分色线全区域设备参数配置文件 `deviceConfig.color.json` 深度合并至主配置文件 `deviceConfig.json` 中，使主配置支持的总设备数扩充到 673 个，涵盖 9 个 PLC 控制器。
+
+主要修改内容：
+
+- **深度合并 `deviceConfig.color.json` 至 `deviceConfig.json`**
+  - 编写并执行了后台安全合并与去重分析程序 `analyze_and_merge.py`。
+  - 读取并解析了分色线大配置文件（共 153 个设备，包含 6 个 PLC 控制器）与主配置文件（共 520 个设备，包含 6 个 PLC 控制器）。
+  - 对重叠 PLC（`L3FCC1`、`L3FCC2`、`L3FCC3`）的设备基于 `tag` 进行了精细匹配与追加。由于 tag 并不重复，新设备作为增量已安全追加至对应 PLC 列表中。
+  - 对非重叠 PLC（`L3F07`、`L3F10`、`L3F11`）整体导入其下的各 50 个设备配置。
+  - 重新汇总并更新顶层元数据 `metadata`，其中 `totalDevices` 更新为 673，`deviceTypes` 全面扩充为包含 9 个 PLC 的列表（`L3F07`, `L3F10`, `L3F11`, `L3F12`, `L3F13`, `L3F14`, `L3FCC1`, `L3FCC2`, `L3FCC3`）。
+- **执行高标准自动化深度校验与备份**
+  - 在写入覆盖原主配置文件前，自动在同目录下创建了备份文件 `deviceConfig.json.bak` 确保生产级安全。
+  - 使用校验脚本 `validate_main_config.py` 对合并后的 `deviceConfig.json` 进行了全自动校验，确语法、PLC 种类、设备总数和每个设备各字段（`id` 至 `tag_carrier_id`）的严格呈现顺序全部通过。
+
+## 2026-05-22 10:05 Asia/Shanghai
+
+简要概括：新增设备配置文件合并脚本 `merge_device_configs.py`，并将已转换好的 L1、L2、L3 分色线配置（`deviceConfig1.json`、`deviceConfig2.json`、`deviceConfig3.json`）合并为包含 153 个设备的统一大配置文件 `xxxx.color.json` 和标准的 `deviceConfig.color.json`。
+
+主要修改内容：
+
+- **新增分色线设备参数配置文件合并脚本 `utily/merge_device_configs.py`**
+  - 读取并解析三个已对齐的分色线配置文件（`deviceConfig1.json`、`deviceConfig2.json`、`deviceConfig3.json`）。
+  - 合并 `config` 字典，自动重新汇总并计算 `metadata` 中的总设备数 `totalDevices`（共计 153 个设备）及合并的 PLC 控制器列表 `deviceTypes`。
+  - 严格保持顶层键和每个设备字典中的所有子字段（`id`, `type`, `plc`, `tag`, `RBindex`, `remark`, `process_area`, `carrier_type`, `tag_carrier_id`）插入与展现顺序，确保完全符合 `deviceConfig_sample.json` 的最佳规范。
+  - 输出两个副本文件：指定的 `xxxx.color.json` 以及标准命名的 `deviceConfig.color.json`，方便下游自动化挂载与调用。
+- **编写并运行高精度校验脚本验证合并结果**
+  - 通过自动化测试脚本 `validate_merge.py` 进行了多维度字段存在性、值一致性及键插入顺序的高强度验证，已 100% 确认通过。
+
+## 2026-05-22 09:44 Asia/Shanghai
+
+简要概括：重构并通用化设备参数配置文件转换脚本 `convert_device_config_v2.py`，并批量就地完成了 `deviceConfig1.json`、`deviceConfig2.json` 与 `deviceConfig3.json` 的转换及字段对齐，确保 100% 对齐 `deviceConfig_sample.json` 规范。
+
+主要修改内容：
+
+- **重构并优化 `utily/convert_device_config_v2.py`**
+  - 支持命令行参数、批量处理以及无参数时默认对三个设备配置文件进行转换并就地覆写更新，极大提升了以后的复用便利性。
+  - 重命名 `DataSkidNo` 为 `tag_carrier_id`，并增加 `remark`、`process_area`、`carrier_type` 的参数化自定义填充（本期填充为 `""`、`"待填充"`、`"Topcoat Skid"`）。
+  - 项字段按 `id`, `type`, `plc`, `tag`, `RBindex`, `remark`, `process_area`, `carrier_type`, `tag_carrier_id` 严格排序并剔除冗余字段。
+  - 清理顶层无用字段，对齐 `metadata.configSchema` 的各项具体中文描述至 sample 文件标准。
+- **批量转换并更新设备参数配置文件**
+  - 对 `deviceConfig1.json`、`deviceConfig2.json` 和 `deviceConfig3.json` 进行了就地格式转换，剔除了 factor 类似的多余字段。
+  - 编写了校验脚本 `validate.py` 进行了全自动高精度字段与顺序一致性检测，确认均 100% 无损对齐通过。
+
 ## 2026-05-21 16:53 Asia/Shanghai
 
 简要概括：修复 PostgreSQL 数据管理器中因使用无时区（Naive）的 datetime 导致的入库时间与实际时间相差 8 小时的问题。

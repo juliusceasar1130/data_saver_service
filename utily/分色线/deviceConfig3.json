@@ -1,0 +1,590 @@
+{
+  "description": "设备参数配置文件 - 7区域数据显示测试版本",
+  "version": "2.4.0",
+  "lastModified": "2026年05月22日",
+  "config": {
+    "L3F11": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1G_1G250RB_1G250RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G250RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1G_1G250RB_1G250RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1H_1H255RB_1H255RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H255RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1H_1H255RB_1H255RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1H_16AS_1H260EL_1H260RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H260RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1H_16AS_1H260EL_1H260RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I320RB_1I320RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I320RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I320RB_1I320RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I325RB_1I325RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I325RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I325RB_1I325RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I330TC_1I330RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I330RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I330TC_1I330RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I335RB_1I335RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I335RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I335RB_1I335RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I340RB_1I340RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I340RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I340RB_1I340RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I345RB_1I345RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I345RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I345RB_1I345RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I350RB_1I350RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I350RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I350RB_1I350RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J360LT_1J360RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J360RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J360LT_1J360RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J365LT_1J365RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J365RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J365LT_1J365RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J370RB_1J370RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J370RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J370RB_1J370RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J375RB_1J375RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J375RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J375RB_1J375RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J380RB_1J380RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J380RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J380RB_1J380RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J385RB_1J385RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J385RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J385RB_1J385RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K390RB_1K390RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K390RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K390RB_1K390RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K395RB_1K395RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K395RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K395RB_1K395RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K400TC_1K400RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K400RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K400TC_1K400RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K410RB_1K410RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K410RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K410RB_1K410RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K415RB_1K415RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K415RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K415RB_1K415RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J420RB_1J420RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J420RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J420RB_1J420RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J425RB_1J425RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J425RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J425RB_1J425RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J430RB_1J430RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J430RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J430RB_1J430RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K435RB_1K435RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K435RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K435RB_1K435RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K440RB_1K440RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K440RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K440RB_1K440RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J445RB_1J445RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J445RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J445RB_1J445RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J450RB_1J450RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J450RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J450RB_1J450RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J455RB_1J455RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J455RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J455RB_1J455RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K460RB_1K460RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K460RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K460RB_1K460RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1K_1K465RB_1K465RB.IL.SD.M1003_BodyID",
+        "RBindex": "1K465RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1K_1K465RB_1K465RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J470RB_1J470RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J470RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J470RB_1J470RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J475RB_1J475RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J475RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J475RB_1J475RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J480RB_1J480RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J480RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J480RB_1J480RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J495LT_1J495RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J495RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J495LT_1J495RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J500LT_1J500RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J500RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J500LT_1J500RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1J_1J505LT_1J505RB.IL.SD.M1003_BodyID",
+        "RBindex": "1J505RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1J_1J505LT_1J505RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I520RB_1I520RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I520RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I520RB_1I520RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I525RB_1I525RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I525RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I525RB_1I525RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I530RB_1I530RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I530RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I530RB_1I530RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I535RB_1I535RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I535RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I535RB_1I535RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I540RB_1I540RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I540RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I540RB_1I540RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I550RB_1I550RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I550RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I550RB_1I550RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1I_1I555RB_1I555RB.IL.SD.M1003_BodyID",
+        "RBindex": "1I555RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1I_1I555RB_1I555RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1H_1H265RB_1H265RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H265RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1H_1H265RB_1H265RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1H_1H270TC_1H270RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H270RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1H_1H270TC_1H270RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1H_1H275RB_1H275RB.IL.SD.M1003_BodyID",
+        "RBindex": "1H275RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1H_1H275RB_1H275RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1H_1H280RB_1H280RB.ILO.SD.M1003_BodyID",
+        "RBindex": "1H280RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1H_1H280RB_1H280RB.ILO.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1G_1G290TC_1G290RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G290RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1G_1G290TC_1G290RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F11",
+        "tag": ".L3F11_1G_1G295RB_1G295RB.IL.SD.M1003_BodyID",
+        "RBindex": "1G295RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F11_1G_1G295RB_1G295RB.IL.SD.I1030_RBDataSkidNo"
+      }
+    ],
+    "L3FCC3": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3FCC3",
+        "tag": ".L3FCC3_1A_1A005RB_1A005RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A005RB",
+        "remark": "",
+        "process_area": "L3分色线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3FCC3_1A_1A005RB_1A005RB.IL.SD.I1030_RBDataSkidNo"
+      }
+    ]
+  },
+  "metadata": {
+    "totalDevices": 51,
+    "deviceTypes": [
+      "L3F11",
+      "L3FCC3"
+    ],
+    "configSchema": {
+      "id": "设备唯一标识符",
+      "type": "消息通信类型",
+      "plc": "PLC控制器标识",
+      "tag": "车身信息数据点位路径唯一标识符",
+      "RBindex": "滚床索引",
+      "remark": "备注说明",
+      "tag_carrier_id": "雪橇信息数据点位路径唯一标识符",
+      "carrier_type": "载具类型",
+      "process_area": "工艺段名称"
+    }
+  }
+}
