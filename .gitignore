@@ -16,6 +16,7 @@ build/
 # IDE
 .idea/
 .vscode/
+.obsidian/
 *.swp
 *.swo
 
@@ -24,6 +25,9 @@ build/
 
 # antigravity
 .agent/
+
+# understand-anything
+.understand-anything/
 
 # 临时文件
 *.tmp
