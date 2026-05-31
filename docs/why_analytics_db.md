@@ -1,24 +1,28 @@
 # 为什么设计 Analytics DB
 
-修改时间：2026-04-14 Asia/Shanghai
+修改时间：2026-05-30 Asia/Shanghai
 
 主要修改内容：
-- 新增 `analytics_db` 设计动机说明，补充“为什么要有统一分析库”而不只是“如何落地”
+- **2026-05-30**：补充第三条数据源 `carbody_history`（SQL Server → Python ETL 直连），并同步 carbody FDW 已废弃的架构事实；更新 dim/fct 对象列表；修正”全量刷新”决策描述以反映 carbody 已增量化
+- 新增 `analytics_db` 设计动机说明，补充”为什么要有统一分析库”而不只是”如何落地”
 - 结合当前项目的 Agent、技能系统、源库结构与已验证实现，总结设计背景、取舍和复用原则
 - 为后续数据库重构、技能扩展和 Agent 接库改造提供统一设计依据
-- 补充当前“异常车 / 调试车”场景下的事实建模限制说明
-- 补充下一阶段需要将“正式产品车事实”和“异常车事实”分开的设计依据
+- 补充当前”异常车 / 调试车”场景下的事实建模限制说明
+- 补充下一阶段需要将”正式产品车事实”和”异常车事实”分开的设计依据
 - 同步 2026-04-11 已实际落地的当前车辆事实分层结果
 - 修正文档内指向旧仓库的 `current_vehicle_fact_refactor.md` 引用路径
 
 ## 1. 背景
 
-当前项目已经有两套强相关的业务数据源：
+当前项目已经有三套强相关的业务数据源：
 
 - `rollerbed_tracking_db`
   - 负责车辆在涂装车间中的位置、区域、载体、车型、颜色、平台等状态信息
 - `defect_db`
   - 负责缺陷检测结果，当前重点使用 `history_station_defect_summary`
+- SQL Server `DXQcontrol_SVWMEB_BI_DWH`（Carbody 车身过站历史）
+  - 外部 MES 系统，记录每台车身的过站流水（站号、状态、滑橇、循环号等）
+  - 与前两个 PostgreSQL 源库不同，Carbody 源是 SQL Server，无法使用 FDW，改由 Python ETL 直连抽取
 
 同时，项目里的 SQL Agent 与技能系统已经具备如下基础能力：
 
@@ -38,7 +42,7 @@
 
 ### 2.1 跨域查询复杂度过高
 
-如果直接让 Agent 面对两个源库：
+如果直接让 Agent 面对多个源库：
 
 - 需要理解每个库分别存什么
 - 需要知道跨域关联键是什么
@@ -81,7 +85,7 @@
 - 技能应该告诉模型“有哪些业务对象、字段含义和统计规则”
 - 数据库层应该尽量保证“这些对象在一个统一的只读分析面里可直接查询”
 
-## 3. 为什么不是直接继续查两个源库
+## 3. 为什么不是直接继续查多个源库
 
 这是当前设计中最重要的取舍之一。
 
@@ -91,6 +95,7 @@
 
 - 查车辆问题走 `rollerbed_tracking_db`
 - 查缺陷问题走 `defect_db`
+- 查车身过站走 SQL Server MES
 
 但这样一来，一旦用户问题跨域，复杂度会迅速上升。
 
@@ -145,16 +150,21 @@
 这是当前设计的核心分层。
 
 ```text
-源库 -> FDW 外表(src) -> ODS -> DIM/FCT -> MART -> Agent
+rollerbed_tracking_db ──FDW──→ src_rb ──→ ods ──→ dim/fct ──→ mart ──→ Agent
+defect_db ─────────────FDW──→ src_defect ──┘        ↑
+                                                     │
+SQL Server MES ──Python ETL──→ ods.carbody_history ──┘
 ```
+
+> **注**：Carbody 路径不走 FDW。Carbody 源库是 SQL Server，`postgres_fdw` 无法跨异构数据库。2026-05-16 重构中已废弃 `src_carbody` FDW 外部表，改为 `carbody_etl/refresh_carbody_ods.py` 用 `pytds` 直连 SQL Server 抽取，增量写入 `ods.carbody_history`。
 
 ### 5.1 `src`
 
-`src_rb` 和 `src_defect` 只是 FDW 外部表映射层。
+`src_rb` 和 `src_defect` 是 FDW 外部表映射层。`src_carbody` 原也是 FDW 路径，已于 2026-05 废弃，改由 Python ETL 直连 SQL Server。
 
 用途：
 
-- 把源库数据暴露给 `analytics_db`
+- 把 PostgreSQL 源库数据暴露给 `analytics_db`
 - 避免应用层自己做跨库搬运
 - 保留与源表的清晰边界
 
@@ -182,10 +192,12 @@
 
 - `dim.dim_process_area`
 - `dim.dim_vehicle_profile`
+- `dim.carbody_registry`（一车一行，由 Python ETL 触发 `meta.refresh_carbody_dim()` 增量 UPSERT）
 
 用途：
 
 - 把区域、车型、平台、颜色、黑车顶等语义收敛到统一入口
+- 把车身过站历史聚合为车辆维度快照
 - 为 Agent 提供更清晰的业务解释面
 
 ### 5.4 `fct`
@@ -198,13 +210,15 @@
 - `fct.fct_vehicle_position_current`
 - `fct.fct_abnormal_vehicle_current`
 - `fct.fct_vehicle_defect_detection`
+- `fct.fct_vehicle_defect_enriched`（以 carbody 为中心，关联缺陷检测记录的全量分析宽表）
 
 用途：
 
-- 表达“当前全量占位事实”
-- 表达“当前车辆位置事实”
-- 表达“当前异常车事实”
-- 表达“缺陷检测事实”
+- 表达”当前全量占位事实”
+- 表达”当前车辆位置事实”
+- 表达”当前异常车事实”
+- 表达”缺陷检测事实”
+- 表达”车身过站 × 缺陷检测关联事实”
 
 ### 5.5 `mart`
 
@@ -280,12 +294,13 @@
 - 物化视图刷新更稳定
 - 便于后续做增量刷新和水位管理
 
-### 决策 4：先做全量刷新，再考虑增量刷新
+### 决策 4：FDW 路径先做全量刷新，Carbody 已增量化
 
 原因：
 
-- 先求稳，再求快
-- 在对象边界尚未完全稳定前，全量刷新更容易校验与排错
+- FDW 路径（rb_position_data 98 行 + 字典表）数据量极小，全量刷新成本可忽略；先求稳，在对象边界未完全稳定前全量刷新更容易校验与排错
+- Carbody 路径（`ods.carbody_history`）已于 2026-05-16 切换为 Python ETL 增量抽取，按 `ID` 水位推进，与 FDW 全量刷新解耦
+- 两条路径的执行频率统一由调度器控制（默认 3 分钟），但刷新策略独立
 
 ### 决策 5：先做一个高价值 `mart`
 
@@ -316,11 +331,14 @@
 
 - `analytics_db` 已存在
 - `src_rb` / `src_defect` / `ods` / `dim` / `fct` / `mart` / `meta` 已存在
+- `src_carbody`（FDW 外部表）已废弃，Carbody 改由 Python ETL 直连 SQL Server，增量写入 `ods.carbody_history`
+- `dim.carbody_registry` 由 Python ETL 脚本触发 `meta.refresh_carbody_dim()` 增量维护
 - `meta.refresh_analytics_all()` 已存在并能成功执行
 - `dim.dim_process_area`、`dim.dim_vehicle_profile` 会随着刷新过程一起重建
 - `dim.dim_vehicle_profile` 已补充 `current_carrier_id`、`current_process_area` 等当前绑定快照字段
 - `meta.refresh_watermark` 会随着刷新更新
 - `agent_ro` 对 `dim` / `mart` 已具备查询权限
+- 统一调度器 `scheduler/scheduler_main.py` 按可配置间隔（默认 3 分钟）串行执行：Carbody ETL → Defect ETL → `refresh_analytics_all()`
 
 这意味着，`analytics_db` 已经不只是一个架构设想，而是进入了可操作、可验证、可演进的阶段。
 
