@@ -88,7 +88,7 @@ COMMENT ON COLUMN ods.vehicle_platforms.updated_at IS '更新时间';
 -- ods.history_station_defect_summary
 COMMENT ON TABLE ods.history_station_defect_summary IS '缺陷检测工位历史检测汇总源表';
 COMMENT ON COLUMN ods.history_station_defect_summary.history_id IS '唯一主键ID';
-COMMENT ON COLUMN ods.history_station_defect_summary.serial_number IS '车身唯一识别码 (等同于 vehicle_id 和 BODY_ID，跨源一一对应)';
+COMMENT ON COLUMN ods.history_station_defect_summary.serial_number IS '车身唯一识别码 (等同于 vehicle_id 和 BODY_ID，跨源一一对应)。本表为一车多缺陷明细，统计车数时须 DISTINCT！';
 COMMENT ON COLUMN ods.history_station_defect_summary.model IS 'eines检测程序代码';
 COMMENT ON COLUMN ods.history_station_defect_summary.type_name IS '缺陷检测系统捕获的车型名称';
 COMMENT ON COLUMN ods.history_station_defect_summary.black_roof IS '缺陷检测系统识别的黑顶类型描述';
@@ -161,17 +161,27 @@ COMMENT ON COLUMN dim.dim_vehicle_profile.current_process_area IS '车辆当前�
 COMMENT ON COLUMN dim.dim_vehicle_profile.current_full_rb_code IS '车辆当前所在的滚床完整物理编码 (PLC + 索引)';
 COMMENT ON COLUMN dim.dim_vehicle_profile.current_position_updated_at IS '当前位置刷新时间';
 COMMENT ON COLUMN dim.dim_vehicle_profile.etl_loaded_at IS 'ETL装载时间';
+COMMENT ON COLUMN dim.dim_vehicle_profile.is_rework IS '是否为重工车 (基于 MES 车身过站特殊配置标志计算)';
+COMMENT ON COLUMN dim.dim_vehicle_profile.has_defect_record IS '是否有关联 of 缺陷检测记录 (TRUE/FALSE)';
+COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_first_seen_at IS '首次过站读写站时间';
+COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_last_seen_at IS '末次过站读写站时间';
+COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_first_rw_station IS '首次过站读写站编码';
+COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_last_rw_station IS '末次过站读写站编码';
+COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_station_pass_count IS '在工艺段内累计过站读写站总频次';
+COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_reserved_1 IS '车身 MDS 备用字段 1';
+COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_reserved_2 IS '车身 MDS 备用字段 2';
+
 
 -- dim.carbody_registry
-COMMENT ON TABLE dim.carbody_registry IS '车身过读写站历史统计与注册维度表 (从明细流水中按车辆聚合)';
+COMMENT ON TABLE dim.carbody_registry IS '车身过站读写站历史统计与注册维度表 (从明细流水中按车辆聚合)';
 COMMENT ON COLUMN dim.carbody_registry.vehicle_id IS '唯一主键';
-COMMENT ON COLUMN dim.carbody_registry.first_seen_at IS '首次过读写站时间';
-COMMENT ON COLUMN dim.carbody_registry.last_seen_at IS '末次过读写站时间';
-COMMENT ON COLUMN dim.carbody_registry.first_rw_station IS '首次被记录的过读写站';
-COMMENT ON COLUMN dim.carbody_registry.last_rw_station IS '最近被记录的过读写站';
-COMMENT ON COLUMN dim.carbody_registry.first_body_type IS '首次过读写站时的车身类型';
-COMMENT ON COLUMN dim.carbody_registry.last_body_type IS '最近一次过读写站时的车身类型';
-COMMENT ON COLUMN dim.carbody_registry.station_pass_count IS '该车身在生产线中累计过读写站的次数';
+COMMENT ON COLUMN dim.carbody_registry.first_seen_at IS '首次过站读写站时间';
+COMMENT ON COLUMN dim.carbody_registry.last_seen_at IS '末次过站读写站时间';
+COMMENT ON COLUMN dim.carbody_registry.first_rw_station IS '首次被记录的过站读写站';
+COMMENT ON COLUMN dim.carbody_registry.last_rw_station IS '最近被记录的过站读写站';
+COMMENT ON COLUMN dim.carbody_registry.first_body_type IS '首次过站读写站时的车身类型';
+COMMENT ON COLUMN dim.carbody_registry.last_body_type IS '最近一次过站读写站时的车身类型';
+COMMENT ON COLUMN dim.carbody_registry.station_pass_count IS '该车身在生产线中累计过站读写站的次数';
 COMMENT ON COLUMN dim.carbody_registry.body_type IS '电报 MDS 数据中截取的车身类型 (45-49位)';
 COMMENT ON COLUMN dim.carbody_registry.platform_code IS '电报 MDS 数据中截取的车型平台代码 (51-53位)';
 COMMENT ON COLUMN dim.carbody_registry.color_code IS '电报 MDS 数据中截取的车身颜色代码 (59-62位)';
@@ -249,8 +259,8 @@ COMMENT ON COLUMN fct.fct_vehicle_defect_detection.station_5_defect_count IS '�
 COMMENT ON COLUMN fct.fct_vehicle_defect_detection.total_defect_count IS '总缺陷数';
 
 -- fct.fct_vehicle_defect_enriched
-COMMENT ON MATERIALIZED VIEW fct.fct_vehicle_defect_enriched IS '物化视图 - 车身缺陷与过读写站全量富集事实宽表 (以过读写站档案为驱动，左联缺陷记录)';
-COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.vehicle_id IS '车身唯一识别码 (主键前部)';
+COMMENT ON MATERIALIZED VIEW fct.fct_vehicle_defect_enriched IS '物化视图 - 车身缺陷与过读写站全量富集事实宽表。粒度：一缺陷事件一行（一车可能多行）。统计车数必须用 DISTINCT vehicle_id 去重！';
+COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.vehicle_id IS '车身唯一识别码 (主键前部)。本表为一车多缺陷明细，统计车数时须 DISTINCT！';
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.body_type IS '车型代码 (对应 body_type)';
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.platform_code IS '车型平台/底盘技术代号';
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.color_code IS '车身颜色代码';
@@ -311,9 +321,9 @@ COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.abnormal_reason IS '异常原
 -- ==========================================
 
 -- mart.mart_vehicle_quality_360
-COMMENT ON MATERIALIZED VIEW mart.mart_vehicle_quality_360 IS '物化视图 - 车辆360度质量与当前现场物理位置全景关联表';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.history_id IS '唯一主键ID (缺陷事件主键)';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.vehicle_id IS '车身唯一识别码';
+COMMENT ON MATERIALIZED VIEW mart.mart_vehicle_quality_360 IS '物化视图 - 车辆360度质量与当前位置全景关联明细表（基于车身过站富集表驱动，包含在产未检车辆与漏检车辆）。粒度：一缺陷事件或一车身一行。统计车数必须用 DISTINCT vehicle_id 去重！';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.history_id IS '唯一主键ID (缺陷事件主键，未检测车辆则为NULL)';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.vehicle_id IS '车身唯一识别码。统计车数时须 DISTINCT！';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.detect_time IS '缺陷检测时间';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.defect_model IS 'eines检测程序代码';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.defect_type_name IS '缺陷检测系统记录的检测程序代码';
@@ -327,13 +337,7 @@ COMMENT ON COLUMN mart.mart_vehicle_quality_360.station_3_defect_count IS '车�
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.station_4_defect_count IS '前盖检出的缺陷数量';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.station_5_defect_count IS '尾门|后盖检出的缺陷数量';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.total_defect_count IS '总缺陷数';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.process_area IS '车辆当前所在的工艺区域';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.plc IS '车辆当前所处位置PLC标识名称';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.rb_index IS '车辆当前所处不完整滚床编号';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.full_rb_code IS '车辆当前所在的滚床完整物理编码 (PLC + 索引)';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.carrier_id IS '车辆当前所在的雪橇/吊架载具 ID';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.carrier_type IS '车辆当前所处雪橇/吊架的类型';
-COMMENT ON COLUMN mart.mart_vehicle_quality_360.carrier_type_name_cn IS '雪橇/吊架载具中文类型名称';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.has_defect_record IS '是否存在缺陷检测记录 (TRUE/FALSE)';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.body_type IS '车辆当前所处车型代码';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.tracking_type_name IS '车辆跟踪系统转换得出的车型中文名';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.tracking_color_code IS '车辆当前所处的跟踪系统颜色代码';
@@ -342,6 +346,18 @@ COMMENT ON COLUMN mart.mart_vehicle_quality_360.platform_code IS '车辆当前�
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.platform_name IS '车辆当前的平台中文名';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.black_roof_flag IS '车辆当前的黑顶标记 (1/Y表示黑顶)';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.rework_flag IS '车辆当前的返修车标记 (1/Y表示返修车)';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_first_seen_at IS '首次过站读写站时间';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_last_seen_at IS '末次过站读写站时间';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_first_rw_station IS '首次过站读写站编码';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_last_rw_station IS '末次过站读写站编码';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_station_pass_count IS '在工艺段内累计过站读写站总频次';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.process_area IS '车辆当前所在的工艺区域';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.plc IS '车辆当前所处位置PLC标识名称';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.rb_index IS '车辆当前所处不完整滚床编号';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.full_rb_code IS '车辆当前所在的滚床完整物理编码 (PLC + 索引)';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carrier_id IS '车辆当前所在的雪橇/吊架载具 ID';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carrier_type IS '车辆当前所处雪橇/吊架的类型';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carrier_type_name_cn IS '雪橇/吊架载具中文类型名称';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.position_created_at IS '车辆位置创建时间';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.vehicle_updated_at IS '车辆当前位置刷新时间';
 

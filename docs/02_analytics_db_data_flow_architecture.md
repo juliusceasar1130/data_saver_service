@@ -1,6 +1,10 @@
 # Analytics DB 数据链路与刷新机制
 
-修改时间：2026-05-30 Asia/Shanghai
+修改时间：2026-07-04 Asia/Shanghai
+
+主要修改内容：
+- **修正 DIM 刷新描述**：修正了 `dim.dim_process_area` 和 `dim.dim_vehicle_profile` 刷新逻辑的文字描述，将其从误导性的“增量 UPSERT 逻辑”更正为真实的“全量重算覆盖”。
+
 
 说明：本文档梳理 `analytics_db` 的三条数据来源路径、FDW 外部表机制、Python ETL 直连、存储过程刷新流程以及统一调度器编排，作为数仓架构的入口参考。
 
@@ -131,7 +135,7 @@ Python ETL 脚本：`carbody_etl/refresh_carbody_ods.py`
 │    ├─ fct_vehicle_defect_enriched    (车身+缺陷宽表) │
 │    └─ fct_abnormal_vehicle_current   (异常车)        │
 │                                                      │
-│ 5. INSERT INTO dim.* (增量 UPSERT 逻辑)              │
+│ 5. INSERT INTO dim.* (全量重算覆盖)                  │
 │    ├─ dim.dim_process_area (从 ods 聚合)             │
 │    └─ dim.dim_vehicle_profile (tracking ∪ defect)    │
 │                                                      │
@@ -152,7 +156,7 @@ Python ETL 脚本：`carbody_etl/refresh_carbody_ods.py`
 
 - **ODS 采用全量 TRUNCATE + INSERT**（非增量）。因为 `rollerbed_tracking_db` 的 `rb_position_data` 只有 98 行固定位置 + 少量字典表，全量拉取成本极低。`defect_db` 的缺陷汇总表行数较大（~6 万行），但每次全量刷新可接受。
 - **`ods.carbody_history` 不参与 TRUNCATE**。它是 Python ETL 增量追加写入的，`refresh_analytics_all()` 不触碰它。
-- **DIM 层在 FCT 之后重建**。因为 `dim.dim_vehicle_profile` 依赖 `fct.fct_vehicle_position_current` 的物化结果（当前车辆位置快照），所以必须等 FCT 刷新完再填充 DIM。
+- **DIM 层在 FCT 之后重建**。因为 `dim.dim_vehicle_profile` 依赖 `fct.fct_vehicle_position_current` 的物化结果（当前车辆位置快照），所以必须等 FCT 刷新完再填充 DIM。需要注意的是，这里的 dim 表在刷新过程中是被 `TRUNCATE` 后全量写入（INSERT），并非增量更新。
 - **MART 在 DIM 之后刷新**。`mart.mart_vehicle_quality_360` 等汇总视图依赖 DIM 层的聚合结果。
 
 ## 4. 统一调度器编排

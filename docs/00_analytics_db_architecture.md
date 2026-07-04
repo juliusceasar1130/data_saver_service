@@ -1,10 +1,22 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-05-21 Asia/Shanghai
+修改时间：2026-07-04 Asia/Shanghai
 
 主要修改内容：
+- **画像表与质量集市升级**：为 `dim.dim_vehicle_profile` 画像表扩展了 9 个车身历史及状态字段；将 `mart.mart_vehicle_quality_360` 物化视图的驱动表更改为 `fct.fct_vehicle_defect_enriched`，从而全面支持展示在产未检车辆与漏检车辆；同步升级一键刷新存储过程 `meta.refresh_analytics_all()` 支持“滚床在产 + 缺陷系统 + 车身历史”三源合并。
+- **删除过时 ALTER 语句**：删除了第 6.4 节中已过时的旧版 `dim_vehicle_profile` 位置快照字段补全 `ALTER TABLE` 语句，保持文档整洁及部署的准确性。
+- **校验基线对齐更新**：更正了第 2 节中因升级导致的过时数据量基线，更新了 `dim_vehicle_profile` 中已整合的全部实时、车身过站以及缺陷新字段列表。
+- **注释术语统一**：更新车身注册表相关的注释，将 `rw_station` 对应的中文注释由“过站位置/工位”修正并统一为“过站读写站”，以契合现场读写站（Read-Write Station）设备的实际业务术语。
+
+历史修改时间：2026-05-21 Asia/Shanghai
+
+
+
+
+历史修改内容：
 - **初始化依赖关系优化**：调整底层表与维表的初始化顺序，将 `ods.carbody_history`、`dim.carbody_registry` 以及存储过程 `meta.refresh_carbody_dim` 移动到物化视图 `fct.fct_vehicle_defect_enriched` 之前，彻底解决物化视图 DDL 初始化时的表依赖报错问题。
 - **日常验证 SQL 遗留清理**：修正日常验证中遗留的废弃存储过程名称 `refresh_carbody`，统一为新存储过程名 `refresh_carbody_dim`，并同步更新其幂等性验证 SQL 注释。
+
 
 历史修改时间：2026-05-16 Asia/Shanghai
 
@@ -133,19 +145,16 @@
 - `fct.fct_abnormal_vehicle_current`：`12`
 - `fct.fct_vehicle_defect_detection`：`60370`
 - `fct.fct_vehicle_defect_enriched`：`>= 54430` (取决于 carbody 记录数)
-- `mart.mart_vehicle_quality_360`：`60370`
+- `mart.mart_vehicle_quality_360`：`>= 54430` (由于改用车身富集表驱动已包含未检测车辆，行数与 fct_vehicle_defect_enriched 保持一致)
 - `mart.mart_abnormal_vehicle_current`：`12`
 - `mart.mart_position_current_overview`：`114`
 
 当次实时校验还确认：
 
-- `dim.dim_vehicle_profile` 已实际存在以下当前绑定快照字段：
-  - `current_position_id`
-  - `current_carrier_id`
-  - `current_carrier_type`
-  - `current_process_area`
-  - `current_full_rb_code`
-  - `current_position_updated_at`
+- `dim.dim_vehicle_profile` 已整合以下三大来源的核心特征属性：
+  - **实时位置快照**：`current_position_id`, `current_carrier_id`, `current_carrier_type`, `current_process_area`, `current_full_rb_code`, `current_position_updated_at`
+  - **物理车身过站历史**：`carbody_first_seen_at`, `carbody_last_seen_at`, `carbody_first_rw_station`, `carbody_last_rw_station`, `carbody_station_pass_count`, `is_rework`
+  - **最新缺陷状态指标**：`has_defect_record`, `defect_last_seen_at`
 - `fct.fct_position_current_all` 的真实定义已按当前占位进行分类：
   - `product_vehicle`
   - `abnormal_vehicle`
@@ -537,18 +546,6 @@ CREATE TABLE IF NOT EXISTS meta.refresh_watermark (
 
 ### 6.4 创建 `dim` 表
 
-如果 `dim.dim_vehicle_profile` 已经存在旧版结构，需要先补齐当前绑定快照字段：
-
-```sql
-ALTER TABLE dim.dim_vehicle_profile
-  ADD COLUMN IF NOT EXISTS current_position_id BIGINT,
-  ADD COLUMN IF NOT EXISTS current_carrier_id VARCHAR(50),
-  ADD COLUMN IF NOT EXISTS current_carrier_type VARCHAR(20),
-  ADD COLUMN IF NOT EXISTS current_process_area VARCHAR(50),
-  ADD COLUMN IF NOT EXISTS current_full_rb_code VARCHAR(255),
-  ADD COLUMN IF NOT EXISTS current_position_updated_at TIMESTAMPTZ;
-```
-
 ```sql
 CREATE TABLE IF NOT EXISTS dim.dim_process_area (
   process_area_name VARCHAR(50) PRIMARY KEY,
@@ -561,27 +558,39 @@ CREATE TABLE IF NOT EXISTS dim.dim_process_area (
 );
 
 CREATE TABLE IF NOT EXISTS dim.dim_vehicle_profile (
-  vehicle_id VARCHAR(255) PRIMARY KEY,
-  body_type VARCHAR(5),
-  tracking_type_name VARCHAR(100),
-  defect_model INTEGER,
-  defect_type_name VARCHAR(100),
-  platform_code VARCHAR(10),
-  platform_name VARCHAR(50),
-  color_code VARCHAR(255),
-  color_name VARCHAR(50),
-  is_black_roof BOOLEAN,
-  black_roof_raw_tracking VARCHAR(32),
-  black_roof_raw_defect VARCHAR(100),
-  tracking_last_seen_at TIMESTAMPTZ,
-  defect_last_seen_at TIMESTAMPTZ,
-  current_position_id BIGINT,
-  current_carrier_id VARCHAR(50),
-  current_carrier_type VARCHAR(20),
-  current_process_area VARCHAR(50),
-  current_full_rb_code VARCHAR(255),
-  current_position_updated_at TIMESTAMPTZ,
-  etl_loaded_at TIMESTAMPTZ NOT NULL DEFAULT now()
+  vehicle_id VARCHAR(255) PRIMARY KEY,              -- 车辆唯一识别码
+  body_type VARCHAR(5),                              -- 车型代码（优先滚床，其次车身）
+  tracking_type_name VARCHAR(100),                   -- 车型中文名（由 body_type 关联字典翻译）
+  defect_model INTEGER,                              -- 最新缺陷检测型号
+  defect_type_name VARCHAR(100),                     -- 最新缺陷检测类型名
+  platform_code VARCHAR(10),                         -- 平台代码
+  platform_name VARCHAR(50),                         -- 平台中文名
+  color_code VARCHAR(255),                           -- 颜色代码（优先滚床，其次缺陷，再次车身）
+  color_name VARCHAR(50),                            -- 颜色中文名
+  is_black_roof BOOLEAN,                             -- 是否双色车顶（滚床黑顶或缺陷包含“黑”或车身黑顶）
+  is_rework BOOLEAN,                                 -- 是否重工车（根据车身重工标记 rework_flag 计算）
+  has_defect_record BOOLEAN,                         -- 是否存在缺陷检测记录
+  black_roof_raw_tracking VARCHAR(32),               -- 滚床原始黑车顶标记
+  black_roof_raw_defect VARCHAR(100),                -- 缺陷系统原始黑车顶标记
+  tracking_last_seen_at TIMESTAMPTZ,                 -- 滚床系统最后看到时间
+  defect_last_seen_at TIMESTAMPTZ,                   -- 缺陷系统最后检测时间
+  
+  -- ===== 🆕 新增：物理车身过站汇总属性 (源自 dim.carbody_registry) =====
+  carbody_first_seen_at TIMESTAMPTZ,                 -- 首次过站读写站时间
+  carbody_last_seen_at TIMESTAMPTZ,                  -- 末次过站读写站时间
+  carbody_first_rw_station VARCHAR(64),              -- 首次过站读写站编码
+  carbody_last_rw_station VARCHAR(64),               -- 末次过站读写站编码
+  carbody_station_pass_count INTEGER,                -- 累计过站读写站总频次（频次过高反映内循环返修）
+  carbody_reserved_1 VARCHAR(1),                     -- 车身 MDS 备用字段 1
+  carbody_reserved_2 VARCHAR(1),                     -- 车身 MDS 备用字段 2
+  
+  current_position_id BIGINT,                        -- 当前最新占位位置 ID
+  current_carrier_id VARCHAR(50),                    -- 当前最新载体卡号
+  current_carrier_type VARCHAR(20),                  -- 当前最新载体类型
+  current_process_area VARCHAR(50),                  -- 当前最新工艺区域
+  current_full_rb_code VARCHAR(255),                 -- 当前最新位置全编码
+  current_position_updated_at TIMESTAMPTZ,           -- 当前位置最后更新时间
+  etl_loaded_at TIMESTAMPTZ NOT NULL DEFAULT now()   -- 画像数据装载时间
 );
 ```
 
@@ -647,8 +656,8 @@ CREATE TABLE IF NOT EXISTS dim.carbody_registry (
     vehicle_id         VARCHAR(14) PRIMARY KEY,
     first_seen_at      TIMESTAMPTZ NOT NULL,    -- 首次过站时间
     last_seen_at       TIMESTAMPTZ NOT NULL,    -- 末次过站时间
-    first_rw_station   VARCHAR(64),             -- 首次过站位置
-    last_rw_station    VARCHAR(64),             -- 末次过站位置
+    first_rw_station   VARCHAR(64),             -- 首次过站读写站
+    last_rw_station    VARCHAR(64),             -- 末次过站读写站
     first_body_type    VARCHAR(12),             -- 入口车身类型
     last_body_type     VARCHAR(12),             -- 出口车身类型
     station_pass_count INTEGER,                 -- 总过站次数
@@ -683,7 +692,7 @@ ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS reserved_2      VARCHA
 
 ### 6.7 聚合存储过程 meta.refresh_carbody_dim
 
-负责从 `ods.carbody_history` 增量拉取数据并执行复杂聚合计算（包含查找首次与末次过站时间、首次与末次过站工位名称、车身类型、MDS 7 个关键字段翻译及汇总统计过站次数），然后以 UPSERT 幂等方式写入维度表 `dim.carbody_registry`。同时记录详细审计日志。
+负责从 `ods.carbody_history` 增量拉取数据并执行复杂聚合计算（包含查找首次与末次过站时间、首次与末次过站读写站名称、车身类型、MDS 7 个关键字段翻译及汇总统计过站次数），然后以 UPSERT 幂等方式写入维度表 `dim.carbody_registry`。同时记录详细审计日志。
 
 ```sql
 -- DROP PROCEDURE meta.refresh_carbody_dim();
@@ -1057,50 +1066,67 @@ ON fct.fct_abnormal_vehicle_current(process_area);
 
 CREATE MATERIALIZED VIEW IF NOT EXISTS mart.mart_vehicle_quality_360 AS
 SELECT
-  d.history_id,
-  d.vehicle_id,
-  d.detect_time,
-  d.model AS defect_model,
-  d.type_name AS defect_type_name,
-  d.black_roof AS defect_black_roof,
-  d.color_code AS defect_color_code,
-  d.tunnel,
-  d.cycle,
-  d.station_1_defect_count,
-  d.station_2_defect_count,
-  d.station_3_defect_count,
-  d.station_4_defect_count,
-  d.station_5_defect_count,
-  d.total_defect_count,
+  -- ===== 缺陷检测明细（源自富集表，未检车辆对应值为 NULL） =====
+  e.history_id,
+  e.vehicle_id,
+  e.detect_time,
+  e.defect_model,
+  e.defect_type_name,
+  e.defect_black_roof,
+  e.defect_color_code,
+  e.tunnel,
+  e.cycle,
+  e.station_1_defect_count,
+  e.station_2_defect_count,
+  e.station_3_defect_count,
+  e.station_4_defect_count,
+  e.station_5_defect_count,
+  e.total_defect_count,
+  e.has_defect_record,                               -- 是否存在缺陷检测记录 (TRUE/FALSE)
+
+  -- ===== 车身维度背景属性 =====
+  e.body_type,
+  bt.type_name AS tracking_type_name,                -- 车型中文名称
+  e.color_code AS tracking_color_code,
+  cc.color_name AS tracking_color_name,              -- 颜色中文名称
+  e.platform_code,
+  vp.platform_name,                                  -- 平台中文名称
+  e.black_roof_flag,
+  e.rework_flag,
+  e.first_seen_at AS carbody_first_seen_at,          -- 首次过站读写站时间
+  e.last_seen_at AS carbody_last_seen_at,            -- 末次过站读写站时间
+  e.first_rw_station AS carbody_first_rw_station,    -- 首次过站读写站
+  e.last_rw_station AS carbody_last_rw_station,      -- 末次过站读写站
+  e.station_pass_count AS carbody_station_pass_count,-- 累计过站读写站总频次
+
+  -- ===== 实时位置追踪（源自滚床事实，已下线则为 NULL） =====
   p.process_area,
   p.plc,
   p.rb_index,
   p.full_rb_code,
   p.carrier_id,
   p.carrier_type,
-  ct.type_name_cn AS carrier_type_name_cn,
-  p.body_type,
-  bt.type_name AS tracking_type_name,
-  p.color_code AS tracking_color_code,
-  cc.color_name AS tracking_color_name,
-  p.platform_code,
-  vp.platform_name,
-  p.black_roof_flag,
-  p.rework_flag,
+  ct.type_name_cn AS carrier_type_name_cn,           -- 载体中文译名
   p.position_created_at,
   p.vehicle_updated_at
-FROM fct.fct_vehicle_defect_detection d
+FROM fct.fct_vehicle_defect_enriched e
 LEFT JOIN fct.fct_vehicle_position_current p
-  ON p.vehicle_id = d.vehicle_id
+  ON p.vehicle_id = e.vehicle_id
 LEFT JOIN ods.carrier_types ct
   ON ct.type_code = p.carrier_type
 LEFT JOIN ods.vehicle_body_types bt
-  ON bt.body_type = p.body_type
+  ON bt.body_type = e.body_type
 LEFT JOIN ods.vehicle_color_codes cc
-  ON cc.color_code = p.color_code
+  ON cc.color_code = e.color_code
 LEFT JOIN ods.vehicle_platforms vp
-  ON vp.platform_code = p.platform_code
+  ON vp.platform_code = e.platform_code
 WITH NO DATA;
+
+-- 重新创建必需的索引以支持高频并发刷新（CONCURRENTLY）
+CREATE UNIQUE INDEX IF NOT EXISTS idx_mart_vehicle_quality_360_unique ON mart.mart_vehicle_quality_360(vehicle_id, COALESCE(history_id, -1));
+CREATE INDEX IF NOT EXISTS idx_mart_vehicle_quality_360_vehicle_id ON mart.mart_vehicle_quality_360(vehicle_id);
+CREATE INDEX IF NOT EXISTS idx_mart_vehicle_quality_360_detect_time ON mart.mart_vehicle_quality_360(detect_time);
+CREATE INDEX IF NOT EXISTS idx_mart_vehicle_quality_360_process_area ON mart.mart_vehicle_quality_360(process_area);
 
 CREATE INDEX IF NOT EXISTS idx_mart_vehicle_quality_360_vehicle_id
 ON mart.mart_vehicle_quality_360(vehicle_id);
@@ -1295,65 +1321,33 @@ BEGIN
   REFRESH MATERIALIZED VIEW fct.fct_vehicle_defect_enriched;
   REFRESH MATERIALIZED VIEW fct.fct_abnormal_vehicle_current;
 
-  -- 更新维度表
+  -- 更新区域维度表
   INSERT INTO dim.dim_process_area (
-    process_area_name,
-    source_area_id,
-    description,
-    sort_order,
-    created_at,
-    updated_at,
-    etl_loaded_at
+    process_area_name, source_area_id, description, sort_order, created_at, updated_at, etl_loaded_at
   )
-  SELECT
-    area_name,
-    id,
-    description,
-    sort_order,
-    created_at,
-    updated_at,
-    now()
+  SELECT area_name, id, description, sort_order, created_at, updated_at, now()
   FROM ods.process_areas;
 
+  -- 升级：多源合并写入车辆主画像维度表（支持滚床位置追踪 + 缺陷系统 + MES车身过站历史）
   INSERT INTO dim.dim_vehicle_profile (
-    vehicle_id,
-    body_type,
-    tracking_type_name,
-    defect_model,
-    defect_type_name,
-    platform_code,
-    platform_name,
-    color_code,
-    color_name,
-    is_black_roof,
-    black_roof_raw_tracking,
-    black_roof_raw_defect,
-    tracking_last_seen_at,
-    defect_last_seen_at,
-    current_position_id,
-    current_carrier_id,
-    current_carrier_type,
-    current_process_area,
-    current_full_rb_code,
-    current_position_updated_at,
-    etl_loaded_at
+    vehicle_id, body_type, tracking_type_name, defect_model, defect_type_name,
+    platform_code, platform_name, color_code, color_name, is_black_roof,
+    is_rework, has_defect_record, black_roof_raw_tracking, black_roof_raw_defect,
+    tracking_last_seen_at, defect_last_seen_at, carbody_first_seen_at, carbody_last_seen_at,
+    carbody_first_rw_station, carbody_last_rw_station, carbody_station_pass_count,
+    carbody_reserved_1, carbody_reserved_2, current_position_id, current_carrier_id,
+    current_carrier_type, current_process_area, current_full_rb_code,
+    current_position_updated_at, etl_loaded_at
   )
   WITH latest_tracking AS (
+    -- 获取滚床上的在产车辆当前最新位置信息
     SELECT
-      vehicle_id,
-      position_id,
-      carrier_id,
-      carrier_type,
-      process_area,
-      full_rb_code,
-      body_type,
-      color_code,
-      platform_code,
-      black_roof_flag,
-      vehicle_updated_at
+      vehicle_id, position_id, carrier_id, carrier_type, process_area, full_rb_code,
+      body_type, color_code, platform_code, black_roof_flag, vehicle_updated_at
     FROM fct.fct_vehicle_position_current
   ),
   latest_defect AS (
+    -- 获取每个车辆最新的一条缺陷检测结果
     SELECT DISTINCT ON (trim(serial_number))
       trim(serial_number) AS vehicle_id,
       model AS defect_model,
@@ -1363,34 +1357,71 @@ BEGIN
       date_time AS defect_last_seen_at,
       history_id
     FROM ods.history_station_defect_summary
-    WHERE serial_number IS NOT NULL
-      AND trim(serial_number) <> ''
+    WHERE serial_number IS NOT NULL AND trim(serial_number) <> ''
     ORDER BY trim(serial_number), date_time DESC NULLS LAST, history_id DESC
   ),
+  latest_carbody AS (
+    -- 获取每个车身在 MES 系统中的累计过站状态
+    SELECT
+      vehicle_id, body_type, platform_code, color_code, black_roof_flag, rework_flag,
+      first_seen_at, last_seen_at, first_rw_station, last_rw_station, station_pass_count,
+      reserved_1, reserved_2
+    FROM dim.carbody_registry
+  ),
   vehicle_union AS (
+    -- 核心升级：三源并集，确保已下线且漏检的车不丢失
     SELECT vehicle_id FROM latest_tracking
     UNION
     SELECT vehicle_id FROM latest_defect
+    UNION
+    SELECT vehicle_id FROM latest_carbody
   )
   SELECT
     u.vehicle_id,
-    t.body_type,
+    -- 车型字段级联合并（优先滚床跟踪，其次车身历史）
+    COALESCE(t.body_type, c.body_type) AS body_type,
     bt.type_name AS tracking_type_name,
+    
+    -- 缺陷数据
     d.defect_model,
     d.defect_type_name,
-    t.platform_code,
+    
+    -- 平台字段级联合并
+    COALESCE(t.platform_code, c.platform_code) AS platform_code,
     vp.platform_name,
-    COALESCE(t.color_code, d.defect_color_code) AS color_code,
+    
+    -- 颜色代码级联合并（优先滚床跟踪，其次缺陷，再次车身历史）
+    COALESCE(t.color_code, d.defect_color_code, c.color_code) AS color_code,
     cc.color_name,
+    
+    -- 是否黑车顶（任意一源标记为真即为真）
     CASE
       WHEN COALESCE(t.black_roof_flag, '') IN ('1', 'Y', 'y', 'T', 't') THEN TRUE
       WHEN COALESCE(d.black_roof_raw_defect, '') ILIKE '%黑%' THEN TRUE
+      WHEN COALESCE(c.black_roof_flag, '') IN ('1', 'Y', 'y', 'T', 't') THEN TRUE
       ELSE FALSE
     END AS is_black_roof,
+    
+    -- 新增布尔属性
+    CASE WHEN c.rework_flag = '1' THEN TRUE ELSE FALSE END AS is_rework,
+    CASE WHEN d.history_id IS NOT NULL THEN TRUE ELSE FALSE END AS has_defect_record,
+    
+    -- 跟踪和缺陷原始保留字段
     t.black_roof_flag AS black_roof_raw_tracking,
     d.black_roof_raw_defect,
     t.vehicle_updated_at AS tracking_last_seen_at,
     d.defect_last_seen_at,
+    
+    -- 新增车身物理过站时间与读写站信息
+    c.first_seen_at AS carbody_first_seen_at,
+    c.last_seen_at AS carbody_last_seen_at,
+    c.first_rw_station AS carbody_first_rw_station,
+    c.last_rw_station AS carbody_last_rw_station,
+    c.station_pass_count AS carbody_station_pass_count,
+    c.reserved_1 AS carbody_reserved_1,
+    c.reserved_2 AS carbody_reserved_2,
+    
+    -- 当前最新滚床位置追踪字段（若下线则为 NULL）
     t.position_id AS current_position_id,
     t.carrier_id AS current_carrier_id,
     t.carrier_type AS current_carrier_type,
@@ -1401,9 +1432,10 @@ BEGIN
   FROM vehicle_union u
   LEFT JOIN latest_tracking t ON t.vehicle_id = u.vehicle_id
   LEFT JOIN latest_defect d ON d.vehicle_id = u.vehicle_id
-  LEFT JOIN ods.vehicle_body_types bt ON bt.body_type = t.body_type
-  LEFT JOIN ods.vehicle_color_codes cc ON cc.color_code = COALESCE(t.color_code, d.defect_color_code)
-  LEFT JOIN ods.vehicle_platforms vp ON vp.platform_code = t.platform_code;
+  LEFT JOIN latest_carbody c ON c.vehicle_id = u.vehicle_id
+  LEFT JOIN ods.vehicle_body_types bt ON bt.body_type = COALESCE(t.body_type, c.body_type)
+  LEFT JOIN ods.vehicle_color_codes cc ON cc.color_code = COALESCE(t.color_code, d.defect_color_code, c.color_code)
+  LEFT JOIN ods.vehicle_platforms vp ON vp.platform_code = COALESCE(t.platform_code, c.platform_code);
 
   -- 刷新汇总层物化视图
   REFRESH MATERIALIZED VIEW mart.mart_vehicle_quality_360;

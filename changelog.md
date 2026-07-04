@@ -1,5 +1,36 @@
 # Changelog
 
+## 2026-07-04 16:20 Asia/Shanghai
+
+简要概括：升级车辆画像表 DDL 与 360 度质量汇总集市视图，实现对漏检车辆与已下线车辆的全面分析支持，并对齐读写站相关数据库注释。
+
+主要修改内容：
+
+- **更新 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md)**
+  - 升级 `dim.dim_vehicle_profile` 画像表结构，增加重工、缺陷标记及 5 个过站属性字段。
+  - 删除了第 6.4 节中已过时的旧版 `dim_vehicle_profile` 位置快照字段补全 `ALTER TABLE` 语句。
+  - 将 `mart.mart_vehicle_quality_360` 物化视图更改为由 `fct.fct_vehicle_defect_enriched` 驱动，完美支持漏检和在产未检车辆的呈现。
+  - 重构一键刷新存储过程 `meta.refresh_analytics_all()` 以引入 `latest_carbody`，实现“滚床在产+缺陷系统+车身过站”三源车辆并集与联合组装。
+  - 更正了第 2 节中旧版 `mart_vehicle_quality_360` 视图的数据量基线描述，补齐了画像表特征整合后拥有的三大来源字段详情。
+- **更新 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)**
+  - 补全画像表与 360 度质量集市视图升级后新增列的数据库 `COMMENT ON COLUMN` 注入语句。
+  - 在全局范围内统一将以往“过读写站”或“过站工位”的描述规范纠正对齐为“过站读写站”。
+
+## 2026-07-04 13:55 Asia/Shanghai
+
+
+简要概括：新增大模型关联防错去重技术指南文档，并在 `03_analytics_db_comments.sql` 中为车号/唯一标识等核心字段补全列级去重防错注释警示，全量注入物理库。
+
+主要修改内容：
+
+- **新增 [04_analytics_db_fanout_prevention_guide.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/04_analytics_db_fanout_prevention_guide.md)**
+  - 详细总结了 `mart_vehicle_quality_360` 和 `fct_vehicle_defect_enriched` 存在的“一车多缺陷”现象及背后的数据扇出效应原因。
+  - 对比展示了基于 `DISTINCT` 消除重复与基于子查询预聚合的正确 SQL 范式。
+- **更新 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)**
+  - 补全了 `ods.history_station_defect_summary.serial_number`、`fct.fct_vehicle_defect_enriched.vehicle_id` 和 `mart.mart_vehicle_quality_360.vehicle_id` 的列级 `COMMENT ON COLUMN` 去重警示注释，并重新全量注入本地 PostgreSQL 数据库。
+- **更新 [README.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/README.md)**
+  - 在项目结构中增加新指南文档的描述。
+
 ## 2026-07-03 20:50 Asia/Shanghai
 
 简要概括：整合并补全了分析数据库中事实层 (FCT) 和集市层 (MART) 全部 8 个物化视图的各个字段（列）级中文注释，解决了物化视图字段在 PostgreSQL 中因无法自动继承源表注释而缺失中文释义的问题。
