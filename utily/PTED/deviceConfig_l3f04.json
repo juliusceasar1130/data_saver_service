@@ -1,0 +1,180 @@
+{
+  "description": "设备参数配置文件（整合版，含原涂装和PVC区域）",
+  "version": "2.4.0",
+  "lastModified": "2026年05月26日",
+  "config": {
+    "L3F04": [
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1A_1A010LT_1A010RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A010RB",
+        "remark": "",
+        "process_area": "一线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1A_1A010LT_1A010RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1A_1A015LT_1A015LT.IL.SD.M1003_BodyID",
+        "RBindex": "1A015LT",
+        "remark": "",
+        "process_area": "一线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1A_1A015LT_1A015LT.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1A_1A020LT_1A020RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A020RB",
+        "remark": "",
+        "process_area": "一线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1A_1A020LT_1A020RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1A_1A025LT_1A025RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A025RB",
+        "remark": "",
+        "process_area": "一线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1A_1A025LT_1A025RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1A_14AS_1A040RB_1A040RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A040RB",
+        "remark": "",
+        "process_area": "一线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1A_14AS_1A040RB_1A040RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1A_14AS_1A045BT_1A045TF.IL.SD.M1003_BodyID",
+        "RBindex": "1A045TF",
+        "remark": "",
+        "process_area": "一线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1A_14AS_1A045BT_1A045TF.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1A_15AS_1A065EL_1A065RB.IL.SD.M1003_BodyID",
+        "RBindex": "1A065RB",
+        "remark": "",
+        "process_area": "一线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1A_15AS_1A065EL_1A065RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1B_1B105LT_1B105RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B105RB",
+        "remark": "",
+        "process_area": "二线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1B_1B105LT_1B105RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1B_1B110LT_1B110LT.IL.SD.M1003_BodyID",
+        "RBindex": "1B110LT",
+        "remark": "",
+        "process_area": "二线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1B_1B110LT_1B110LT.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1B_1B115LT_1B115RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B115RB",
+        "remark": "",
+        "process_area": "二线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1B_1B115LT_1B115RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1B_16AS_1B130RB_1B130RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B130RB",
+        "remark": "",
+        "process_area": "二线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1B_16AS_1B130RB_1B130RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1B_16AS_1B135BT_1B135TF.IL.SD.M1003_BodyID",
+        "RBindex": "1B135TF",
+        "remark": "",
+        "process_area": "二线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1B_16AS_1B135BT_1B135TF.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F04",
+        "tag": ".L3F04_1B_17AS_1B155EL_1B155RB.IL.SD.M1003_BodyID",
+        "RBindex": "1B155RB",
+        "remark": "",
+        "process_area": "二线预处理200点",
+        "carrier_type": "ED Skid",
+        "tag_carrier_id": ".L3F04_1B_17AS_1B155EL_1B155RB.IL.SD.I1030_RBDataSkidNo"
+      }
+    ]
+  },
+  "metadata": {
+    "totalDevices": 15,
+    "deviceTypes": [
+      "L3F04",
+      "L3F07",
+      "L3F10",
+      "L3F11",
+      "L3F12",
+      "L3F14",
+      "L3FCC1",
+      "L3FCC2",
+      "L3FCC3",
+      "L3FUB1",
+      "L3FUB2",
+      "L3FUB3"
+    ],
+    "configSchema": {
+      "id": "设备唯一标识符",
+      "type": "消息通信类型",
+      "plc": "PLC控制器标识",
+      "tag": "车身信息数据点位路径唯一标识符",
+      "RBindex": "滚床索引",
+      "remark": "备注说明",
+      "tag_carrier_id": "雪橇信息数据点位路径唯一标识符",
+      "carrier_type": "载具类型",
+      "process_area": "工艺段名称"
+    }
+  }
+}
