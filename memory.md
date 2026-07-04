@@ -56,6 +56,16 @@
 
 ## 变更记录
 
+### 2026-07-03 20:20 Asia/Shanghai
+
+主要修改内容：
+
+- 针对本地 PostgreSQL 数据库 `analytics_db` 开展了结构与设计文档的 100% 比对确认，并起草了全量中文元数据注释注入脚本。
+- 新增了数据库元数据注释部署脚本 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)。
+- 完成了向 ODS/DIM/FCT/MART/META 共 5 个 Schema 注入数据库中文注释。由于 PostgreSQL 10.23 的物化视图限制，对物化视图进行了极简兼容性调整（仅为其本身进行表级注释注入，去除了由于 relkind 限制导致的列注释报错）。
+- 梳理了车身唯一识别码（vehicle_id / serial_number / BODY_ID）及载具类型（carrier_type / type_code）的跨源一一对应业务等价性。
+- 全局规范并统一了 Skid/Carrier 的中文术语为“雪橇/吊架”，精简了时间戳与主键的语义注释。
+
 ### 2026-05-22 15:28 Asia/Shanghai
 
 主要修改内容：

@@ -12,7 +12,7 @@
 - `scheduler/`: 自动化定时数据同步与分析数仓刷新调度器服务。
   - `scheduler/scheduler_main.py`: 自动化三链路定时刷新常驻调度器。
 - `Dockerfile.scheduler`: 定时同步调度器的 Docker 镜像封装。
-- `docs/`: 包含排污记录、环境配置说明与 carbody 数据源迁移详细方案。
+- `docs/`: 包含架构设计、数据库元数据中文注释脚本（`03_analytics_db_comments.sql`）、配置说明与数据迁移方案。
 - `init_rb_positions_postgresql.py`: 数据库初始化脚本。
 - `create_tables_postgresql.sql`: 核心建表 SQL 脚本。
 - `AGENTS.md`: 项目协作与 Agent 行为准则。

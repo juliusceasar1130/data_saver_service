@@ -1,5 +1,39 @@
 # Changelog
 
+## 2026-07-03 20:50 Asia/Shanghai
+
+简要概括：整合并补全了分析数据库中事实层 (FCT) 和集市层 (MART) 全部 8 个物化视图的各个字段（列）级中文注释，解决了物化视图字段在 PostgreSQL 中因无法自动继承源表注释而缺失中文释义的问题。
+
+主要修改内容：
+
+- **更新 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)**
+  - 在事实层 (FCT) 和集市层 (MART) 的 8 个物化视图的表级注释后，整合补充了对应的列级 `COMMENT ON COLUMN` 注入语句，实现对 `fct_position_current_all`, `fct_vehicle_position_current`, `fct_vehicle_defect_detection`, `fct_vehicle_defect_enriched`, `fct_abnormal_vehicle_current`, `mart_vehicle_quality_360`, `mart_abnormal_vehicle_current`, `mart_position_current_overview` 每一列/字段业务语义的显式写入。
+
+## 2026-07-03 20:20 Asia/Shanghai
+
+简要概括：完成了本地 PostgreSQL 数据库 `analytics_db` 结构与设计文档的全面对齐比对，并成功向物理库的 5 个 Schema（ods, dim, fct, mart, meta）注入了全套中文元数据注释。
+
+主要修改内容：
+
+- **新增 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)**
+  - 包含了贴源层（ODS）、维度层（DIM）和元数据层（META）全部物理表与字段的中文 `COMMENT ON COLUMN` 注释注入。
+  - 包含了所有事实层（FCT）和集市层（MART）物化视图的表级 `COMMENT ON MATERIALIZED VIEW` 注释注入（已根据 PG 10.23 对物化视图的限制进行了兼容性与极简对齐优化）。
+  - 显式标明了 `vehicle_id` / `serial_number` / `BODY_ID` 的跨源一一对应等价关系。
+  - 统一了 Skid/Carrier 的业务命名为 “雪橇/吊架”，并精简了主键与时间相关的注释描述。
+- **更新 [db_field_mapping_lineage.md](file:///C:/Users/julius/.gemini/antigravity-ide/brain/795fa3ff-3c48-4caf-a31f-4ae0658809c7/db_field_mapping_lineage.md)**
+  - 将字段血缘映射报告中的载具翻译统一为“雪橇/吊架”，并追加了 `carrier_type` 与 `type_code` 等价对应的血缘细节描述。
+
+## 2026-06-26 13:36 Asia/Shanghai
+
+简要概括：新增 `docs/docker_port_mappings.md`，用于汇总 Docker 端口映射与 WSL 代理配置详情，并补充相关维护与故障排查指令。
+
+主要修改内容：
+
+- **新增 [docker_port_mappings.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/docker_port_mappings.md)**
+  - 汇总了 WebSocket 数据订阅服务（端口 `8082`）、Carbody SQL Server 源库（端口 `14330`）以及 Defect SQL Server 源库（端口 `14331`）的代理端口映射关系。
+  - 提供了相应的网络流量走向拓扑结构图。
+  - 列出了常用的 WSL 状态检查指令与代理端口运维管理命令，极大地方便了日常排障与外部目标 IP 变更维护。
+
 ## 2026-05-22 15:28 Asia/Shanghai
 
 简要概括：优化设备参数配置文件转换脚本 `convert_device_config_v2.py` 以兼容 `"tagSkidNo"` 载具点位字段，并成功将蜡腔/烘房原始配置文件 `deviceConfig——wax.json` 转换为对齐最新 sample 标准的规范化格式。
