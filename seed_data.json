@@ -7,206 +7,1010 @@
   },
   "process_areas": [
     {
-      "area_name": "L1面漆色漆喷房",
-      "description": "L1面漆色漆喷房输送线",
+      "area_name": "0-4.5米升降机",
+      "description": "0-4.5米升降机",
       "sort_order": 10
     },
     {
-      "area_name": "L1面漆中间烘房",
-      "description": "L1面漆中间烘房输送线",
+      "area_name": "1B310RB（待确认工序）",
+      "description": "1B310RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L1面漆清漆喷房",
-      "description": "L1面漆清漆喷房输送线",
+      "area_name": "1D170RB（待确认工序）",
+      "description": "1D170RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L1面漆烘房",
-      "description": "L1面漆烘房输送线",
+      "area_name": "1D245RB（待确认工序）",
+      "description": "1D245RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L1面漆储存线",
-      "description": "L1面漆储存线输送线",
+      "area_name": "1D250RB（待确认工序）",
+      "description": "1D250RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L2面漆色漆喷房",
-      "description": "L2面漆色漆喷房输送线",
+      "area_name": "1D255RB（待确认工序）",
+      "description": "1D255RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L2面漆中间烘房",
-      "description": "L1面漆中间烘房输送线",
+      "area_name": "1G340RB（待确认工序）",
+      "description": "1G340RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L2面漆清漆喷房",
-      "description": "L2面漆清漆喷房输送线",
+      "area_name": "1I450RB（待确认工序）",
+      "description": "1I450RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L2面漆烘房",
-      "description": "L2面漆烘房输送线",
+      "area_name": "1K470RB（待确认工序）",
+      "description": "1K470RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L2面漆储存线",
-      "description": "L2面漆储存线输送线",
+      "area_name": "1K475RB（待确认工序）",
+      "description": "1K475RB（待确认工序）",
       "sort_order": 10
     },
     {
-      "area_name": "L3面漆色漆喷房",
-      "description": "L3面漆色漆喷房输送线",
+      "area_name": "200点1A横移叉",
+      "description": "200点1A横移叉",
       "sort_order": 10
     },
     {
-      "area_name": "L3面漆中间烘房",
-      "description": "L3面漆中间烘房输送线",
+      "area_name": "200点1B横移叉",
+      "description": "200点1B横移叉",
       "sort_order": 10
     },
     {
-      "area_name": "L3面漆清漆喷房",
-      "description": "L3面漆清漆喷房输送线",
+      "area_name": "200点区域-电泳橇与面漆橇转换区域",
+      "description": "200点区域-电泳橇与面漆橇转换区域",
       "sort_order": 10
     },
     {
-      "area_name": "L3面漆烘房",
-      "description": "L3面漆烘房输送线",
+      "area_name": "4.5米打磨前储存线",
+      "description": "4.5米打磨前储存线",
       "sort_order": 10
     },
     {
-      "area_name": "L3面漆储存线",
-      "description": "L3面漆储存线输送线",
+      "area_name": "4.5米打磨返工返回线",
+      "description": "4.5米打磨返工返回线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "9米到4.5米升降机",
+      "description": "9米到4.5米升降机",
+      "sort_order": 10
+    },
+    {
+      "area_name": "9米烘房出口储存线",
+      "description": "9米烘房出口储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "9米防腐Audit1.1",
+      "description": "9米防腐Audit1.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "9米防腐Audit1.2",
+      "description": "9米防腐Audit1.2",
       "sort_order": 10
     },
     {
       "area_name": "L1分色线",
-      "description": "L1面漆分色线",
+      "description": "L1分色线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆中间烘房",
+      "description": "L1面漆中间烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆储存线",
+      "description": "L1面漆储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆清漆喷房",
+      "description": "L1面漆清漆喷房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆烘房",
+      "description": "L1面漆烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L1面漆色漆喷房",
+      "description": "L1面漆色漆喷房",
       "sort_order": 10
     },
     {
       "area_name": "L2分色线",
-      "description": "L2面漆分色线",
+      "description": "L2分色线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆中间烘房",
+      "description": "L2面漆中间烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆储存线",
+      "description": "L2面漆储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆清漆喷房",
+      "description": "L2面漆清漆喷房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆烘房",
+      "description": "L2面漆烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L2面漆色漆喷房",
+      "description": "L2面漆色漆喷房",
       "sort_order": 10
     },
     {
       "area_name": "L3分色线",
-      "description": "L3面漆分色线",
+      "description": "L3分色线",
       "sort_order": 10
     },
-    {"area_name": "一线PVC预装进口离线口", "description": "一线PVC预装进口离线口", "sort_order": 10},
-    {"area_name": "一线PVC预装", "description": "一线PVC预装", "sort_order": 10},
-    {"area_name": "一线PVC预装出口离线口", "description": "一线PVC预装出口离线口", "sort_order": 10},
-    {"area_name": "一线PVC吊架进口", "description": "一线PVC吊架进口", "sort_order": 10},
-    {"area_name": "一线PVC底部预装", "description": "一线PVC底部预装", "sort_order": 10},
-    {"area_name": "一线PVC底部空橇返回线", "description": "一线PVC底部空橇返回线", "sort_order": 10},
-    {"area_name": "一线PVC吊架出口", "description": "一线PVC吊架出口", "sort_order": 10},
-    {"area_name": "一线吊架返回线", "description": "一线吊架返回线", "sort_order": 10},
-    {"area_name": "一线PVC底部机器人站", "description": "一线PVC底部机器人站", "sort_order": 10},
-    {"area_name": "一线PVC底部刷胶房", "description": "一线PVC底部刷胶房", "sort_order": 10},
-    {"area_name": "一线PVC内腔机器人站", "description": "一线PVC内腔机器人站", "sort_order": 10},
-    {"area_name": "一线PVC细密封线", "description": "一线PVC细密封线", "sort_order": 10},
-    {"area_name": "一线SDM站", "description": "一线SDM站", "sort_order": 10},
-    {"area_name": "二线PVC预装进口离线口", "description": "二线PVC预装进口离线口", "sort_order": 10},
-    {"area_name": "二线PVC预装", "description": "二线PVC预装", "sort_order": 10},
-    {"area_name": "二线PVC预装出口离线口", "description": "二线PVC预装出口离线口", "sort_order": 10},
-    {"area_name": "二线PVC吊架进口", "description": "二线PVC吊架进口", "sort_order": 10},
-    {"area_name": "二线PVC底部预装", "description": "二线PVC底部预装", "sort_order": 10},
-    {"area_name": "二线PVC底部空橇返回线", "description": "二线PVC底部空橇返回线", "sort_order": 10},
-    {"area_name": "二线PVC吊架出口", "description": "二线PVC吊架出口", "sort_order": 10},
-    {"area_name": "二线吊架返回线", "description": "二线吊架返回线", "sort_order": 10},
-    {"area_name": "二线PVC底部机器人站", "description": "二线PVC底部机器人站", "sort_order": 10},
-    {"area_name": "二线PVC底部刷胶房", "description": "二线PVC底部刷胶房", "sort_order": 10},
-    {"area_name": "二线PVC内腔机器人站", "description": "二线PVC内腔机器人站", "sort_order": 10},
-    {"area_name": "二线PVC细密封线", "description": "二线PVC细密封线", "sort_order": 10},
-    {"area_name": "二线SDM站", "description": "二线SDM站", "sort_order": 10},
-    {"area_name": "二线门槛机器人站", "description": "二线门槛机器人站", "sort_order": 10},
-    {"area_name": "二线门槛及SDM自动检查工位", "description": "二线门槛及SDM自动检查工位", "sort_order": 10},
-    {"area_name": "三线PVC预装进口离线口", "description": "三线PVC预装进口离线口", "sort_order": 10},
-    {"area_name": "三线PVC预装", "description": "三线PVC预装", "sort_order": 10},
-    {"area_name": "三线PVC预装出口离线口", "description": "三线PVC预装出口离线口", "sort_order": 10},
-    {"area_name": "三线PVC吊架进口", "description": "三线PVC吊架进口", "sort_order": 10},
-    {"area_name": "三线PVC底部预装", "description": "三线PVC底部预装", "sort_order": 10},
-    {"area_name": "三线PVC底部空橇返回线", "description": "三线PVC底部空橇返回线", "sort_order": 10},
-    {"area_name": "三线PVC吊架出口", "description": "三线PVC吊架出口", "sort_order": 10},
-    {"area_name": "三线吊架返回线", "description": "三线吊架返回线", "sort_order": 10},
-    {"area_name": "三线PVC底部机器人站", "description": "三线PVC底部机器人站", "sort_order": 10},
-    {"area_name": "三线PVC底部刷胶房", "description": "三线PVC底部刷胶房", "sort_order": 10},
-    {"area_name": "三线PVC内腔机器人站", "description": "三线PVC内腔机器人站", "sort_order": 10},
-    {"area_name": "三线PVC细密封线", "description": "三线PVC细密封线", "sort_order": 10},
-    {"area_name": "三线SDM站", "description": "三线SDM站", "sort_order": 10},
-    {"area_name": "三线门槛机器人站", "description": "三线门槛机器人站", "sort_order": 10},
-    {"area_name": "三线门槛及SDM自动检查工位", "description": "三线门槛及SDM自动检查工位", "sort_order": 10},
-    {"area_name": "电泳橇与面漆橇转换区域（F04_1A_200点）", "description": "电泳橇与面漆橇转换区域（F04_1A_200点）", "sort_order": 10},
-    {"area_name": "电泳橇与面漆橇转换区域（F04_1B_200点）", "description": "电泳橇与面漆橇转换区域（F04_1B_200点）", "sort_order": 10},
-    {"area_name": "PVC入口储存线", "description": "PVC入口储存线", "sort_order": 10},
-    {"area_name": "黑车顶F24", "description": "黑车顶F24", "sort_order": 10},
-    {"area_name": "黑车顶F30储存线", "description": "黑车顶F30储存线", "sort_order": 10},
-    {"area_name": "黑车顶F30打磨", "description": "黑车顶F30打磨", "sort_order": 10},
-    {"area_name": "黑车顶F30烘房", "description": "黑车顶F30烘房", "sort_order": 10},
-    {"area_name": "黑车顶F30喷房", "description": "黑车顶F30喷房", "sort_order": 10},
-    {"area_name": "黑车顶F30闪干区", "description": "黑车顶F30闪干区", "sort_order": 10},
-    {"area_name": "黑车顶F31_12.7m存储线", "description": "黑车顶F31_12.7m存储线", "sort_order": 10},
-    {"area_name": "黑车顶F31报交", "description": "黑车顶F31报交", "sort_order": 10},
-    {"area_name": "黑车顶F31出口", "description": "黑车顶F31出口", "sort_order": 10},
-    {"area_name": "黑车顶F31点修", "description": "黑车顶F31点修", "sort_order": 10},
-    {"area_name": "黑车顶F31返工线", "description": "黑车顶F31返工线", "sort_order": 10},
-    {"area_name": "黑车顶F31进口", "description": "黑车顶F31进口", "sort_order": 10},
-    {"area_name": "黑车顶F31连接线", "description": "黑车顶F31连接线", "sort_order": 10},
-    {"area_name": "注蜡出口缓存区", "description": "注蜡出口缓存区", "sort_order": 10},
-    {"area_name": "注蜡出口缓存区离线口", "description": "注蜡出口缓存区离线口", "sort_order": 10},
-    {"area_name": "注蜡出口缓存区Audit", "description": "注蜡出口缓存区Audit", "sort_order": 10},
-    {"area_name": "注蜡出口缓存区Audit离线口", "description": "注蜡出口缓存区Audit离线口", "sort_order": 10},
-    {"area_name": "注蜡二线", "description": "注蜡二线", "sort_order": 10},
-    {"area_name": "注蜡二线2.1槽", "description": "注蜡二线2.1槽", "sort_order": 10},
-    {"area_name": "注蜡二线2.2槽", "description": "注蜡二线2.2槽", "sort_order": 10},
-    {"area_name": "注蜡二线2.3槽", "description": "注蜡二线2.3槽", "sort_order": 10},
-    {"area_name": "注蜡三线", "description": "注蜡三线", "sort_order": 10},
-    {"area_name": "注蜡三线3.1槽", "description": "注蜡三线3.1槽", "sort_order": 10},
-    {"area_name": "注蜡三线3.2槽", "description": "注蜡三线3.2槽", "sort_order": 10},
-    {"area_name": "注蜡一线", "description": "注蜡一线", "sort_order": 10},
-    {"area_name": "注蜡一线1.1槽", "description": "注蜡一线1.1槽", "sort_order": 10},
-    {"area_name": "注蜡一线1.2槽", "description": "注蜡一线1.2槽", "sort_order": 10},
-    {"area_name": "注蜡一线沥蜡站", "description": "注蜡一线沥蜡站", "sort_order": 10},
-    {"area_name": "注蜡F25", "description": "注蜡F25", "sort_order": 10},
-    {"area_name": "注蜡F25_1道", "description": "注蜡F25_1道", "sort_order": 10},
-    {"area_name": "注蜡F25_2道", "description": "注蜡F25_2道", "sort_order": 10},
-    {"area_name": "注蜡F26", "description": "注蜡F26", "sort_order": 10},
-    {"area_name": "注蜡F26_1道", "description": "注蜡F26_1道", "sort_order": 10},
-    {"area_name": "注蜡F26_2道", "description": "注蜡F26_2道", "sort_order": 10},
-    {"area_name": "注蜡F26_3道", "description": "注蜡F26_3道", "sort_order": 10},
-    {"area_name": "注蜡F26_4道", "description": "注蜡F26_4道", "sort_order": 10},
-    {"area_name": "注蜡F26_5道", "description": "注蜡F26_5道", "sort_order": 10},
-    {"area_name": "注蜡F26_8道", "description": "注蜡F26_8道", "sort_order": 10},
-    {"area_name": "注蜡F27", "description": "注蜡F27", "sort_order": 10},
-    {"area_name": "注蜡F28", "description": "注蜡F28", "sort_order": 10},
-    {"area_name": "预处理F01输送线", "description": "预处理F01输送线", "sort_order": 10},
-    {"area_name": "预处理MQB 100点", "description": "预处理MQB 100点", "sort_order": 10},
-    {"area_name": "预处理MEB 100点", "description": "预处理MEB 100点", "sort_order": 10},
-    {"area_name": "预处理MEB工装检查平台", "description": "预处理MEB工装检查平台", "sort_order": 10},
-    {"area_name": "预处理MQB工装检查平台", "description": "预处理MQB工装检查平台", "sort_order": 10},
-    {"area_name": "预处理MEB线锁紧检测站", "description": "预处理MEB线锁紧检测站", "sort_order": 10},
-    {"area_name": "预处理MQB线锁紧检测站", "description": "预处理MQB线锁紧检测站", "sort_order": 10},
-    {"area_name": "一线预处理储存线", "description": "一线预处理储存线", "sort_order": 10},
-    {"area_name": "一线预处理雪橇解锁站", "description": "一线预处理雪橇解锁站", "sort_order": 10},
-    {"area_name": "二线预处理储存线", "description": "二线预处理储存线", "sort_order": 10},
-    {"area_name": "二线预处理雪橇解锁站", "description": "二线预处理雪橇解锁站", "sort_order": 10},
-    {"area_name": "一线预处理200点", "description": "一线预处理200点", "sort_order": 10},
-    {"area_name": "二线预处理200点", "description": "二线预处理200点", "sort_order": 10},
-    {"area_name": "预处理 F21储存线", "description": "预处理 F21储存线", "sort_order": 10},
-    {"area_name": "预处理 F23湿区", "description": "预处理 F23湿区", "sort_order": 10},
-    {"area_name": "预处理 F23湿区检查平台", "description": "预处理 F23湿区检查平台", "sort_order": 10},
-    {"area_name": "预处理 F23干区", "description": "预处理 F23干区", "sort_order": 10},
-    {"area_name": "预处理一线", "description": "预处理一线", "sort_order": 10},
-    {"area_name": "电泳一线", "description": "电泳一线", "sort_order": 10},
-    {"area_name": "电泳烘房1.1", "description": "电泳烘房1.1", "sort_order": 10},
-    {"area_name": "电泳烘房1.2", "description": "电泳烘房1.2", "sort_order": 10},
-    {"area_name": "预处理二线", "description": "预处理二线", "sort_order": 10},
-    {"area_name": "电泳二线", "description": "电泳二线", "sort_order": 10},
-    {"area_name": "电泳烘房2.1", "description": "电泳烘房2.1", "sort_order": 10},
-    {"area_name": "电泳烘房2.2", "description": "电泳烘房2.2", "sort_order": 10}
+    {
+      "area_name": "L3面漆中间烘房",
+      "description": "L3面漆中间烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆储存线",
+      "description": "L3面漆储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆清漆喷房",
+      "description": "L3面漆清漆喷房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆烘房",
+      "description": "L3面漆烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "L3面漆色漆喷房",
+      "description": "L3面漆色漆喷房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC-9米一线烘房",
+      "description": "PVC-9米一线烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC-9米一线烘房强冷",
+      "description": "PVC-9米一线烘房强冷",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC-9米二线烘房",
+      "description": "PVC-9米二线烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC-9米二线烘房强冷",
+      "description": "PVC-9米二线烘房强冷",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线4.5米转台",
+      "description": "PVC一线-一线4.5米转台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC内腔机器人站",
+      "description": "PVC一线-一线PVC内腔机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC吊架出口",
+      "description": "PVC一线-一线PVC吊架出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC吊架进口",
+      "description": "PVC一线-一线PVC吊架进口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC底部刷胶房",
+      "description": "PVC一线-一线PVC底部刷胶房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC底部机器人站",
+      "description": "PVC一线-一线PVC底部机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC底部预装",
+      "description": "PVC一线-一线PVC底部预装",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC细密封线",
+      "description": "PVC一线-一线PVC细密封线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC预装",
+      "description": "PVC一线-一线PVC预装",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC预装出口离线口",
+      "description": "PVC一线-一线PVC预装出口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线PVC预装进口离线口",
+      "description": "PVC一线-一线PVC预装进口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线SDM站",
+      "description": "PVC一线-一线SDM站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线出口离线口",
+      "description": "PVC一线-一线出口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线分色线",
+      "description": "PVC一线-一线分色线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线报交出口",
+      "description": "PVC一线-一线报交出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线点修补返回线",
+      "description": "PVC一线-一线点修补返回线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线烘房9米储存线",
+      "description": "PVC一线-一线烘房9米储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC一线-一线细密封出口",
+      "description": "PVC一线-一线细密封出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线4.5米转台",
+      "description": "PVC三线-三线4.5米转台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC内腔机器人站",
+      "description": "PVC三线-三线PVC内腔机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC吊架出口",
+      "description": "PVC三线-三线PVC吊架出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC吊架进口",
+      "description": "PVC三线-三线PVC吊架进口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC底部刷胶房",
+      "description": "PVC三线-三线PVC底部刷胶房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC底部机器人站",
+      "description": "PVC三线-三线PVC底部机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC底部预装",
+      "description": "PVC三线-三线PVC底部预装",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC细密封线",
+      "description": "PVC三线-三线PVC细密封线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC预装",
+      "description": "PVC三线-三线PVC预装",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC预装出口离线口",
+      "description": "PVC三线-三线PVC预装出口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线PVC预装进口离线口",
+      "description": "PVC三线-三线PVC预装进口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线SDM站",
+      "description": "PVC三线-三线SDM站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线分色线",
+      "description": "PVC三线-三线分色线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线报交出口",
+      "description": "PVC三线-三线报交出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线点修补返回线",
+      "description": "PVC三线-三线点修补返回线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线离线口",
+      "description": "PVC三线-三线离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线细密封出口",
+      "description": "PVC三线-三线细密封出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线门槛出口离线口",
+      "description": "PVC三线-三线门槛出口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线门槛及SDM自动检查工位",
+      "description": "PVC三线-三线门槛及SDM自动检查工位",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC三线-三线门槛机器人站",
+      "description": "PVC三线-三线门槛机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线4.5米转台",
+      "description": "PVC二线-二线4.5米转台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC内腔机器人站",
+      "description": "PVC二线-二线PVC内腔机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC吊架出口",
+      "description": "PVC二线-二线PVC吊架出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC吊架进口",
+      "description": "PVC二线-二线PVC吊架进口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC底部刷胶房",
+      "description": "PVC二线-二线PVC底部刷胶房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC底部机器人站",
+      "description": "PVC二线-二线PVC底部机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC底部预装",
+      "description": "PVC二线-二线PVC底部预装",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC细密封线",
+      "description": "PVC二线-二线PVC细密封线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC预装",
+      "description": "PVC二线-二线PVC预装",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC预装出口离线口",
+      "description": "PVC二线-二线PVC预装出口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线PVC预装进口离线口",
+      "description": "PVC二线-二线PVC预装进口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线SDM站",
+      "description": "PVC二线-二线SDM站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线分色线",
+      "description": "PVC二线-二线分色线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线报交出口",
+      "description": "PVC二线-二线报交出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线点修补返回线",
+      "description": "PVC二线-二线点修补返回线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线烘房9米储存线",
+      "description": "PVC二线-二线烘房9米储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线细密封出口",
+      "description": "PVC二线-二线细密封出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线门槛出口离线口",
+      "description": "PVC二线-二线门槛出口离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线门槛及SDM自动检查工位",
+      "description": "PVC二线-二线门槛及SDM自动检查工位",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC二线-二线门槛机器人站",
+      "description": "PVC二线-二线门槛机器人站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC出口4.5米储存线",
+      "description": "PVC出口4.5米储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "PVC烘房进口9米储存线",
+      "description": "PVC烘房进口9米储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "一线预处理储存线",
+      "description": "一线预处理储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "一线预处理雪橇解锁站",
+      "description": "一线预处理雪橇解锁站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "二线预处理储存线",
+      "description": "二线预处理储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "二线预处理雪橇解锁站",
+      "description": "二线预处理雪橇解锁站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "奥迪特1.1",
+      "description": "奥迪特1.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "奥迪特1.2",
+      "description": "奥迪特1.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "奥迪特2.1",
+      "description": "奥迪特2.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "奥迪特2.2",
+      "description": "奥迪特2.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "奥迪特3.1",
+      "description": "奥迪特3.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "奥迪特3.2",
+      "description": "奥迪特3.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨一线主线",
+      "description": "打磨一线主线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨一线大返",
+      "description": "打磨一线大返",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨一线防腐奥迪特",
+      "description": "打磨一线防腐奥迪特",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨三线主线",
+      "description": "打磨三线主线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨三线大返",
+      "description": "打磨三线大返",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨三线防腐奥迪特",
+      "description": "打磨三线防腐奥迪特",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨二线主线",
+      "description": "打磨二线主线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨二线大返",
+      "description": "打磨二线大返",
+      "sort_order": 10
+    },
+    {
+      "area_name": "打磨二线防腐奥迪特",
+      "description": "打磨二线防腐奥迪特",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交1.1",
+      "description": "报交1.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交1.2",
+      "description": "报交1.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交2.1",
+      "description": "报交2.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交2.2",
+      "description": "报交2.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交3.1",
+      "description": "报交3.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交3.2",
+      "description": "报交3.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交一线主线前道",
+      "description": "报交一线主线前道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交一线离线口",
+      "description": "报交一线离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交三线主线前道",
+      "description": "报交三线主线前道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交二线主线前道",
+      "description": "报交二线主线前道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交出口4.5米平台",
+      "description": "报交出口4.5米平台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "报交出口9米平台",
+      "description": "报交出口9米平台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F25",
+      "description": "注蜡F25",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F25_1道",
+      "description": "注蜡F25_1道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F25_2道",
+      "description": "注蜡F25_2道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F26",
+      "description": "注蜡F26",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F26_1道",
+      "description": "注蜡F26_1道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F26_2道",
+      "description": "注蜡F26_2道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F26_3道",
+      "description": "注蜡F26_3道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F26_4道",
+      "description": "注蜡F26_4道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F26_5道",
+      "description": "注蜡F26_5道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F26_8道",
+      "description": "注蜡F26_8道",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F27",
+      "description": "注蜡F27",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡F28",
+      "description": "注蜡F28",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡一线",
+      "description": "注蜡一线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡一线1.1槽",
+      "description": "注蜡一线1.1槽",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡一线1.2槽",
+      "description": "注蜡一线1.2槽",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡一线沥蜡站",
+      "description": "注蜡一线沥蜡站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡三线",
+      "description": "注蜡三线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡三线3.1槽",
+      "description": "注蜡三线3.1槽",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡三线3.2槽",
+      "description": "注蜡三线3.2槽",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡二线",
+      "description": "注蜡二线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡二线2.1槽",
+      "description": "注蜡二线2.1槽",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡二线2.2槽",
+      "description": "注蜡二线2.2槽",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡二线2.3槽",
+      "description": "注蜡二线2.3槽",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡出口缓存区",
+      "description": "注蜡出口缓存区",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡出口缓存区Audit",
+      "description": "注蜡出口缓存区Audit",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡出口缓存区Audit离线口",
+      "description": "注蜡出口缓存区Audit离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "注蜡出口缓存区离线口",
+      "description": "注蜡出口缓存区离线口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补一线-点修补1.1",
+      "description": "点修补一线-点修补1.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补一线-点修补1.2",
+      "description": "点修补一线-点修补1.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补一线-点修补1.3",
+      "description": "点修补一线-点修补1.3",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补三线-点修补3.1",
+      "description": "点修补三线-点修补3.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补三线-点修补3.2",
+      "description": "点修补三线-点修补3.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补三线-点修补3.3",
+      "description": "点修补三线-点修补3.3",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补二线-点修补2.1",
+      "description": "点修补二线-点修补2.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "点修补二线-点修补2.2",
+      "description": "点修补二线-点修补2.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "烘房9米储存线后",
+      "description": "烘房9米储存线后",
+      "sort_order": 10
+    },
+    {
+      "area_name": "电泳一线",
+      "description": "电泳一线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "电泳二线",
+      "description": "电泳二线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "电泳烘房1.1",
+      "description": "电泳烘房1.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "电泳烘房1.2",
+      "description": "电泳烘房1.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "电泳烘房2.1",
+      "description": "电泳烘房2.1",
+      "sort_order": 10
+    },
+    {
+      "area_name": "电泳烘房2.2",
+      "description": "电泳烘房2.2",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理 F21储存线",
+      "description": "预处理 F21储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理 F23干区",
+      "description": "预处理 F23干区",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理 F23湿区",
+      "description": "预处理 F23湿区",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理 F23湿区检查平台",
+      "description": "预处理 F23湿区检查平台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理F01输送线",
+      "description": "预处理F01输送线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理MEB 100点",
+      "description": "预处理MEB 100点",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理MEB工装检查平台",
+      "description": "预处理MEB工装检查平台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理MEB线锁紧检测站",
+      "description": "预处理MEB线锁紧检测站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理MQB 100点",
+      "description": "预处理MQB 100点",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理MQB工装检查平台",
+      "description": "预处理MQB工装检查平台",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理MQB线锁紧检测站",
+      "description": "预处理MQB线锁紧检测站",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理一线",
+      "description": "预处理一线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预处理二线",
+      "description": "预处理二线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "预装前4.5米平台-PVC入口储存线",
+      "description": "预装前4.5米平台-PVC入口储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F24",
+      "description": "黑车顶F24",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F30储存线",
+      "description": "黑车顶F30储存线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F30喷房",
+      "description": "黑车顶F30喷房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F30打磨",
+      "description": "黑车顶F30打磨",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F30烘房",
+      "description": "黑车顶F30烘房",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F30闪干区",
+      "description": "黑车顶F30闪干区",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F31_12.7m存储线",
+      "description": "黑车顶F31_12.7m存储线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F31出口",
+      "description": "黑车顶F31出口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F31报交",
+      "description": "黑车顶F31报交",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F31点修",
+      "description": "黑车顶F31点修",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F31返工线",
+      "description": "黑车顶F31返工线",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F31进口",
+      "description": "黑车顶F31进口",
+      "sort_order": 10
+    },
+    {
+      "area_name": "黑车顶F31连接线",
+      "description": "黑车顶F31连接线",
+      "sort_order": 10
+    }
   ],
   "carrier_types": [
     {

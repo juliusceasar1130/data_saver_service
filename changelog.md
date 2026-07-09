@@ -1,5 +1,23 @@
 # Changelog
 
+## 2026-07-09 16:12 Asia/Shanghai
+
+简要概括：将主设备参数配置文件 `deviceConfig.json` 更新为包含全部 PLC 点位（共 2746 个设备）的最终合并版本，优化车型映射配置增加 5X 车型，更新测试种子数据，并修正 MCP PostgreSQL 连接配置。
+
+主要修改内容：
+
+- **更新并规范化 [deviceConfig.json](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/deviceConfig.json)**
+  - 将主设备配置文件更新为包含 2746 个设备点位、35 个 PLC 设备的完整合并版本。
+  - 将部分 PLC 设备的 `ILO.SD` 格式的 tag 统一规范为最新的 `IL.SD` 格式（如 `L3FKT1`、`L3FKT2` 控制器下部分点位）。
+  - 创建了配置文件备份 `deviceConfig0709.json`，并清理了已完成合并的历史单模块配置文件。
+- **更新 [defect_summary_etl/model_map.json](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/defect_summary_etl/model_map.json)**
+  - 修正了部分车型的 `type_name`（如将 `"Tiguan Pro"` 修正为 `"TiguanPro"`，`"TiguanL PHEV"` 修正为 `"TiguanPHEV"`）。
+  - 新增了型号 `29` 和 `30` 对应的 `"5X"` 车型映射。
+- **更新 [seed_data.json](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/seed_data.json)**
+  - 对齐最新的位置与车辆基础测试种子数据。
+- **更新 [.mcp.json](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/.mcp.json)**
+  - 将 PostgreSQL MCP 服务的默认连接数据库名从 `analytics_db` 切换为 `rollerbed_tracking_db`，对齐主滚床跟踪数据库。
+
 ## 2026-07-04 16:20 Asia/Shanghai
 
 简要概括：升级车辆画像表 DDL 与 360 度质量汇总集市视图，实现对漏检车辆与已下线车辆的全面分析支持，并对齐读写站相关数据库注释。
