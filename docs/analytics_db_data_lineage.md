@@ -1,6 +1,11 @@
 # Analytics DB 数据血缘关系
 
-修改时间：2026-05-11 Asia/Shanghai
+修改时间：2026-07-23 Asia/Shanghai
+
+主要修改内容：
+- 更新 `dim.carbody_registry` 与 `dim.dim_vehicle_profile` 的生成逻辑，追加 `retention_checkpoint_station` 和 `retention_checkpoint_pass_at` 滞留监控检查点字段。
+
+历史修改时间：2026-05-11 Asia/Shanghai
 
 ## 概述
 
@@ -65,25 +70,31 @@ meta ─────────────────────────
 | 表名 | 数据来源 | 刷新方式 |
 |------|----------|----------|
 | `dim.dim_process_area` | `ods.process_areas` | 全量 INSERT（refresh_analytics_all 中重建） |
-| `dim.dim_vehicle_profile` | `fct.fct_vehicle_position_current`（tracking 侧）<br>+ `ods.history_station_defect_summary`（defect 侧）<br>→ `vehicle_union` = tracking ∪ defect → COALESCE 合并 | 全量 TRUNCATE+INSERT |
+| `dim.dim_vehicle_profile` | `fct.fct_vehicle_position_current`（tracking 侧）<br>+ `ods.history_station_defect_summary`（defect 侧）<br>+ `dim.carbody_registry`（carbody 侧）<br>→ `vehicle_union` = tracking ∪ defect ∪ carbody → COALESCE 合并 | 全量 TRUNCATE+INSERT |
 | `dim.carbody_registry` | `ods.carbody_history`（增量批次聚合） | 增量 UPSERT（ON CONFLICT DO UPDATE） |
 
 ### dim.dim_vehicle_profile 的合并逻辑
 
 ```
-vehicle_union (tracking ∪ defect)
+vehicle_union (tracking ∪ defect ∪ carbody)
     │
     ├── latest_tracking CTE ← fct.fct_vehicle_position_current
     │     vehicle_id, body_type, color_code, platform_code,
     │     black_roof_flag, position_id, carrier_id, process_area
     │
-    └── latest_defect CTE ← ods.history_station_defect_summary
-          vehicle_id, model, type_name, black_roof, defect_last_seen_at
-          (DISTINCT ON trim(serial_number) ORDER BY date_time DESC)
+    ├── latest_defect CTE ← ods.history_station_defect_summary
+    │     vehicle_id, model, type_name, black_roof, defect_last_seen_at
+    │     (DISTINCT ON trim(serial_number) ORDER BY date_time DESC)
+    │
+    └── latest_carbody CTE ← dim.carbody_registry
+          vehicle_id, body_type, platform_code, color_code, black_roof_flag, rework_flag,
+          first_seen_at, last_seen_at, first_rw_station, last_rw_station, station_pass_count,
+          retention_checkpoint_station, retention_checkpoint_pass_at
     
-    → LEFT JOIN tracking + LEFT JOIN defect
-    → COALESCE(t.color_code, d.defect_color_code) AS color_code
-    → CASE is_black_roof: tracking '1/Y/T' OR defect ILIKE '%黑%'
+    → LEFT JOIN tracking + LEFT JOIN defect + LEFT JOIN carbody
+    → COALESCE(t.color_code, d.defect_color_code, c.color_code) AS color_code
+    → CASE is_black_roof: tracking '1/Y/T' OR defect ILIKE '%黑%' OR carbody '1/Y/T'
+    → 透传 retention_checkpoint_station 与 retention_checkpoint_pass_at
     → LEFT JOIN ods.vehicle_body_types / vehicle_color_codes / vehicle_platforms
       做代码→名称翻译
 ```
@@ -123,7 +134,7 @@ vehicle_union (tracking ∪ defect)
 
 | 物化视图 | 数据来源 |
 |----------|----------|
-| `mart.mart_vehicle_quality_360` | `fct.fct_vehicle_defect_detection` d<br>LEFT JOIN `fct.fct_vehicle_position_current` p<br>LEFT JOIN `ods.carrier_types`<br>LEFT JOIN `ods.vehicle_body_types`<br>LEFT JOIN `ods.vehicle_color_codes`<br>LEFT JOIN `ods.vehicle_platforms` |
+| `mart.mart_vehicle_quality_360` | `fct.fct_vehicle_defect_enriched` e (包含缺陷与车身履历/滞留检查点)<br>LEFT JOIN `fct.fct_vehicle_position_current` p<br>LEFT JOIN `ods.carrier_types`<br>LEFT JOIN `ods.vehicle_body_types`<br>LEFT JOIN `ods.vehicle_color_codes`<br>LEFT JOIN `ods.vehicle_platforms` |
 | `mart.mart_abnormal_vehicle_current` | `fct.fct_abnormal_vehicle_current` a<br>LEFT JOIN `dim.dim_process_area`<br>LEFT JOIN `ods.carrier_types`<br>LEFT JOIN `ods.vehicle_body_types`<br>LEFT JOIN `ods.vehicle_color_codes`<br>LEFT JOIN `ods.vehicle_platforms` |
 | `mart.mart_position_current_overview` | `fct.fct_position_current_all` p<br>LEFT JOIN `fct.fct_abnormal_vehicle_current` a<br>LEFT JOIN `dim.dim_process_area`<br>LEFT JOIN `ods.carrier_types`<br>LEFT JOIN `ods.vehicle_body_types`<br>LEFT JOIN `ods.vehicle_color_codes`<br>LEFT JOIN `ods.vehicle_platforms` |
 

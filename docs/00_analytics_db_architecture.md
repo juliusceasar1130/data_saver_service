@@ -1,8 +1,15 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-07-04 Asia/Shanghai
+修改时间：2026-07-23 Asia/Shanghai
 
 主要修改内容：
+- **扩展车身滞留监控关键节点字段**：为 `dim.carbody_registry` 和 `dim.dim_vehicle_profile` 画像表扩展了 `retention_checkpoint_station`（滞留监控关键读写站编码）和 `retention_checkpoint_pass_at`（滞留监控关键读写站过站时间）2 个字段，用于记录车辆在特定关键节点 (`1J440RB`, `K3IS140`, `K2IS075`, `K1IS135`) 的最新过站履历。
+- **更新刷新存储过程**：更新了 `meta.refresh_carbody_dim()` 存储过程，在增量提取时增加 `last_checkpoint` 聚合逻辑与 UPSERT 幂等更新；更新了 `meta.refresh_analytics_all()` 存储过程，支持将滞留检查点字段透传写入主画像表 `dim.dim_vehicle_profile`。
+- **补全 DDL 与索引**：补齐了升级用 `ALTER TABLE` 语句与索引 `idx_dim_carbody_retention_pass` / `idx_dim_vehicle_profile_retention_pass`。
+
+历史修改时间：2026-07-04 Asia/Shanghai
+
+历史修改内容：
 - **画像表与质量集市升级**：为 `dim.dim_vehicle_profile` 画像表扩展了 9 个车身历史及状态字段；将 `mart.mart_vehicle_quality_360` 物化视图的驱动表更改为 `fct.fct_vehicle_defect_enriched`，从而全面支持展示在产未检车辆与漏检车辆；同步升级一键刷新存储过程 `meta.refresh_analytics_all()` 支持“滚床在产 + 缺陷系统 + 车身历史”三源合并。
 - **删除过时 ALTER 语句**：删除了第 6.4 节中已过时的旧版 `dim_vehicle_profile` 位置快照字段补全 `ALTER TABLE` 语句，保持文档整洁及部署的准确性。
 - **校验基线对齐更新**：更正了第 2 节中因升级导致的过时数据量基线，更新了 `dim_vehicle_profile` 中已整合的全部实时、车身过站以及缺陷新字段列表。
@@ -583,6 +590,8 @@ CREATE TABLE IF NOT EXISTS dim.dim_vehicle_profile (
   carbody_station_pass_count INTEGER,                -- 累计过站读写站总频次（频次过高反映内循环返修）
   carbody_reserved_1 VARCHAR(1),                     -- 车身 MDS 备用字段 1
   carbody_reserved_2 VARCHAR(1),                     -- 车身 MDS 备用字段 2
+  retention_checkpoint_station VARCHAR(64),          -- 滞留监控关键读写站编码 (取自指定列表中的最新节点)
+  retention_checkpoint_pass_at TIMESTAMPTZ,          -- 滞留监控关键读写站过站时间
   
   current_position_id BIGINT,                        -- 当前最新占位位置 ID
   current_carrier_id VARCHAR(50),                    -- 当前最新载体卡号
@@ -614,6 +623,9 @@ ON dim.dim_vehicle_profile(current_carrier_id);
 
 CREATE INDEX IF NOT EXISTS idx_dim_vehicle_profile_current_process_area
 ON dim.dim_vehicle_profile(current_process_area);
+
+CREATE INDEX IF NOT EXISTS idx_dim_vehicle_profile_retention_pass
+ON dim.dim_vehicle_profile(retention_checkpoint_pass_at);
 ```
 
 ### 6.5 创建 ods.carbody_history
@@ -668,6 +680,8 @@ CREATE TABLE IF NOT EXISTS dim.carbody_registry (
     rework_flag        VARCHAR(1),              -- MDS_DATA 139
     reserved_1         VARCHAR(1),              -- MDS_DATA 138
     reserved_2         VARCHAR(1),              -- MDS_DATA 140
+    retention_checkpoint_station VARCHAR(64),   -- 滞留监控关键读写站编码
+    retention_checkpoint_pass_at TIMESTAMPTZ,   -- 滞留监控关键读写站过站时间
     etl_loaded_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -676,9 +690,10 @@ CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_seen   ON dim.carbody_regist
 CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_seen    ON dim.carbody_registry(last_seen_at);
 CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_station ON dim.carbody_registry(first_rw_station);
 CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_station  ON dim.carbody_registry(last_rw_station);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_retention_pass   ON dim.carbody_registry(retention_checkpoint_pass_at);
 ```
 
-如果表已存在（老版本升级），通过 ALTER TABLE 补齐 7 个 MDS 字段：
+如果表已存在（老版本升级），通过 ALTER TABLE 补齐 MDS 字段与滞留监控关键节点字段：
 
 ```sql
 ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS body_type       VARCHAR(5);
@@ -688,6 +703,11 @@ ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS black_roof_flag VARCHA
 ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS rework_flag     VARCHAR(1);
 ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS reserved_1      VARCHAR(1);
 ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS reserved_2      VARCHAR(1);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS retention_checkpoint_station VARCHAR(64);
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS retention_checkpoint_pass_at TIMESTAMPTZ;
+
+ALTER TABLE dim.dim_vehicle_profile ADD COLUMN IF NOT EXISTS retention_checkpoint_station VARCHAR(64);
+ALTER TABLE dim.dim_vehicle_profile ADD COLUMN IF NOT EXISTS retention_checkpoint_pass_at TIMESTAMPTZ;
 ```
 
 ### 6.7 聚合存储过程 meta.refresh_carbody_dim
@@ -747,13 +767,23 @@ BEGIN
       FROM new_records
       WHERE length("MDS_DATA") >= 140
       ORDER BY "BODY_ID", "DATE_EVT" DESC
+  ),
+  last_checkpoint AS (
+      SELECT DISTINCT ON ("BODY_ID")
+          "BODY_ID",
+          "RW_STATION_ID" AS retention_checkpoint_station,
+          "DATE_EVT"       AS retention_checkpoint_pass_at
+      FROM new_records
+      WHERE "RW_STATION_ID" IN ('1J440RB', 'K3IS140', 'K2IS075', 'K1IS135')
+      ORDER BY "BODY_ID", "DATE_EVT" DESC
   )
   INSERT INTO dim.carbody_registry (
       vehicle_id, first_seen_at, last_seen_at,
       first_rw_station, last_rw_station,
       first_body_type, last_body_type, station_pass_count,
       body_type, platform_code, color_code,
-      black_roof_flag, rework_flag, reserved_1, reserved_2
+      black_roof_flag, rework_flag, reserved_1, reserved_2,
+      retention_checkpoint_station, retention_checkpoint_pass_at
   )
   SELECT
       va.vehicle_id,
@@ -770,9 +800,12 @@ BEGIN
       lm.mds_black_roof_flag,
       lm.mds_rework_flag,
       lm.mds_reserved_1,
-      lm.mds_reserved_2
+      lm.mds_reserved_2,
+      lc.retention_checkpoint_station,
+      lc.retention_checkpoint_pass_at
   FROM vehicle_agg va
   LEFT JOIN last_mds lm ON lm."BODY_ID" = va.vehicle_id
+  LEFT JOIN last_checkpoint lc ON lc."BODY_ID" = va.vehicle_id
   ON CONFLICT (vehicle_id) DO UPDATE SET
       last_seen_at       = EXCLUDED.last_seen_at,
       last_rw_station    = EXCLUDED.last_rw_station,
@@ -785,7 +818,9 @@ BEGIN
       black_roof_flag    = EXCLUDED.black_roof_flag,
       rework_flag        = EXCLUDED.rework_flag,
       reserved_1         = EXCLUDED.reserved_1,
-      reserved_2         = EXCLUDED.reserved_2;
+      reserved_2         = EXCLUDED.reserved_2,
+      retention_checkpoint_station = COALESCE(EXCLUDED.retention_checkpoint_station, dim.carbody_registry.retention_checkpoint_station),
+      retention_checkpoint_pass_at = COALESCE(EXCLUDED.retention_checkpoint_pass_at, dim.carbody_registry.retention_checkpoint_pass_at);
 
   GET DIAGNOSTICS v_new_count = ROW_COUNT;
 
@@ -972,6 +1007,8 @@ SELECT
   cvp.first_body_type,
   cvp.last_body_type,
   cvp.station_pass_count,
+  cvp.retention_checkpoint_station,
+  cvp.retention_checkpoint_pass_at,
 
   -- ===== 缺陷检测事件（可为 NULL）=====
   d.history_id,
@@ -1098,6 +1135,8 @@ SELECT
   e.first_rw_station AS carbody_first_rw_station,    -- 首次过站读写站
   e.last_rw_station AS carbody_last_rw_station,      -- 末次过站读写站
   e.station_pass_count AS carbody_station_pass_count,-- 累计过站读写站总频次
+  e.retention_checkpoint_station AS carbody_retention_checkpoint_station,  -- 滞留监控关键读写站编码
+  e.retention_checkpoint_pass_at AS carbody_retention_checkpoint_pass_at,  -- 滞留监控关键读写站过站时间
 
   -- ===== 实时位置追踪（源自滚床事实，已下线则为 NULL） =====
   p.process_area,
@@ -1335,9 +1374,9 @@ BEGIN
     is_rework, has_defect_record, black_roof_raw_tracking, black_roof_raw_defect,
     tracking_last_seen_at, defect_last_seen_at, carbody_first_seen_at, carbody_last_seen_at,
     carbody_first_rw_station, carbody_last_rw_station, carbody_station_pass_count,
-    carbody_reserved_1, carbody_reserved_2, current_position_id, current_carrier_id,
-    current_carrier_type, current_process_area, current_full_rb_code,
-    current_position_updated_at, etl_loaded_at
+    carbody_reserved_1, carbody_reserved_2, retention_checkpoint_station, retention_checkpoint_pass_at,
+    current_position_id, current_carrier_id, current_carrier_type, current_process_area,
+    current_full_rb_code, current_position_updated_at, etl_loaded_at
   )
   WITH latest_tracking AS (
     -- 获取滚床上的在产车辆当前最新位置信息
@@ -1365,7 +1404,7 @@ BEGIN
     SELECT
       vehicle_id, body_type, platform_code, color_code, black_roof_flag, rework_flag,
       first_seen_at, last_seen_at, first_rw_station, last_rw_station, station_pass_count,
-      reserved_1, reserved_2
+      reserved_1, reserved_2, retention_checkpoint_station, retention_checkpoint_pass_at
     FROM dim.carbody_registry
   ),
   vehicle_union AS (
@@ -1420,6 +1459,8 @@ BEGIN
     c.station_pass_count AS carbody_station_pass_count,
     c.reserved_1 AS carbody_reserved_1,
     c.reserved_2 AS carbody_reserved_2,
+    c.retention_checkpoint_station,
+    c.retention_checkpoint_pass_at,
     
     -- 当前最新滚床位置追踪字段（若下线则为 NULL）
     t.position_id AS current_position_id,

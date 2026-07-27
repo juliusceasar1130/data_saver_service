@@ -170,6 +170,8 @@ COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_last_rw_station IS '末次过�
 COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_station_pass_count IS '在工艺段内累计过站读写站总频次';
 COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_reserved_1 IS '车身 MDS 备用字段 1';
 COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_reserved_2 IS '车身 MDS 备用字段 2';
+COMMENT ON COLUMN dim.dim_vehicle_profile.retention_checkpoint_station IS '滞留监控关键读写站编码 (取自 1J440RB, K3IS140, K2IS075, K1IS135 中最新经过的节点)';
+COMMENT ON COLUMN dim.dim_vehicle_profile.retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
 
 
 -- dim.carbody_registry
@@ -189,6 +191,8 @@ COMMENT ON COLUMN dim.carbody_registry.black_roof_flag IS '电报 MDS 数据中�
 COMMENT ON COLUMN dim.carbody_registry.rework_flag IS '电报 MDS 数据中截取的返修特殊配置位 (139位)';
 COMMENT ON COLUMN dim.carbody_registry.reserved_1 IS '电报 MDS 数据预留特殊配置位 1 (138位)';
 COMMENT ON COLUMN dim.carbody_registry.reserved_2 IS '电报 MDS 数据预留特殊配置位 2 (140位)';
+COMMENT ON COLUMN dim.carbody_registry.retention_checkpoint_station IS '滞留监控关键读写站编码 (取自 1J440RB, K3IS140, K2IS075, K1IS135 中最新经过的节点)';
+COMMENT ON COLUMN dim.carbody_registry.retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
 COMMENT ON COLUMN dim.carbody_registry.etl_loaded_at IS 'ETL装载时间';
 
 
@@ -290,6 +294,8 @@ COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.station_4_defect_count IS '前
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.station_5_defect_count IS '尾门|后盖检出的缺陷数量';
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.total_defect_count IS '总缺陷数';
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.has_defect_record IS '是否拥有缺陷检测记录标志';
+COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.retention_checkpoint_station IS '滞留监控关键读写站编码 (取自 1J440RB, K3IS140, K2IS075, K1IS135 中最新经过的节点)';
+COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
 
 -- fct.fct_abnormal_vehicle_current
 COMMENT ON MATERIALIZED VIEW fct.fct_abnormal_vehicle_current IS '物化视图 - 现场当前异常占位及载具事实表';
@@ -351,6 +357,8 @@ COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_last_seen_at IS '末次�
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_first_rw_station IS '首次过站读写站编码';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_last_rw_station IS '末次过站读写站编码';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_station_pass_count IS '在工艺段内累计过站读写站总频次';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_retention_checkpoint_station IS '滞留监控关键读写站编码';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.process_area IS '车辆当前所在的工艺区域';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.plc IS '车辆当前所处位置PLC标识名称';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.rb_index IS '车辆当前所处不完整滚床编号';

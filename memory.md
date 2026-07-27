@@ -56,6 +56,15 @@
 
 ## 变更记录
 
+### 2026-07-27 21:20 Asia/Shanghai
+
+主要修改内容：
+
+- 制定项目车数据集成与 `analytics_db` 匹配技术规格书 [project_vehicle_integration_spec.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/project_car/project_vehicle_integration_spec.md)。
+- 约定 FIS 项目车采集服务采用独立源数据库 `project_vehicle_db` 及数据表 `project_vehicle_orders`，实现与数仓解耦。
+- 约定 `analytics_db` 维度表（`dim.carbody_registry` 与 `dim.dim_vehicle_profile`）仅扩充极简核心字段 `project_vehicle_no`。
+- 约定数据匹配采用 14位 `vehicle_id` 包含 `pin_no` 条件：`POSITION(pvo.pin_no IN cr.vehicle_id) > 0`。
+
 ### 2026-07-03 20:20 Asia/Shanghai
 
 主要修改内容：

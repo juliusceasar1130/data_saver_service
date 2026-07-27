@@ -1,5 +1,35 @@
 # Changelog
 
+## 2026-07-27 21:20 Asia/Shanghai
+
+简要概括：完成项目车数据集成与 `analytics_db` 匹配调度的技术规格书 (`project_vehicle_integration_spec.md`) 编制，明确 FIS 独立业务库 `project_vehicle_db` 与数仓 `analytics_db` 的解耦与匹配关系，确定 `dim.carbody_registry` 和 `dim.dim_vehicle_profile` 维表的极简字段扩充设计。
+
+主要修改内容：
+
+- **新建 [docs/project_car/project_vehicle_integration_spec.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/project_car/project_vehicle_integration_spec.md)**
+  - 制定 FIS Word 数据采集服务与 `analytics_db` 数仓解耦集成的架构规范。
+  - 规范 FIS 业务源数据库 `project_vehicle_db` 及表 `project_vehicle_orders` 的建表 DDL。
+  - 确定 `analytics_db` 维度表（`dim.carbody_registry` 和 `dim.dim_vehicle_profile`）仅扩充极简字段 `project_vehicle_no` 及其索引 DDL。
+  - 规定基于 14 位 `vehicle_id` 包含 `pin_no` 匹配更新项目车编号的 SQL 策略及存储过程刷新机制。
+
+## 2026-07-23 16:35 Asia/Shanghai
+
+简要概括：扩展车身过站维度表 `dim.carbody_registry` 与车辆主画像表 `dim.dim_vehicle_profile`，并向下透传至 `fct.fct_vehicle_defect_enriched` 与 `mart.mart_vehicle_quality_360` 物化视图，增加车身滞留监控关键节点字段（`retention_checkpoint_station` 和 `retention_checkpoint_pass_at`）及配套刷新逻辑。
+
+主要修改内容：
+
+- **更新 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md)**
+  - 扩展 `dim.carbody_registry` DDL 与 `ALTER TABLE` 升级脚本，增加 `retention_checkpoint_station`（关键读写站编码）和 `retention_checkpoint_pass_at`（过站时间）2 个字段及索引 `idx_dim_carbody_retention_pass`。
+  - 扩展 `dim.dim_vehicle_profile` DDL 与升级脚本，同步增加上述 2 个字段及索引 `idx_dim_vehicle_profile_retention_pass`。
+  - 更新 `fct.fct_vehicle_defect_enriched` 物化视图定义，从 `dim.carbody_registry` 中抽取 `retention_checkpoint_*` 2 个字段。
+  - 更新 `mart.mart_vehicle_quality_360` 物化视图定义，从 `fct.fct_vehicle_defect_enriched` 中透传 `carbody_retention_checkpoint_*` 2 个字段。
+  - 更新 `meta.refresh_carbody_dim()` 存储过程，在增量过站处理中增加针对关键节点列表 (`'1J440RB'`, `'K3IS140'`, `'K2IS075'`, `'K1IS135'`) 的最新记录提取逻辑与 UPSERT 幂等更新。
+  - 更新 `meta.refresh_analytics_all()` 存储过程，支持将滞留检查点字段透传写入主画像表 `dim.dim_vehicle_profile`。
+- **更新 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)**
+  - 补全 `dim.carbody_registry`、`dim.dim_vehicle_profile`、`fct.fct_vehicle_defect_enriched` 和 `mart.mart_vehicle_quality_360` 新增列的 `COMMENT ON COLUMN` 数据库注释注入脚本。
+- **更新 [analytics_db_data_lineage.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/analytics_db_data_lineage.md)**
+  - 追加最新的数据血缘图谱说明，完善 `latest_carbody` CTE 包含滞留检查点字段的三源合并架构拓扑及下游视图透传说明。
+
 ## 2026-07-09 16:12 Asia/Shanghai
 
 简要概括：将主设备参数配置文件 `deviceConfig.json` 更新为包含全部 PLC 点位（共 2746 个设备）的最终合并版本，优化车型映射配置增加 5X 车型，更新测试种子数据，并修正 MCP PostgreSQL 连接配置。
