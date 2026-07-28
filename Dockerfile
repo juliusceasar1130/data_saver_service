@@ -1,5 +1,5 @@
-# 使用轻量级 Python 10 镜像 (性能更好且可能利用本地缓存)
-FROM python:3.10-slim
+# 使用轻量级 Python 11 镜像 (支持 pandas 3.0+ 依赖)
+FROM python:3.11-slim
 
 # 设置工作目录
 WORKDIR /app

@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-27 21:56 Asia/Shanghai
+
+简要概括：将项目 Docker 基础镜像从 `python:3.10-slim` 升级为 `python:3.11-slim`，解决安装依赖时依赖库（如 `pandas 3.0+` 等要求 Python >= 3.11）导致的容器构建失败问题。
+
+主要修改内容：
+
+- **更新 [Dockerfile](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/Dockerfile)**：升级基础镜像为 `python:3.11-slim`。
+- **更新 [Dockerfile.scheduler](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/Dockerfile.scheduler)**：升级基础镜像为 `python:3.11-slim`。
+- **更新 [Dockerfile.defect-refresh](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/Dockerfile.defect-refresh)**：升级基础镜像为 `python:3.11-slim`。
+
+
 ## 2026-07-27 21:20 Asia/Shanghai
 
 简要概括：完成项目车数据集成与 `analytics_db` 匹配调度的技术规格书 (`project_vehicle_integration_spec.md`) 编制，明确 FIS 独立业务库 `project_vehicle_db` 与数仓 `analytics_db` 的解耦与匹配关系，确定 `dim.carbody_registry` 和 `dim.dim_vehicle_profile` 维表的极简字段扩充设计。

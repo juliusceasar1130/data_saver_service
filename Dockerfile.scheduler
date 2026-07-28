@@ -1,7 +1,7 @@
 # Dockerfile for Analytics DB Refresh Scheduler
 # Created: 2026-05-17 21:00 Asia/Shanghai
 
-FROM python:3.10-slim
+FROM python:3.11-slim
 
 # Set timezone
 ENV TZ=Asia/Shanghai
