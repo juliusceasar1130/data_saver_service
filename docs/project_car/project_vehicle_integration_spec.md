@@ -1,12 +1,11 @@
 # 项目车数据集成与 Analytics DB 匹配技术规格书 (Technical Specification)
 
-修改时间：2026-07-27 Asia/Shanghai
+修改时间：2026-07-28 16:30 Asia/Shanghai
 
 主要修改内容：
-- 制定 FIS 项目车解析服务与 `analytics_db` 数仓的解耦集成规范
-- 确定独立的 FIS 业务源数据库 `project_vehicle_db` 及表 `project_vehicle_orders`
-- 确定 `analytics_db` 维表（`dim.carbody_registry` 和 `dim.dim_vehicle_profile`）仅扩展极简字段 `project_vehicle_no`
-- 制定基于 14 位 `vehicle_id` 包含 `pin_no` 的数据匹配与刷新逻辑 SQL
+- 取消旧版模糊降级兼容，严格采用 13 位复合 PIN (`LEFT(cr.vehicle_id, 13) = pvo.composite_pin_no`) 进行项目车编号精确匹配。
+- 补齐 ODS 贴源表 `ods.ods_fis_project_vehicle_orders` 的主键约束 (`PRIMARY KEY (project_vehicle_no)`) 规范与存储过程 UPSERT 同步逻辑。
+- 对齐存储过程 `meta.refresh_carbody_dim()` 与 `meta.refresh_analytics_all()` 的最新刷新流程。
 
 ---
 
@@ -40,33 +39,40 @@ CREATE TABLE IF NOT EXISTS project_vehicle_orders (
     color_interior     VARCHAR(64),                  -- 外色内饰代码
     kom_no             VARCHAR(32),                  -- KOM 订货号
     knr_no             VARCHAR(32),                  -- KNR 生产流水号
-    pin_no             VARCHAR(32),                  -- PIN 识别码 (匹配桥梁键)
+    pin_no             VARCHAR(32),                  -- PIN 识别码 (如 1234567)
+    pin_prefix         VARCHAR(16),                  -- PIN 前缀 (如 782026)
+    composite_pin_no   VARCHAR(64),                  -- 合成 PIN 识别码 (13位 = 前缀 + pin_no)
     created_at         TIMESTAMPTZ DEFAULT NOW(),    -- 首次入库时间
     updated_at         TIMESTAMPTZ DEFAULT NOW()     -- 最后更新时间
 );
 
 -- 索引
-CREATE INDEX IF NOT EXISTS idx_pvo_file_name ON project_vehicle_orders(file_name);
-CREATE INDEX IF NOT EXISTS idx_pvo_pin_no    ON project_vehicle_orders(pin_no);
-CREATE INDEX IF NOT EXISTS idx_pvo_knr_no    ON project_vehicle_orders(knr_no);
+CREATE INDEX IF NOT EXISTS idx_pvo_file_name        ON project_vehicle_orders(file_name);
+CREATE INDEX IF NOT EXISTS idx_pvo_pin_no           ON project_vehicle_orders(pin_no);
+CREATE INDEX IF NOT EXISTS idx_pvo_knr_no           ON project_vehicle_orders(knr_no);
+CREATE INDEX IF NOT EXISTS idx_pvo_composite_pin_no ON project_vehicle_orders(composite_pin_no);
 ```
 
 ---
 
-### 2.2 `analytics_db` 维表极简扩展
-
-在 `analytics_db` 数据库中扩展 `project_vehicle_no` 字段：
+### 2.2 `analytics_db` ODS 贴源表与维表极简扩展
 
 ```sql
--- 1. 物理车身首末过站聚合维表
+-- 1. 数仓 ODS 物理贴源表与主键声明
+CREATE TABLE IF NOT EXISTS ods.ods_fis_project_vehicle_orders (
+    LIKE src_project_vehicle.project_vehicle_orders INCLUDING ALL
+);
+ALTER TABLE ods.ods_fis_project_vehicle_orders ADD PRIMARY KEY (project_vehicle_no);
+
+-- 2. 物理车身首末过站聚合维表
 ALTER TABLE dim.carbody_registry 
   ADD COLUMN IF NOT EXISTS project_vehicle_no VARCHAR(64);
 
--- 2. 全厂 360 车辆主画像表
+-- 3. 全厂 360 车辆主画像表
 ALTER TABLE dim.dim_vehicle_profile 
   ADD COLUMN IF NOT EXISTS project_vehicle_no VARCHAR(64);
 
--- 3. 创建索引
+-- 4. 创建索引
 CREATE INDEX IF NOT EXISTS idx_dim_carbody_pvn ON dim.carbody_registry(project_vehicle_no);
 CREATE INDEX IF NOT EXISTS idx_dim_vp_pvn      ON dim.dim_vehicle_profile(project_vehicle_no);
 ```
@@ -76,21 +82,21 @@ CREATE INDEX IF NOT EXISTS idx_dim_vp_pvn      ON dim.dim_vehicle_profile(projec
 ## 3. 数据匹配与刷新逻辑 (Data Matching & Refresh ETL)
 
 ### 3.1 匹配关联规则
-- **匹配桥梁**：物理车身 14 位车身号 `dim.carbody_registry.vehicle_id` 包含 FIS 项目车明细中的 `project_vehicle_orders.pin_no`。
-- **匹配条件 SQL**：`POSITION(pvo.pin_no IN cr.vehicle_id) > 0`
+- **匹配桥梁**：物理车身 14 位车身号 `dim.carbody_registry.vehicle_id` 前 13 位与 FIS 项目车明细中的 `ods.ods_fis_project_vehicle_orders.composite_pin_no`（13 位合成 PIN）精确相等。
+- **匹配条件 SQL**：`LEFT(cr.vehicle_id, 13) = pvo.composite_pin_no`
 
-### 3.2 刷新存储过程适配 (`meta.refresh_carbody_dim`)
+### 3.2 刷新存储过程匹配逻辑 (`meta.refresh_carbody_dim`)
 
-在 `analytics_db` 的 `meta.refresh_carbody_dim()` 存储过程中，增加如下匹配更新逻辑：
+在 `analytics_db` 的 `meta.refresh_carbody_dim()` 存储过程中，使用纯粹基于 13 位复合 PIN 的精确关联匹配逻辑（取消模糊匹配）：
 
 ```sql
--- 匹配更新项目车编号
+-- 匹配更新项目车编号 (基于 13 位 composite_pin_no 精确匹配)
 UPDATE dim.carbody_registry cr
 SET project_vehicle_no = pvo.project_vehicle_no
 FROM ods.ods_fis_project_vehicle_orders pvo
-WHERE pvo.pin_no IS NOT NULL 
-  AND pvo.pin_no <> ''
-  AND POSITION(pvo.pin_no IN cr.vehicle_id) > 0
+WHERE pvo.composite_pin_no IS NOT NULL 
+  AND pvo.composite_pin_no <> '' 
+  AND LEFT(cr.vehicle_id, 13) = pvo.composite_pin_no
   AND (cr.project_vehicle_no IS NULL OR cr.project_vehicle_no <> pvo.project_vehicle_no);
 ```
 
@@ -104,13 +110,16 @@ WHERE pvo.pin_no IS NOT NULL
 [Word 生产通知单]
        │ (python-docx / FIS ETL)
        ▼
-[project_vehicle_db.project_vehicle_orders]  (业务源库)
-       │ (postgres_fdw / ETL 同步)
+[project_vehicle_db.project_vehicle_orders]  (业务源库，含 composite_pin_no)
+       │ (postgres_fdw 挂载至 src_project_vehicle 模式)
        ▼
-[analytics_db.ods.ods_fis_project_vehicle_orders]  (数仓 ODS 贴源层)
-       │ (meta.refresh_carbody_dim 匹配 pin_no)
+[analytics_db.src_project_vehicle.project_vehicle_orders] (FDW 外表视图)
+       │ (UPSERT 同步落盘)
        ▼
-[analytics_db.dim.carbody_registry] (包含 project_vehicle_no)
+[analytics_db.ods.ods_fis_project_vehicle_orders]  (数仓 ODS 本地贴源表)
+       │ (meta.refresh_carbody_dim 比对 vehicle_id 前13位)
+       ▼
+[analytics_db.dim.carbody_registry] (打上 project_vehicle_no)
        │ (meta.refresh_analytics_all 组装)
        ▼
 [analytics_db.dim.dim_vehicle_profile] (全厂 360 画像表)

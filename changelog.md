@@ -1,5 +1,102 @@
 # Changelog
 
+## 2026-07-28 16:42 Asia/Shanghai
+
+简要概括：修正 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql) 与 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md) 中 `project_vehicle_no` 字段的业务描述措辞，统一更正为“**外键关联项目车生产订单明细**”。
+
+主要修改内容：
+
+- **更正文档与脚本措辞**：
+  - [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)：将 `dim.dim_vehicle_profile` 和 `dim.carbody_registry` 的 `project_vehicle_no` 字段注释更正为 `'项目车编号 (外键关联项目车生产订单明细)'`。
+  - [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md)：同步更新 DDL 代码块注释为 `-- 项目车编号 (关联项目车生产订单明细)`。
+- **数据库系统字典同步**：在本地 `analytics_db` 数据库中重跑注释脚本，将最新业务描述精准写入数据库字典。
+
+## 2026-07-28 16:36 Asia/Shanghai
+
+简要概括：完成数据库中文业务注释注入脚本 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql) 的全量更新与数据库数据字典同步注入。
+
+主要修改内容：
+
+- **更新注释脚本 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql)**：
+  - 新增贴源表 `ods.ods_fis_project_vehicle_orders` 表及所有字段（`project_vehicle_no`, `file_name`, `project_stage`, `block_no`, `code_6bit`, `color_interior`, `kom_no`, `knr_no`, `pin_no`, `pin_prefix`, `composite_pin_no`, `created_at`, `updated_at`）的中文注释。
+  - 补充 `dim.carbody_registry` 和 `dim.dim_vehicle_profile` 表中 `project_vehicle_no` 字段的中文注释。
+  - 补充物化视图 `fct.fct_vehicle_defect_enriched` 与 `mart.mart_vehicle_quality_360` 中透传字段 `project_vehicle_no` 的中文注释。
+- **数据字典实时注入**：在 `analytics_db` 本地数据库中运行 SQL 脚本，将上述所有中文业务注释写入 PostgreSQL 系统字典（`pg_description`）。
+
+## 2026-07-28 16:31 Asia/Shanghai
+
+简要概括：完成技术规格书 [project_vehicle_integration_spec.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/project_car/project_vehicle_integration_spec.md) 与主架构文档 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md) 的全量无缝对齐，在数据库中添加 `ods.ods_fis_project_vehicle_orders` 主键约束，并全面通过 `CALL meta.refresh_analytics_all()` 的全库刷新实测。
+
+主要修改内容：
+
+- **技术规格书对齐**：
+  - 更新 [project_vehicle_integration_spec.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/project_car/project_vehicle_integration_spec.md)，移除旧版模糊降级兼容，严格规范 13 位复合 PIN (`LEFT(cr.vehicle_id, 13) = pvo.composite_pin_no`) 精确匹配规则。
+  - 在规格书中同步补充 `ods.ods_fis_project_vehicle_orders` 的主键约束声明 (`PRIMARY KEY (project_vehicle_no)`) 与最新的存储过程定义。
+- **数据库主键补全与实测验证**：
+  - 在 `analytics_db` 数据库中执行 `ALTER TABLE ods.ods_fis_project_vehicle_orders ADD PRIMARY KEY (project_vehicle_no);` 补充主键约束。
+  - 成功执行 `CALL meta.refresh_carbody_dim();` 与 `CALL meta.refresh_analytics_all();`，全库增量及全量刷新流均以 100% 成功率通过测试。
+
+## 2026-07-28 16:04 Asia/Shanghai
+
+简要概括：完成数据库存储过程 `meta.refresh_carbody_dim()` 与 `meta.refresh_analytics_all()` 的逻辑更新与文档 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md) 全量对齐，实现在线数据的自动 FDW 归集贴源、13 位复合 PIN 匹配更新及一键自动化刷新全流程。
+
+主要修改内容：
+
+- **更新存储过程 `meta.refresh_carbody_dim()`**：
+  - 增加从 FDW 外表 `src_project_vehicle.project_vehicle_orders` 到物理表 `ods.ods_fis_project_vehicle_orders` 的 UPSERT 增量落盘同步（Step 0）。
+  - 增加基于 13 位复合 PIN (`composite_pin_no`) 的精确关联逻辑：`LEFT(cr.vehicle_id, 13) = pvo.composite_pin_no` 关联更新 `dim.carbody_registry.project_vehicle_no` 关联字段。
+- **更新存储过程 `meta.refresh_analytics_all()`**：
+  - 在全库清空/重载流中加入 `ods.ods_fis_project_vehicle_orders` 数据的物理清洗落盘与 `CALL meta.refresh_carbody_dim()` 的显式调用。
+  - 在 `dim.dim_vehicle_profile` 联合从属装配逻辑中集成 `project_vehicle_no` 属性透传。
+  - 在物化视图一键刷新逻辑中包含 `REFRESH MATERIALIZED VIEW mart.mart_vehicle_quality_360;`。
+- **同步更新架构文档与数据库**：数据库中存储过程已实时重新编译生效，架构文档第 6.7 节与第 7 节 DDL 均已同步完成。
+
+## 2026-07-28 15:47 Asia/Shanghai
+
+简要概括：完成 `analytics_db` 架构文档 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md) 第 6.8 节中两大核心物化视图 `fct.fct_vehicle_defect_enriched` 与 `mart.mart_vehicle_quality_360` 的 DDL 更新，成功加入 `project_vehicle_no` 字段透传定义。
+
+主要修改内容：
+
+- **更新 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md)**：
+  - 在 `fct.fct_vehicle_defect_enriched` 物化视图的 `CREATE` 语句中加入 `cvp.project_vehicle_no` 字段。
+  - 在 `mart.mart_vehicle_quality_360` 物化视图的 `CREATE` 语句中加入 `e.project_vehicle_no` 字段透传。
+
+## 2026-07-28 15:34 Asia/Shanghai
+
+简要概括：完成 `analytics_db` 数据库中 `dim.carbody_registry` 与 `dim.dim_vehicle_profile` 维表 `project_vehicle_no` 关联主键字段的实际添加与索引建立，并在 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md) 架构文档中同时补齐了全新建表 (CREATE TABLE) 与已有环境升级 (ALTER TABLE) 两处 DDL 规范。
+
+主要修改内容：
+
+- **数据库 DDL 升级与验证（`analytics_db`）**：
+  - 为 `dim.carbody_registry` 和 `dim.dim_vehicle_profile` 执行 `ALTER TABLE` 成功添加 `project_vehicle_no VARCHAR(64)` 字段。
+  - 创建索引 `idx_dim_carbody_pvn` 及 `idx_dim_vp_pvn`，经元数据校验已全量生效。
+- **更新 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md)**：
+  - 在第 6.4 节 (`dim.dim_vehicle_profile`) 与 6.6 节 (`dim.carbody_registry`) 全新建表 DDL 中包含 `project_vehicle_no` 及其索引。
+  - 在第 6.6 节老版本升级 `ALTER TABLE` 代码块中同步补齐该字段与索引。
+
+## 2026-07-28 15:01 Asia/Shanghai
+
+简要概括：按 `analytics_db` 四层分层落地标准对齐架构文档，完成 FIS 项目车源库 `project_vehicle_db` 的 FDW 挂载（`project_vehicle_srv`）、外部视图模式（`src_project_vehicle`）及本地物理 ODS 贴源表（`ods.ods_fis_project_vehicle_orders`）结构与索引规范接入。
+
+主要修改内容：
+
+- **更新 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md)**：
+  - 增加 `project_vehicle_db` 业务源库的架构规范与范围声明。
+  - 在第 5.3、5.5、5.6 节补充创建模式 `src_project_vehicle`、建立 `project_vehicle_srv` FDW 服务连接与用户映射、导入 `project_vehicle_orders` 外部表 DDL。
+  - 在第 6.1、6.2 节补充初始化物理贴源表 `ods.ods_fis_project_vehicle_orders` 及其主键与 `composite_pin_no` 专属 B-Tree 索引。
+- **更新 [project_vehicle_integration_spec.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/project_car/project_vehicle_integration_spec.md)**：
+  - 补充 `pin_prefix` 与 `composite_pin_no`（13位合成 PIN）在源库与数仓 ODS 表中的设计规范，同步基于 `vehicle_id` 前 13 位的前缀相等匹配策略与链路图。
+
+## 2026-07-28 11:10 Asia/Shanghai
+
+简要概括：对本地 PostgreSQL `project_vehicle_db` 数据库的 `project_vehicle_orders` 数据表完成 schema 校验与优化，成功将时间戳字段提升为带时区的 `TIMESTAMPTZ` 类型，并补全 `pin_no` 和 `knr_no` 高频检索索引。
+
+主要修改内容：
+
+- **数据库 Schema 调优（`project_vehicle_db`）**：
+  - 将 `created_at` 与 `updated_at` 字段由 `timestamp without time zone` 转换为带时区的 `TIMESTAMPTZ` 类型，规避跨库数据同步（FDW/ETL）时的时区偏差。
+  - 创建 `idx_pvo_pin_no`（`pin_no` 字段）与 `idx_pvo_knr_no`（`knr_no` 字段）索引，优化数仓匹配刷新查询性能。
+
 ## 2026-07-27 21:56 Asia/Shanghai
 
 简要概括：将项目 Docker 基础镜像从 `python:3.10-slim` 升级为 `python:3.11-slim`，解决安装依赖时依赖库（如 `pandas 3.0+` 等要求 Python >= 3.11）导致的容器构建失败问题。

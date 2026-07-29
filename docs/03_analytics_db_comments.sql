@@ -123,6 +123,22 @@ COMMENT ON COLUMN ods.carbody_history."PRODUCTION_SEGMENT_ID" IS '过读写站�
 COMMENT ON COLUMN ods.carbody_history."ETL_MODIFY_DATE" IS 'ETL更新时间';
 COMMENT ON COLUMN ods.carbody_history."ETL_SOURCE_ID" IS '数据来源的源头系统 ID';
 
+-- ods.ods_fis_project_vehicle_orders
+COMMENT ON TABLE ods.ods_fis_project_vehicle_orders IS '项目车生产订单明细数仓 ODS 物理贴源表';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.project_vehicle_no IS '项目车编号 (主键，如 PP2-EREV-VFF-56)';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.file_name IS '来源 Word 生产通知单文件名';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.project_stage IS '项目阶段 (如 VFF, PT)';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.block_no IS 'Block 编号';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.code_6bit IS '6位代码 (如 VA24CQ)';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.color_interior IS '外色内饰代码';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.kom_no IS 'KOM 订货号';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.knr_no IS 'KNR 生产流水号';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.pin_no IS 'PIN 识别码 (7位数字，如 1234567)';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.pin_prefix IS 'PIN 前缀 (如 782026)';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.composite_pin_no IS '合成 PIN 识别码 (13位 = 前缀 + pin_no)';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.created_at IS '首次入库时间';
+COMMENT ON COLUMN ods.ods_fis_project_vehicle_orders.updated_at IS '最后更新时间';
+
 
 -- ==========================================
 -- 2. DIM 层 (维度表与字段注释)
@@ -172,6 +188,7 @@ COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_reserved_1 IS '车身 MDS 备�
 COMMENT ON COLUMN dim.dim_vehicle_profile.carbody_reserved_2 IS '车身 MDS 备用字段 2';
 COMMENT ON COLUMN dim.dim_vehicle_profile.retention_checkpoint_station IS '滞留监控关键读写站编码 (取自 1J440RB, K3IS140, K2IS075, K1IS135 中最新经过的节点)';
 COMMENT ON COLUMN dim.dim_vehicle_profile.retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
+COMMENT ON COLUMN dim.dim_vehicle_profile.project_vehicle_no IS '项目车编号 (外键关联项目车生产订单明细)';
 
 
 -- dim.carbody_registry
@@ -193,6 +210,7 @@ COMMENT ON COLUMN dim.carbody_registry.reserved_1 IS '电报 MDS 数据预留特
 COMMENT ON COLUMN dim.carbody_registry.reserved_2 IS '电报 MDS 数据预留特殊配置位 2 (140位)';
 COMMENT ON COLUMN dim.carbody_registry.retention_checkpoint_station IS '滞留监控关键读写站编码 (取自 1J440RB, K3IS140, K2IS075, K1IS135 中最新经过的节点)';
 COMMENT ON COLUMN dim.carbody_registry.retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
+COMMENT ON COLUMN dim.carbody_registry.project_vehicle_no IS '项目车编号 (外键关联项目车生产订单明细)';
 COMMENT ON COLUMN dim.carbody_registry.etl_loaded_at IS 'ETL装载时间';
 
 
@@ -296,6 +314,7 @@ COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.total_defect_count IS '总缺�
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.has_defect_record IS '是否拥有缺陷检测记录标志';
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.retention_checkpoint_station IS '滞留监控关键读写站编码 (取自 1J440RB, K3IS140, K2IS075, K1IS135 中最新经过的节点)';
 COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
+COMMENT ON COLUMN fct.fct_vehicle_defect_enriched.project_vehicle_no IS '项目车编号 (透传自 carbody 物理维表)';
 
 -- fct.fct_abnormal_vehicle_current
 COMMENT ON MATERIALIZED VIEW fct.fct_abnormal_vehicle_current IS '物化视图 - 现场当前异常占位及载具事实表';
@@ -359,6 +378,7 @@ COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_last_rw_station IS '末�
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_station_pass_count IS '在工艺段内累计过站读写站总频次';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_retention_checkpoint_station IS '滞留监控关键读写站编码';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.carbody_retention_checkpoint_pass_at IS '滞留监控关键读写站过站时间';
+COMMENT ON COLUMN mart.mart_vehicle_quality_360.project_vehicle_no IS '项目车编号 (透传自缺陷富集宽表)';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.process_area IS '车辆当前所在的工艺区域';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.plc IS '车辆当前所处位置PLC标识名称';
 COMMENT ON COLUMN mart.mart_vehicle_quality_360.rb_index IS '车辆当前所处不完整滚床编号';

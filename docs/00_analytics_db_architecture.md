@@ -1,13 +1,11 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-07-23 Asia/Shanghai
+修改时间：2026-07-28 Asia/Shanghai
 
 主要修改内容：
-- **扩展车身滞留监控关键节点字段**：为 `dim.carbody_registry` 和 `dim.dim_vehicle_profile` 画像表扩展了 `retention_checkpoint_station`（滞留监控关键读写站编码）和 `retention_checkpoint_pass_at`（滞留监控关键读写站过站时间）2 个字段，用于记录车辆在特定关键节点 (`1J440RB`, `K3IS140`, `K2IS075`, `K1IS135`) 的最新过站履历。
-- **更新刷新存储过程**：更新了 `meta.refresh_carbody_dim()` 存储过程，在增量提取时增加 `last_checkpoint` 聚合逻辑与 UPSERT 幂等更新；更新了 `meta.refresh_analytics_all()` 存储过程，支持将滞留检查点字段透传写入主画像表 `dim.dim_vehicle_profile`。
-- **补全 DDL 与索引**：补齐了升级用 `ALTER TABLE` 语句与索引 `idx_dim_carbody_retention_pass` / `idx_dim_vehicle_profile_retention_pass`。
+- **新增 FIS 项目车业务源库 FDW 映射与 ODS 贴源对齐**：新增 `project_vehicle_db` 源库的 FDW 外部连接挂载（`project_vehicle_srv`）、模式 `src_project_vehicle` 及外部表映射 `src_project_vehicle.project_vehicle_orders`；初始化本地物理 ODS 贴源表 `ods.ods_fis_project_vehicle_orders` 及其主键与 `composite_pin_no` 专属 B-Tree 索引。
 
-历史修改时间：2026-07-04 Asia/Shanghai
+历史修改时间：2026-07-23 Asia/Shanghai
 
 历史修改内容：
 - **画像表与质量集市升级**：为 `dim.dim_vehicle_profile` 画像表扩展了 9 个车身历史及状态字段；将 `mart.mart_vehicle_quality_360` 物化视图的驱动表更改为 `fct.fct_vehicle_defect_enriched`，从而全面支持展示在产未检车辆与漏检车辆；同步升级一键刷新存储过程 `meta.refresh_analytics_all()` 支持“滚床在产 + 缺陷系统 + 车身历史”三源合并。
@@ -74,16 +72,17 @@
 
 本手册面向当前项目的 `analytics_db` 分析库建设与后续刷新维护。
 
-当前项目涉及的两个业务源库：
+当前项目涉及的三个业务源库：
 
 - `rollerbed_tracking_db`
 - `defect_db`
+- `project_vehicle_db`
 
 当前分析库策略：
 
 - 在 PostgreSQL 中独立建设 `analytics_db`
-- 通过 `postgres_fdw` 挂载两个源库
-- 将源表数据同步到本地 `ods` 表
+- 通过 `postgres_fdw` 挂载三个源库（`src_rb`, `src_defect`, `src_project_vehicle`）
+- 将源表数据同步落盘到本地 `ods` 物理表（含索引）
 - 在 `fct` / `mart` 中生成给 Agent 使用的分析对象
 
 本手册与 `current_vehicle_fact_refactor.md` 的关系：
@@ -339,13 +338,14 @@ WITH OWNER = root
 ### 5.3 创建 schema
 
 ```sql
-CREATE SCHEMA IF NOT EXISTS src_rb;
-CREATE SCHEMA IF NOT EXISTS src_defect;
-CREATE SCHEMA IF NOT EXISTS ods;
-CREATE SCHEMA IF NOT EXISTS dim;
-CREATE SCHEMA IF NOT EXISTS fct;
-CREATE SCHEMA IF NOT EXISTS mart;
-CREATE SCHEMA IF NOT EXISTS meta;
+CREATE SCHEMA IF NOT EXISTS src_rb;              -- 滚床追踪业务源库 FDW 外部表模式
+CREATE SCHEMA IF NOT EXISTS src_defect;          -- 缺陷检测业务源库 FDW 外部表模式
+CREATE SCHEMA IF NOT EXISTS src_project_vehicle; -- FIS 项目车业务源库 FDW 外部表模式
+CREATE SCHEMA IF NOT EXISTS ods;                 -- 本地物理贴源层 Schema
+CREATE SCHEMA IF NOT EXISTS dim;                 -- 维表层 Schema
+CREATE SCHEMA IF NOT EXISTS fct;                 -- 事实表/宽表层 Schema
+CREATE SCHEMA IF NOT EXISTS mart;                -- 数据集市层 Schema
+CREATE SCHEMA IF NOT EXISTS meta;                -- 元数据管理与日志 Schema
 ```
 
 ### 5.4 创建只读角色
@@ -403,6 +403,19 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- 挂载 FIS 项目车业务源库 (project_vehicle_db)
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_foreign_server WHERE srvname = 'project_vehicle_srv'
+  ) THEN
+    CREATE SERVER project_vehicle_srv
+    FOREIGN DATA WRAPPER postgres_fdw
+    OPTIONS (host 'localhost', dbname 'project_vehicle_db', port '5432');
+  END IF;
+END;
+$$;
 ```
 
 为 `root` 创建 user mapping：
@@ -439,6 +452,23 @@ BEGIN
   END IF;
 END;
 $$;
+
+-- 为 project_vehicle_srv 创建 root 用户映射
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1
+    FROM pg_user_mappings m
+    JOIN pg_foreign_server s ON m.srvid = s.oid
+    JOIN pg_roles r ON m.umuser = r.oid
+    WHERE s.srvname = 'project_vehicle_srv' AND r.rolname = 'root'
+  ) THEN
+    CREATE USER MAPPING FOR root
+    SERVER project_vehicle_srv
+    OPTIONS (user 'root', password 'root');
+  END IF;
+END;
+$$;
 ```
 
 ### 5.6 导入外部表
@@ -462,6 +492,13 @@ LIMIT TO (
   history_station_defect_summary
 )
 FROM SERVER defect_srv INTO src_defect;
+
+-- 导入 FIS 项目车订单明细外部表 (project_vehicle_orders)
+IMPORT FOREIGN SCHEMA public
+LIMIT TO (
+  project_vehicle_orders
+)
+FROM SERVER project_vehicle_srv INTO src_project_vehicle;
 ```
 
 如果这些外部表已经存在，就不要重复执行上面的导入语句。
@@ -497,6 +534,10 @@ SELECT * FROM src_rb.vehicle_platforms WITH NO DATA;
 
 CREATE TABLE IF NOT EXISTS ods.history_station_defect_summary AS
 SELECT * FROM src_defect.history_station_defect_summary WITH NO DATA;
+
+-- 创建 FIS 项目车订单明细物理贴源表 (初始结构同步自 src_project_vehicle.project_vehicle_orders 外表)
+CREATE TABLE IF NOT EXISTS ods.ods_fis_project_vehicle_orders AS
+SELECT * FROM src_project_vehicle.project_vehicle_orders WITH NO DATA;
 ```
 
 ### 6.2 ODS 主键与索引
@@ -511,6 +552,7 @@ ALTER TABLE ods.vehicle_body_types ADD PRIMARY KEY (id);
 ALTER TABLE ods.vehicle_color_codes ADD PRIMARY KEY (id);
 ALTER TABLE ods.vehicle_platforms ADD PRIMARY KEY (id);
 ALTER TABLE ods.history_station_defect_summary ADD PRIMARY KEY (history_id);
+ALTER TABLE ods.ods_fis_project_vehicle_orders ADD PRIMARY KEY (project_vehicle_no);
 ```
 
 索引：
@@ -530,6 +572,16 @@ ON ods.history_station_defect_summary(serial_number);
 
 CREATE INDEX IF NOT EXISTS idx_ods_defect_detect_time
 ON ods.history_station_defect_summary(date_time);
+
+-- FIS 项目车订单明细检索与匹配索引 (含 13 位合成 PIN 精确匹配专属索引)
+CREATE INDEX IF NOT EXISTS idx_ods_pvo_composite_pin
+ON ods.ods_fis_project_vehicle_orders(composite_pin_no);
+
+CREATE INDEX IF NOT EXISTS idx_ods_pvo_pin
+ON ods.ods_fis_project_vehicle_orders(pin_no);
+
+CREATE INDEX IF NOT EXISTS idx_ods_pvo_knr
+ON ods.ods_fis_project_vehicle_orders(knr_no);
 ```
 
 ### 6.3 创建 `meta` 表
@@ -592,6 +644,7 @@ CREATE TABLE IF NOT EXISTS dim.dim_vehicle_profile (
   carbody_reserved_2 VARCHAR(1),                     -- 车身 MDS 备用字段 2
   retention_checkpoint_station VARCHAR(64),          -- 滞留监控关键读写站编码 (取自指定列表中的最新节点)
   retention_checkpoint_pass_at TIMESTAMPTZ,          -- 滞留监控关键读写站过站时间
+  project_vehicle_no VARCHAR(64),                    -- 项目车编号 (关联项目车生产订单明细)
   
   current_position_id BIGINT,                        -- 当前最新占位位置 ID
   current_carrier_id VARCHAR(50),                    -- 当前最新载体卡号
@@ -626,6 +679,9 @@ ON dim.dim_vehicle_profile(current_process_area);
 
 CREATE INDEX IF NOT EXISTS idx_dim_vehicle_profile_retention_pass
 ON dim.dim_vehicle_profile(retention_checkpoint_pass_at);
+
+CREATE INDEX IF NOT EXISTS idx_dim_vp_pvn
+ON dim.dim_vehicle_profile(project_vehicle_no);
 ```
 
 ### 6.5 创建 ods.carbody_history
@@ -682,6 +738,7 @@ CREATE TABLE IF NOT EXISTS dim.carbody_registry (
     reserved_2         VARCHAR(1),              -- MDS_DATA 140
     retention_checkpoint_station VARCHAR(64),   -- 滞留监控关键读写站编码
     retention_checkpoint_pass_at TIMESTAMPTZ,   -- 滞留监控关键读写站过站时间
+    project_vehicle_no VARCHAR(64),             -- 项目车编号 (基于 13位 composite_pin_no 匹配关联)
     etl_loaded_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -691,6 +748,7 @@ CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_seen    ON dim.carbody_regist
 CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_first_station ON dim.carbody_registry(first_rw_station);
 CREATE INDEX IF NOT EXISTS idx_dim_carbody_vp_last_station  ON dim.carbody_registry(last_rw_station);
 CREATE INDEX IF NOT EXISTS idx_dim_carbody_retention_pass   ON dim.carbody_registry(retention_checkpoint_pass_at);
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_pvn              ON dim.carbody_registry(project_vehicle_no);
 ```
 
 如果表已存在（老版本升级），通过 ALTER TABLE 补齐 MDS 字段与滞留监控关键节点字段：
@@ -705,9 +763,14 @@ ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS reserved_1      VARCHA
 ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS reserved_2      VARCHAR(1);
 ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS retention_checkpoint_station VARCHAR(64);
 ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS retention_checkpoint_pass_at TIMESTAMPTZ;
+ALTER TABLE dim.carbody_registry ADD COLUMN IF NOT EXISTS project_vehicle_no VARCHAR(64);
 
 ALTER TABLE dim.dim_vehicle_profile ADD COLUMN IF NOT EXISTS retention_checkpoint_station VARCHAR(64);
 ALTER TABLE dim.dim_vehicle_profile ADD COLUMN IF NOT EXISTS retention_checkpoint_pass_at TIMESTAMPTZ;
+ALTER TABLE dim.dim_vehicle_profile ADD COLUMN IF NOT EXISTS project_vehicle_no VARCHAR(64);
+
+CREATE INDEX IF NOT EXISTS idx_dim_carbody_pvn ON dim.carbody_registry(project_vehicle_no);
+CREATE INDEX IF NOT EXISTS idx_dim_vp_pvn      ON dim.dim_vehicle_profile(project_vehicle_no);
 ```
 
 ### 6.7 聚合存储过程 meta.refresh_carbody_dim
@@ -728,6 +791,30 @@ BEGIN
   INSERT INTO meta.sync_job_log(job_name, status, message)
   VALUES ('refresh_carbody_dim', 'running', 'start')
   RETURNING id INTO v_log_id;
+
+  -- 0. 贴源同步 FIS 项目车订单 FDW 数据至本地 ODS 物理表
+  INSERT INTO ods.ods_fis_project_vehicle_orders (
+      project_vehicle_no, file_name, project_stage, block_no, code_6bit, 
+      color_interior, kom_no, knr_no, pin_no, pin_prefix, composite_pin_no, 
+      created_at, updated_at
+  )
+  SELECT 
+      project_vehicle_no, file_name, project_stage, block_no, code_6bit, 
+      color_interior, kom_no, knr_no, pin_no, pin_prefix, composite_pin_no, 
+      created_at, updated_at
+  FROM src_project_vehicle.project_vehicle_orders
+  ON CONFLICT (project_vehicle_no) DO UPDATE SET
+      file_name        = EXCLUDED.file_name,
+      project_stage    = EXCLUDED.project_stage,
+      block_no         = EXCLUDED.block_no,
+      code_6bit        = EXCLUDED.code_6bit,
+      color_interior   = EXCLUDED.color_interior,
+      kom_no           = EXCLUDED.kom_no,
+      knr_no           = EXCLUDED.knr_no,
+      pin_no           = EXCLUDED.pin_no,
+      pin_prefix       = EXCLUDED.pin_prefix,
+      composite_pin_no = EXCLUDED.composite_pin_no,
+      updated_at       = EXCLUDED.updated_at;
 
   -- 1. 读取 DIM 上次处理的最大 ID
   SELECT COALESCE(watermark_value::numeric, 0)
@@ -823,6 +910,15 @@ BEGIN
       retention_checkpoint_pass_at = COALESCE(EXCLUDED.retention_checkpoint_pass_at, dim.carbody_registry.retention_checkpoint_pass_at);
 
   GET DIAGNOSTICS v_new_count = ROW_COUNT;
+
+  -- 2.1 纯粹基于 13 位 composite_pin_no 精确匹配更新 dim.carbody_registry.project_vehicle_no
+  UPDATE dim.carbody_registry cr
+  SET project_vehicle_no = pvo.project_vehicle_no
+  FROM ods.ods_fis_project_vehicle_orders pvo
+  WHERE pvo.composite_pin_no IS NOT NULL 
+    AND pvo.composite_pin_no <> '' 
+    AND LEFT(cr.vehicle_id, 13) = pvo.composite_pin_no
+    AND (cr.project_vehicle_no IS NULL OR cr.project_vehicle_no <> pvo.project_vehicle_no);
 
   -- 3. 更新 DIM 水位
   INSERT INTO meta.refresh_watermark(source_name, watermark_value, updated_at)
@@ -1009,6 +1105,7 @@ SELECT
   cvp.station_pass_count,
   cvp.retention_checkpoint_station,
   cvp.retention_checkpoint_pass_at,
+  cvp.project_vehicle_no,                            -- 项目车编号 (关联项目车生产订单明细)
 
   -- ===== 缺陷检测事件（可为 NULL）=====
   d.history_id,
@@ -1130,6 +1227,7 @@ SELECT
   vp.platform_name,                                  -- 平台中文名称
   e.black_roof_flag,
   e.rework_flag,
+  e.project_vehicle_no,                              -- 项目车编号 (透传自 carbody/enriched)
   e.first_seen_at AS carbody_first_seen_at,          -- 首次过站读写站时间
   e.last_seen_at AS carbody_last_seen_at,            -- 末次过站读写站时间
   e.first_rw_station AS carbody_first_rw_station,    -- 首次过站读写站
@@ -1342,6 +1440,7 @@ BEGIN
     ods.vehicle_platforms,
     ods.rb_position_data,
     ods.history_station_defect_summary,
+    ods.ods_fis_project_vehicle_orders,
     dim.dim_process_area,
     dim.dim_vehicle_profile;
 
@@ -1353,12 +1452,31 @@ BEGIN
   INSERT INTO ods.rb_position_data SELECT * FROM src_rb.rb_position_data;
   INSERT INTO ods.history_station_defect_summary SELECT * FROM src_defect.history_station_defect_summary;
 
-  -- 刷新事实层物化视图
+  -- 贴源同步 FIS 项目车订单数据
+  INSERT INTO ods.ods_fis_project_vehicle_orders SELECT * FROM src_project_vehicle.project_vehicle_orders
+  ON CONFLICT (project_vehicle_no) DO UPDATE SET
+    file_name = EXCLUDED.file_name,
+    project_stage = EXCLUDED.project_stage,
+    block_no = EXCLUDED.block_no,
+    code_6bit = EXCLUDED.code_6bit,
+    color_interior = EXCLUDED.color_interior,
+    kom_no = EXCLUDED.kom_no,
+    knr_no = EXCLUDED.knr_no,
+    pin_no = EXCLUDED.pin_no,
+    pin_prefix = EXCLUDED.pin_prefix,
+    composite_pin_no = EXCLUDED.composite_pin_no,
+    updated_at = EXCLUDED.updated_at;
+
+  -- 触发 carbody 维表匹配刷新
+  CALL meta.refresh_carbody_dim();
+
+  -- 刷新事实层与集市物化视图
   REFRESH MATERIALIZED VIEW fct.fct_position_current_all;
   REFRESH MATERIALIZED VIEW fct.fct_vehicle_position_current;
   REFRESH MATERIALIZED VIEW fct.fct_vehicle_defect_detection;
   REFRESH MATERIALIZED VIEW fct.fct_vehicle_defect_enriched;
   REFRESH MATERIALIZED VIEW fct.fct_abnormal_vehicle_current;
+  REFRESH MATERIALIZED VIEW mart.mart_vehicle_quality_360;
 
   -- 更新区域维度表
   INSERT INTO dim.dim_process_area (
@@ -1367,7 +1485,7 @@ BEGIN
   SELECT area_name, id, description, sort_order, created_at, updated_at, now()
   FROM ods.process_areas;
 
-  -- 升级：多源合并写入车辆主画像维度表（支持滚床位置追踪 + 缺陷系统 + MES车身过站历史）
+  -- 升级：多源合并写入车辆主画像维度表（支持滚床位置追踪 + 缺陷系统 + MES车身过站历史 + FIS项目车）
   INSERT INTO dim.dim_vehicle_profile (
     vehicle_id, body_type, tracking_type_name, defect_model, defect_type_name,
     platform_code, platform_name, color_code, color_name, is_black_roof,
@@ -1375,6 +1493,7 @@ BEGIN
     tracking_last_seen_at, defect_last_seen_at, carbody_first_seen_at, carbody_last_seen_at,
     carbody_first_rw_station, carbody_last_rw_station, carbody_station_pass_count,
     carbody_reserved_1, carbody_reserved_2, retention_checkpoint_station, retention_checkpoint_pass_at,
+    project_vehicle_no,
     current_position_id, current_carrier_id, current_carrier_type, current_process_area,
     current_full_rb_code, current_position_updated_at, etl_loaded_at
   )
@@ -1404,7 +1523,8 @@ BEGIN
     SELECT
       vehicle_id, body_type, platform_code, color_code, black_roof_flag, rework_flag,
       first_seen_at, last_seen_at, first_rw_station, last_rw_station, station_pass_count,
-      reserved_1, reserved_2, retention_checkpoint_station, retention_checkpoint_pass_at
+      reserved_1, reserved_2, retention_checkpoint_station, retention_checkpoint_pass_at,
+      project_vehicle_no
     FROM dim.carbody_registry
   ),
   vehicle_union AS (
@@ -1461,6 +1581,7 @@ BEGIN
     c.reserved_2 AS carbody_reserved_2,
     c.retention_checkpoint_station,
     c.retention_checkpoint_pass_at,
+    c.project_vehicle_no,
     
     -- 当前最新滚床位置追踪字段（若下线则为 NULL）
     t.position_id AS current_position_id,
