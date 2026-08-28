@@ -46,3 +46,6 @@ build/
 # 操作系统
 .DS_Store
 Thumbs.db
+
+# 本地 AI 会话记录目录
+.claudian/
