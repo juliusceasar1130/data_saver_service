@@ -1,5 +1,10 @@
 # MySQL vs PostgreSQL 主要差异说明
 
+> ⚠️ **已弃用 (DEPRECATED) — 标记日期: 2026-08-27**
+> 本文件为「记录型方案」迁移配套文档。
+> 当前正式方案为「RB位置状态版」（PostgreSQL），定义见项目根目录 [create_tables_postgresql.sql](../../../create_tables_postgresql.sql)。
+> 其中 MySQL/PG 语法差异内容仍可作通用参考，整体仅供历史查阅。
+
 本文档说明了在从 MySQL 迁移到 PostgreSQL 时需要注意的主要语法和功能差异。
 
 ## 1. 核心语法差异

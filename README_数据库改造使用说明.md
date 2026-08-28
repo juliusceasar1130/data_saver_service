@@ -1,6 +1,7 @@
 # 数据库改造使用说明
 
 本文档说明如何使用数据库改造相关的脚本和工具。
+**更新日期: 2026-08-27**（修正过时文件名/路径，移除已废弃的增量迁移脚本，更新数据库示例值）
 
 **运行环境：conda activate websoket**
 
@@ -9,33 +10,20 @@
 | 文件名 | 说明 | 用途 |
 |--------|------|------|
 | `create_tables_postgresql.sql` | 数据库表结构 DDL (PostgreSQL) | 创建 rb_position_data 主表和5个字典表（工艺区域、载体类型等） |
-| `alter_add_process_area.sql` | 增量迁移脚本 | 为已有数据库追加 `process_area` 相关支持 |
-| `alter_add_carrier_fields.sql` | 增量迁移脚本 | 为已有数据库追加 `carrier_id` / `carrier_type` 相关支持 |
-| `init_rb_positions.py` | 位置数据初始化脚本 | 读取 deviceConfig.json,初始化98个位置记录 |
+| `init_rb_positions_postgresql.py` | 位置数据初始化脚本 | 读取 deviceConfig.json,初始化98个位置记录 |
+| `init_seed_data_postgresql.py` | 字典表预填充脚本 | 读取 seed_data.json,预填充 process_areas / carrier_types 字典表 |
+| `seed_data.json` | 种子数据文件 | 工艺区域与载体类型的预置数据 |
 | `deviceConfig.json` | 设备配置文件 | 包含98个RB位置的配置信息 (含 process_area) |
 | `data_saver_service_v3_docker.py` | V3 数据保存服务 (Docker版) | **[推荐]** 同时支持车身数据(30字符)和载体ID的自动订阅与保存 |
 | `rb_position_manager_postgresql.py` | 数据库操作封装类 (PostgreSQL) | 提供车辆数据更新、载体更新、查询、统计等方法 |
 
 ## 🚀 快速开始
 
-### 步骤 1: 创建/升级数据库表
+### 步骤 1: 创建数据库表
 
-#### 情况 A: 全新部署
-使用 PostgreSQL 客户端执行全量建表脚本:
+使用 PostgreSQL 客户端执行全量建表脚本（内含 DROP TABLE IF EXISTS 重建逻辑，兼容全新部署与已存历史数据的数据库）:
 ```bash
-psql -U postgres -d your_database -f create_tables_postgresql.sql
-```
-
-#### 情况 B: 增量升级 (新增工艺区域支持)
-如果数据库已存在且存有历史数据，执行增量迁移脚本:
-```bash
-psql -U postgres -d your_database -f alter_add_process_area.sql
-```
-
-#### 情况 C: 增量升级 (新增载体标识/类型支持)
-执行对应的增量迁移脚本:
-```bash
-psql -U postgres -d your_database -f alter_add_carrier_fields.sql
+psql -U root -d rollerbed_tracking_db -f create_tables_postgresql.sql
 ```
 
 **创建/更新的表:**
@@ -51,20 +39,11 @@ psql -U postgres -d your_database -f alter_add_carrier_fields.sql
 运行 Python 初始化脚本:
 
 ```bash
-cd d:\Python\workplace\skid_count_websoket\savedatabase
-python init_rb_positions.py
+cd f:\000_dev\Python\workplace\savedatabase-postgresql_v2
+python init_rb_positions_postgresql.py
 ```
 
-**注意:** 运行前需要修改脚本中的数据库连接配置:
-
-```python
-db_config = {
-    'host': 'localhost',
-    'user': 'root',
-    'password': '你的密码',  # ← 修改这里
-    'database': '你的数据库名'  # ← 修改这里
-}
-```
+**注意:** 脚本默认读取项目根目录 `.env` 中的数据库连接配置（DB_HOST/DB_PORT/DB_USER/DB_PASSWORD/DB_NAME），也可通过环境变量覆盖；默认连接 `rollerbed_tracking_db`（用户 root）。
 
 **初始化结果:**
 - 会在 `rb_position_data` 表中插入 98 条位置记录
@@ -73,7 +52,7 @@ db_config = {
 
 ### 步骤 3: 验证初始化
 
-在 MySQL 中验证:
+在 PostgreSQL 中验证:
 
 ```sql
 -- 查询总记录数
@@ -86,12 +65,20 @@ SELECT plc, COUNT(*) FROM rb_position_data GROUP BY plc;
 SELECT * FROM rb_position_data LIMIT 5;
 ```
 
+### 步骤 4: 预填充字典表（可选但推荐）
+
+```bash
+python init_seed_data_postgresql.py
+```
+
+**说明:** 读取 `seed_data.json`，预填充 `process_areas`（工艺区域）和 `carrier_types`（载体类型）两张字典表；冲突策略为 `ON CONFLICT DO UPDATE`，可重复执行。
+
 ## 💻 使用数据库操作类
 
 ### 基本使用
 
 ```python
-from rb_position_manager import RBPositionDataManager
+from rb_position_manager_postgresql import RBPositionDataManager
 
 # 配置数据库连接
 db_config = {
@@ -196,7 +183,7 @@ with RBPositionDataManager(db_config) as manager:
 在 `data_saver_service.py` 中集成数据库操作:
 
 ```python
-from rb_position_manager import RBPositionDataManager
+from rb_position_manager_postgresql import RBPositionDataManager
 
 class DataSaverService:
     def __init__(self):
@@ -234,9 +221,9 @@ class DataSaverService:
 |--------|------|------|
 | `DB_HOST` | 数据库主机地址 | `localhost` 或 `172.17.0.1` |
 | `DB_PORT` | 数据库端口 | `5432` |
-| `DB_USER` | 数据库用户名 | `postgres` |
+| `DB_USER` | 数据库用户名 | `root` |
 | `DB_PASSWORD` | 数据库密码 | `******` |
-| `DB_NAME` | 数据库名称 | `vda_db` |
+| `DB_NAME` | 数据库名称 | `rollerbed_tracking_db` |
 | `WS_SERVER_HOST` | WebSocket 服务器地址 | `10.123.45.67` |
 | `WS_SERVER_PORT` | WebSocket 服务器端口 | `8081` |
 | `DEVICE_CONFIG_PATH` | 配置文件路径 | `./deviceConfig.json` |

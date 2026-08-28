@@ -1,5 +1,10 @@
 # 最终数据库设计方案
 
+> ⚠️ **已弃用 (DEPRECATED) — 标记日期: 2026-08-27**
+> 本文件为「记录型方案」MySQL 版本设计文档（主表 vehicle_data）。
+> 当前正式方案为「RB位置状态版」（PostgreSQL），定义见项目根目录 [create_tables_postgresql.sql](../../../create_tables_postgresql.sql)。
+> 请勿按本文档建表，仅供历史参考。
+
 本方案基于 WebSocket 接收的 30 字符车身数据进行解析和存储。设计的核心原则是语义化、支持大模型（LLM）理解，以及兼顾数据的完整性与扩展性。
 
 ## 1. 设计概述

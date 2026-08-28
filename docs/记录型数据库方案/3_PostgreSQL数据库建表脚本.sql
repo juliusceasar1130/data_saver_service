@@ -2,6 +2,11 @@
 -- PostgreSQL 数据库建表脚本
 -- 用于车辆数据管理系统
 -- ============================================================
+-- ⚠️ 已弃用 (DEPRECATED) — 标记日期: 2026-08-27
+-- 本文件为「记录型方案」历史版本，主表为 vehicle_data（每条记录一辆车）。
+-- 当前正式 schema 为「RB位置状态版」，定义见项目根目录:
+--   create_tables_postgresql.sql（rb_position_data 固定 98 位置 + 5 字典表）
+-- 请勿使用本文件建表，仅供历史参考。
 
 -- 1. 主表：vehicle_data (车身数据表)
 CREATE TABLE vehicle_data (

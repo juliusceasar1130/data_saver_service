@@ -6,7 +6,7 @@
       "args": [
         "-y",
         "@modelcontextprotocol/server-postgres",
-        "postgresql://root:root@localhost:5432/rollerbed_tracking_db"
+        "postgresql://root:root@localhost:5432/analytics_db"
       ],
       "env": {}
     },

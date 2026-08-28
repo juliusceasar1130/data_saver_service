@@ -113,8 +113,8 @@ vehicle_union (tracking ∪ defect ∪ carbody)
 
 | 物化视图 | 数据来源 | 过滤条件 |
 |----------|----------|----------|
-| `fct.fct_position_current_all` | `ods.rb_position_data` | `carrier_id <> '0'` |
-| `fct.fct_vehicle_position_current` | `fct.fct_position_current_all` | `entity_type = 'product_vehicle'` AND `vehicle_id LIKE '782026%'` |
+| `fct.fct_position_current_all` | `ods.rb_position_data` + `ods.ods_fis_project_vehicle_orders` | `carrier_id <> '0'` |
+| `fct.fct_vehicle_position_current` | `fct.fct_position_current_all` | `entity_type IN ('product_vehicle', 'project_vehicle')` |
 | `fct.fct_vehicle_defect_detection` | `ods.history_station_defect_summary` | `serial_number IS NOT NULL` |
 | `fct.fct_vehicle_defect_enriched` | `dim.carbody_registry` (驱动)<br>+ `ods.history_station_defect_summary` | 无过滤（LEFT JOIN 保留全量车身） |
 | `fct.fct_abnormal_vehicle_current` | `fct.fct_position_current_all` | `entity_type = 'abnormal_vehicle'` |
@@ -123,7 +123,7 @@ vehicle_union (tracking ∪ defect ∪ carbody)
 
 | FCT 物化视图 | 被下游引用 |
 |-------------|-----------|
-| `fct.fct_position_current_all` | → `fct.fct_vehicle_position_current`（WHERE product_vehicle）<br>→ `fct.fct_abnormal_vehicle_current`（WHERE abnormal_vehicle）<br>→ `mart.mart_position_current_overview`（LEFT JOIN）<br>→ `dim.dim_vehicle_profile`（latest_tracking CTE 间接，通过 fct_vehicle_position_current） |
+| `fct.fct_position_current_all` | → `fct.fct_vehicle_position_current`（WHERE product_vehicle / project_vehicle）<br>→ `fct.fct_abnormal_vehicle_current`（WHERE abnormal_vehicle）<br>→ `mart.mart_position_current_overview`（LEFT JOIN）<br>→ `dim.dim_vehicle_profile`（latest_tracking CTE 间接，通过 fct_vehicle_position_current） |
 | `fct.fct_vehicle_position_current` | → `dim.dim_vehicle_profile`（latest_tracking CTE）<br>→ `mart.mart_vehicle_quality_360`（LEFT JOIN p.vehicle_id = d.vehicle_id） |
 | `fct.fct_vehicle_defect_detection` | → `mart.mart_vehicle_quality_360`（FROM 主表） |
 | `fct.fct_abnormal_vehicle_current` | → `mart.mart_abnormal_vehicle_current`（FROM 主表）<br>→ `mart.mart_position_current_overview`（LEFT JOIN a.position_id = p.position_id） |

@@ -230,6 +230,7 @@ COMMENT ON COLUMN fct.fct_position_current_all.process_area IS '工艺区域 (�
 COMMENT ON COLUMN fct.fct_position_current_all.carrier_id IS '雪橇/吊架ID/载具编号';
 COMMENT ON COLUMN fct.fct_position_current_all.carrier_type IS '雪橇/吊架/载具类型代码';
 COMMENT ON COLUMN fct.fct_position_current_all.vehicle_id IS '车身唯一识别码';
+COMMENT ON COLUMN fct.fct_position_current_all.project_vehicle_no IS '项目车编号 (关联项目车生产订单明细)';
 COMMENT ON COLUMN fct.fct_position_current_all.body_type IS '车型代码 (五位车身类型码)';
 COMMENT ON COLUMN fct.fct_position_current_all.color_code IS '车身颜色代码';
 COMMENT ON COLUMN fct.fct_position_current_all.platform_code IS '车型平台';
@@ -238,12 +239,13 @@ COMMENT ON COLUMN fct.fct_position_current_all.rework_flag IS '返修车标记 (
 COMMENT ON COLUMN fct.fct_position_current_all.raw_data IS '通信原始报文';
 COMMENT ON COLUMN fct.fct_position_current_all.position_created_at IS '位置创建时间';
 COMMENT ON COLUMN fct.fct_position_current_all.vehicle_updated_at IS '车辆位置刷新时间';
-COMMENT ON COLUMN fct.fct_position_current_all.entity_type IS '占位实体类型 (product_vehicle-产品车, abnormal_vehicle-异常占位)';
+COMMENT ON COLUMN fct.fct_position_current_all.entity_type IS '占位实体类型 (project_vehicle-项目车, product_vehicle-产品车/量产车, abnormal_vehicle-异常车)';
 COMMENT ON COLUMN fct.fct_position_current_all.abnormal_type IS '异常占位分类 (如 empty_vehicle_id_with_carrier, non_product_prefix 等)';
 
 -- fct.fct_vehicle_position_current
-COMMENT ON MATERIALIZED VIEW fct.fct_vehicle_position_current IS '物化视图 - 仅限正式产品车当前位置最新事实表 (过滤异常且按车辆去重)';
+COMMENT ON MATERIALIZED VIEW fct.fct_vehicle_position_current IS '物化视图 - 仅限正常车(项目车与产品车)当前位置最新事实表 (过滤异常且按车辆去重)';
 COMMENT ON COLUMN fct.fct_vehicle_position_current.vehicle_id IS '车身唯一识别码 (主键)';
+COMMENT ON COLUMN fct.fct_vehicle_position_current.project_vehicle_no IS '项目车编号 (关联项目车生产订单明细)';
 COMMENT ON COLUMN fct.fct_vehicle_position_current.position_id IS '设备位置ID';
 COMMENT ON COLUMN fct.fct_vehicle_position_current.plc IS 'PLC标识名称';
 COMMENT ON COLUMN fct.fct_vehicle_position_current.tag IS 'RFID 点位编码';
@@ -328,6 +330,7 @@ COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.process_area IS '工艺区域
 COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.carrier_id IS '雪橇/吊架ID/载具编号';
 COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.carrier_type IS '雪橇/吊架载具类型代码';
 COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.vehicle_id IS '车辆唯一识别码 (异常占位中的车身码)';
+COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.project_vehicle_no IS '项目车编号 (透传自基础占位事实表)';
 COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.body_type IS '车型代码 (五位车身类型码)';
 COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.color_code IS '车身颜色代码';
 COMMENT ON COLUMN fct.fct_abnormal_vehicle_current.platform_code IS '车型平台';
@@ -393,6 +396,7 @@ COMMENT ON COLUMN mart.mart_vehicle_quality_360.vehicle_updated_at IS '车辆当
 COMMENT ON MATERIALIZED VIEW mart.mart_abnormal_vehicle_current IS '物化视图 - 现场当前异常车辆的工艺分布与警报信息看板表';
 COMMENT ON COLUMN mart.mart_abnormal_vehicle_current.position_id IS '设备位置ID (主键)';
 COMMENT ON COLUMN mart.mart_abnormal_vehicle_current.vehicle_id IS '车辆唯一识别码 (异常占位中的车身码)';
+COMMENT ON COLUMN mart.mart_abnormal_vehicle_current.project_vehicle_no IS '项目车编号 (透传自异常事实视图)';
 COMMENT ON COLUMN mart.mart_abnormal_vehicle_current.abnormal_type IS '异常占位分类';
 COMMENT ON COLUMN mart.mart_abnormal_vehicle_current.abnormal_reason IS '异常原因文字描述说明';
 COMMENT ON COLUMN mart.mart_abnormal_vehicle_current.process_area IS '车辆当前所在的工艺区域';
@@ -419,7 +423,7 @@ COMMENT ON COLUMN mart.mart_abnormal_vehicle_current.vehicle_updated_at IS '车�
 -- mart.mart_position_current_overview
 COMMENT ON MATERIALIZED VIEW mart.mart_position_current_overview IS '物化视图 - 当前滚床现场所有占位全景汇总总览表 (含车辆实体名称、状态说明等)';
 COMMENT ON COLUMN mart.mart_position_current_overview.position_id IS '设备位置ID (主键)';
-COMMENT ON COLUMN mart.mart_position_current_overview.entity_type IS '占位实体类型 (product_vehicle-产品车, abnormal_vehicle-异常占位)';
+COMMENT ON COLUMN mart.mart_position_current_overview.entity_type IS '占位实体类型 (project_vehicle-项目车, product_vehicle-产品车/量产车, abnormal_vehicle-异常车)';
 COMMENT ON COLUMN mart.mart_position_current_overview.entity_type_name IS '占位实体类型中文名称';
 COMMENT ON COLUMN mart.mart_position_current_overview.vehicle_status_code IS '车辆状态分类代码';
 COMMENT ON COLUMN mart.mart_position_current_overview.vehicle_status_name IS '车辆状态分类中文名称';
@@ -437,6 +441,7 @@ COMMENT ON COLUMN mart.mart_position_current_overview.rb_index IS '不完整滚�
 COMMENT ON COLUMN mart.mart_position_current_overview.full_rb_code IS '滚床完整物理编码 (PLC + 索引)';
 COMMENT ON COLUMN mart.mart_position_current_overview.remark IS '备注未用';
 COMMENT ON COLUMN mart.mart_position_current_overview.vehicle_id IS '车身唯一识别码';
+COMMENT ON COLUMN mart.mart_position_current_overview.project_vehicle_no IS '项目车编号 (关联项目车生产订单明细)';
 COMMENT ON COLUMN mart.mart_position_current_overview.body_type IS '车型代码 (五位车身类型码)';
 COMMENT ON COLUMN mart.mart_position_current_overview.tracking_type_name IS '车型中文官方名称 (如 ID.3, 帕萨特)';
 COMMENT ON COLUMN mart.mart_position_current_overview.color_code IS '车身颜色代码';

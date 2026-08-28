@@ -1,5 +1,16 @@
 # Changelog
 
+## 2026-07-29 09:44 Asia/Shanghai
+
+简要概括：精简并更新文档 [06_vehicle_classification_rules_and_llm_prompt.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/06_vehicle_classification_rules_and_llm_prompt.md)，取消新增 `sub_entity_type` 冗余字段，统一复用并升级既有 `entity_type` 字段（取值：`project_vehicle` / `product_vehicle` / `abnormal_vehicle`），并简化对应 SQL 表达式与 LLM 提示词模板。
+
+主要修改内容：
+
+- **精简 [06_vehicle_classification_rules_and_llm_prompt.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/06_vehicle_classification_rules_and_llm_prompt.md)**：
+  - 取消 `sub_entity_type` 字段，实现零数据库 Schema 修改成本。
+  - 统一由 `entity_type` 承载 `project_vehicle`（项目车）、`product_vehicle`（产品车/量产车）与 `abnormal_vehicle`（异常车）三种枚举代码。
+  - 简化 SQL CASE WHEN 表达式与给 LLM 的 Few-Shot 提示词。
+
 ## 2026-07-28 16:42 Asia/Shanghai
 
 简要概括：修正 [03_analytics_db_comments.sql](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/03_analytics_db_comments.sql) 与 [00_analytics_db_architecture.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/00_analytics_db_architecture.md) 中 `project_vehicle_no` 字段的业务描述措辞，统一更正为“**外键关联项目车生产订单明细**”。

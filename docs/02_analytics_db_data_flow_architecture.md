@@ -1,27 +1,35 @@
 # Analytics DB 数据链路与刷新机制
 
-修改时间：2026-07-04 Asia/Shanghai
+修改时间：2026-08-27 Asia/Shanghai
 
 主要修改内容：
+- **对齐实际数据库（2026-08-27 通过 pg MCP 直连实时 `analytics_db` 校验）**：补充遗漏的第四条数据路径 `project_vehicle_db → FDW(src_project_vehicle) → ods.ods_fis_project_vehicle_orders`（第 1 节概览表由“3 个库”改为“4 个库”，第 2 节新增路径 4，第 5 节 Schema 树补 `src_project_vehicle` 与 `ods.ods_fis_project_vehicle_orders`）；修正 `meta.refresh_analytics_all()` 流程描述（TRUNCATE 8 张 ods、补 FIS UPSERT 与 `CALL refresh_carbody_dim()`、补首次 `mart_vehicle_quality_360` 刷新、`dim_vehicle_profile` 改为三源并集 `tracking ∪ defect ∪ carbody`、标注 `mart_vehicle_quality_360` 双刷）；将过时的“98 行固定位置”更新为实际行数（当前 2748 行）。
+- **修正第 1 节部署方式与补 defect SQL Server 源（2026-08-27 补充校验）**：经 `docker ps` 与 `inet_server_addr()`（=172.24.0.2）确认，`defect_db` / `project_vehicle_db` / `analytics_db` 实际均与 `rollerbed_tracking_db` 同处一个 Docker 容器 `120JPH_postgres`（postgres:17-alpine），原“宿主机 PostgreSQL”标注有误，统一更正为 Docker 容器；补列缺陷检测 SQL Server 源 `DENTCHECK`（`defect_db` 的上游源），外部 SQL Server 源由 1 个改为 2 个。
+
+历史修改时间：2026-07-04 Asia/Shanghai
+
+历史修改内容：
 - **修正 DIM 刷新描述**：修正了 `dim.dim_process_area` 和 `dim.dim_vehicle_profile` 刷新逻辑的文字描述，将其从误导性的“增量 UPSERT 逻辑”更正为真实的“全量重算覆盖”。
 
 
-说明：本文档梳理 `analytics_db` 的三条数据来源路径、FDW 外部表机制、Python ETL 直连、存储过程刷新流程以及统一调度器编排，作为数仓架构的入口参考。
+说明：本文档梳理 `analytics_db` 的四条数据来源路径、FDW 外部表机制、Python ETL 直连、存储过程刷新流程以及统一调度器编排，作为数仓架构的入口参考。
 
 > 前置阅读：`docs/00_analytics_db_architecture.md` 是完整的 DDL 与部署操作手册，本文档聚焦链路架构与机制原理。
 
-## 1. 三库概览
+## 1. 四库概览
 
-项目涉及 3 个独立的 PostgreSQL 数据库 + 1 个外部 SQL Server 源：
+项目涉及 4 个独立的 PostgreSQL 数据库 + 2 个外部 SQL Server 源：
 
 | 数据库 | 职责 | 部署方式 |
 |--------|------|----------|
-| `rollerbed_tracking_db` | 实时车辆位置追踪（98 行固定位置，高频 UPDATE） | Docker `postgres:17-alpine` |
-| `defect_db` | 缺陷检测汇总（`history_station_defect_summary` 宽表） | 宿主机 PostgreSQL |
-| `analytics_db` | 分析数仓，整合上述两库 + 车身历史，供 LLM 查询 | 宿主机 PostgreSQL |
-| SQL Server `DXQcontrol_SVWMEB_BI_DWH` | 车身过站历史源库（MES 系统） | 外部 Windows SQL Server |
+| `rollerbed_tracking_db` | 实时车辆位置追踪（位置主表，当前 2748 行，高频 UPDATE） | Docker 容器 `120JPH_postgres` (postgres:17-alpine) |
+| `defect_db` | 缺陷检测汇总（`history_station_defect_summary` 宽表，源自 SQL Server `DENTCHECK`） | Docker 容器 `120JPH_postgres` (postgres:17-alpine) |
+| `project_vehicle_db` | FIS 项目车生产订单明细（`project_vehicle_orders`，当前 332 行） | Docker 容器 `120JPH_postgres` (postgres:17-alpine) |
+| `analytics_db` | 分析数仓，整合上述三库 + 车身历史，供 LLM 查询 | Docker 容器 `120JPH_postgres` (postgres:17-alpine) |
+| SQL Server `DXQcontrol_SVWMEB_BI_DWH` | 车身过站历史源库（MES 系统，carbody 源） | 外部 Windows SQL Server |
+| SQL Server `DENTCHECK` | 缺陷检测源库（`defect_db` 的上游） | 外部 Windows SQL Server |
 
-## 2. 三条数据路径汇入 analytics_db
+## 2. 四条数据路径汇入 analytics_db
 
 ```
                         ┌──────────────────────────────────────────────────┐
@@ -36,6 +44,10 @@ defect_db ──────────────┤  路径2: FDW ──→ 
                         │                                                  │
 SQL Server MES ─────────┤  路径3: Python ETL ──→ ods.carbody_history        │
 (DXQcontrol_SVWMEB...)  │  (pytds 直连, 非 FDW)                            │
+                        │                                                  │
+project_vehicle_db ─────┤  路径4: FDW ──→ src_project_vehicle.*            │
+(PostgreSQL)            │               (1 张表: project_vehicle_orders)    │
+                        │               → ods.ods_fis_project_vehicle_orders│
                         │                                                  │
                         │  ──→ dim.* (聚合维表)                            │
                         │  ──→ fct.* (物化视图)                            │
@@ -56,7 +68,7 @@ OPTIONS (user 'root', password 'root');
 
 IMPORT FOREIGN SCHEMA public
 LIMIT TO (
-  rb_position_data,        -- 98 行实时位置主表
+  rb_position_data,        -- 实时位置主表（当前 2748 行）
   process_areas,           -- 工艺区域字典
   carrier_types,           -- 载体类型字典
   vehicle_body_types,      -- 车型字典（自动发现）
@@ -103,6 +115,24 @@ Python ETL 脚本：`carbody_etl/refresh_carbody_ods.py`
 - 每批次在同一事务内完成 ODS 写入 + 水位更新（Atomic Sync）
 - 完成后自动调用 `CALL meta.refresh_carbody_dim()` 触发 DIM 聚合
 
+### 2.4 路径 4：project_vehicle_db → FDW
+
+`project_vehicle_db` 通过 FDW 将 FIS 项目车生产订单明细表映射到 `src_project_vehicle` schema（2026-07-28 新增链路）：
+
+```sql
+CREATE SERVER project_vehicle_srv FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (host 'localhost', dbname 'project_vehicle_db', port '5432');
+
+CREATE USER MAPPING FOR root SERVER project_vehicle_srv
+OPTIONS (user 'root', password 'root');
+
+IMPORT FOREIGN SCHEMA public
+LIMIT TO (project_vehicle_orders)
+FROM SERVER project_vehicle_srv INTO src_project_vehicle;
+```
+
+该路径与路径 1/2 一样采用 FDW 实时映射 + 本地 ODS 物理副本（`ods.ods_fis_project_vehicle_orders`，主键 `project_vehicle_no`，含 13 位合成 PIN `composite_pin_no` 专属 B-Tree 索引）。区别在于：FIS 数据同步发生在 `meta.refresh_carbody_dim()` 与 `meta.refresh_analytics_all()` 内部，通过 `INSERT ... ON CONFLICT (project_vehicle_no) DO UPDATE`（UPSERT）方式写入，而非 TRUNCATE + 全量 INSERT。其 `composite_pin_no` 用于与滚床 `vehicle_id` 前 13 位精确匹配，识别项目车（`entity_type = 'project_vehicle'`，优先级最高）。
+
 ## 3. refresh_analytics_all() 刷新流程
 
 `meta.refresh_analytics_all()` 是 `analytics_db` 的核心刷新存储过程，由统一调度器每 N 分钟调用一次。其执行顺序如下：
@@ -113,7 +143,7 @@ Python ETL 脚本：`carbody_etl/refresh_carbody_ods.py`
 ├─────────────────────────────────────────────────────┤
 │ 1. 记录 job_log (running / start)                    │
 │                                                      │
-│ 2. TRUNCATE ods.* (7 张表) + dim.* (2 张表)          │
+│ 2. TRUNCATE ods.* (8 张表) + dim.* (2 张表)          │
 │    ├─ ods.process_areas                              │
 │    ├─ ods.carrier_types                              │
 │    ├─ ods.vehicle_body_types                         │
@@ -121,42 +151,54 @@ Python ETL 脚本：`carbody_etl/refresh_carbody_ods.py`
 │    ├─ ods.vehicle_platforms                          │
 │    ├─ ods.rb_position_data                           │
 │    ├─ ods.history_station_defect_summary             │
+│    ├─ ods.ods_fis_project_vehicle_orders             │
 │    ├─ dim.dim_process_area                           │
 │    └─ dim.dim_vehicle_profile                        │
 │                                                      │
 │ 3. INSERT INTO ods.* ← SELECT FROM src_rb.* (FDW)    │
 │    INSERT INTO ods.* ← SELECT FROM src_defect.* (FDW) │
+│    UPSERT ods.ods_fis_project_vehicle_orders         │
+│      ← SELECT FROM src_project_vehicle.* (FDW)       │
 │    (全量快照，从 FDW 实时拉取源库当前数据)            │
 │                                                      │
-│ 4. REFRESH MATERIALIZED VIEW fct.* (5 个)             │
+│ 4. CALL meta.refresh_carbody_dim()                    │
+│    (内部: FIS UPSERT + carbody_registry UPSERT       │
+│     + project_vehicle_no 13 位精确匹配)              │
+│                                                      │
+│ 5. REFRESH MATERIALIZED VIEW fct.* (5 个)             │
 │    ├─ fct_position_current_all       (全量占位)      │
 │    ├─ fct_vehicle_position_current   (正式产品车)    │
 │    ├─ fct_vehicle_defect_detection   (缺陷事件)      │
 │    ├─ fct_vehicle_defect_enriched    (车身+缺陷宽表) │
 │    └─ fct_abnormal_vehicle_current   (异常车)        │
 │                                                      │
-│ 5. INSERT INTO dim.* (全量重算覆盖)                  │
-│    ├─ dim.dim_process_area (从 ods 聚合)             │
-│    └─ dim.dim_vehicle_profile (tracking ∪ defect)    │
+│ 6. REFRESH mart.mart_vehicle_quality_360 (第 1 次)    │
+│    (在 DIM 重建前先刷一次，供下游 dim 读取)          │
 │                                                      │
-│ 6. REFRESH MATERIALIZED VIEW mart.* (3 个)            │
-│    ├─ mart_vehicle_quality_360      (质量 360)       │
+│ 7. INSERT INTO dim.* (全量重算覆盖)                  │
+│    ├─ dim.dim_process_area (从 ods 聚合)             │
+│    └─ dim.dim_vehicle_profile                        │
+│       (tracking ∪ defect ∪ carbody 三源并集)        │
+│                                                      │
+│ 8. REFRESH MATERIALIZED VIEW mart.* (3 个)            │
+│    ├─ mart_vehicle_quality_360      (第 2 次刷新)    │
 │    ├─ mart_abnormal_vehicle_current (异常车汇总)     │
 │    └─ mart_position_current_overview(占位总览)      │
 │                                                      │
-│ 7. UPSERT meta.refresh_watermark (水位快照)          │
+│ 9. UPSERT meta.refresh_watermark (水位快照)          │
 │                                                      │
-│ 8. GRANT SELECT ON ALL TABLES TO agent_ro            │
+│ 10. GRANT SELECT ON ALL TABLES TO agent_ro           │
 │                                                      │
-│ 9. UPDATE job_log → 'success'                        │
+│ 11. UPDATE job_log → 'success'                       │
 └─────────────────────────────────────────────────────┘
 ```
 
 **关键设计决策：**
 
-- **ODS 采用全量 TRUNCATE + INSERT**（非增量）。因为 `rollerbed_tracking_db` 的 `rb_position_data` 只有 98 行固定位置 + 少量字典表，全量拉取成本极低。`defect_db` 的缺陷汇总表行数较大（~6 万行），但每次全量刷新可接受。
+- **ODS 采用全量 TRUNCATE + INSERT**（非增量）。因为 `rollerbed_tracking_db` 的 `rb_position_data` 当前 2748 行 + 少量字典表，全量拉取成本极低。`defect_db` 的缺陷汇总表行数较大（~5 万行），但每次全量刷新可接受。`project_vehicle_db` 的 `project_vehicle_orders`（332 行）采用 UPSERT 而非 TRUNCATE，以保留 `project_vehicle_no` 主键稳定。
 - **`ods.carbody_history` 不参与 TRUNCATE**。它是 Python ETL 增量追加写入的，`refresh_analytics_all()` 不触碰它。
 - **DIM 层在 FCT 之后重建**。因为 `dim.dim_vehicle_profile` 依赖 `fct.fct_vehicle_position_current` 的物化结果（当前车辆位置快照），所以必须等 FCT 刷新完再填充 DIM。需要注意的是，这里的 dim 表在刷新过程中是被 `TRUNCATE` 后全量写入（INSERT），并非增量更新。
+- **`mart.mart_vehicle_quality_360` 被刷新两次**。第一次在 DIM 重建前（基于上一轮 carbody/defect 数据），第二次在 DIM 重建后（基于最新三源合并画像），确保最终结果反映 `tracking ∪ defect ∪ carbody` 合并后的画像。
 - **MART 在 DIM 之后刷新**。`mart.mart_vehicle_quality_360` 等汇总视图依赖 DIM 层的聚合结果。
 
 ## 4. 统一调度器编排
@@ -214,42 +256,44 @@ Python ETL 脚本：`carbody_etl/refresh_carbody_ods.py`
 
 ```
 analytics_db
-├── src_rb        ← FDW 外部表 (rollerbed_tracking_db 的实时映射)
-├── src_defect    ← FDW 外部表 (defect_db 的实时映射)
-├── ods           ← 本地操作数据存储 (TRUNCATE + 全量 INSERT)
+├── src_rb               ← FDW 外部表 (rollerbed_tracking_db 的实时映射)
+├── src_defect           ← FDW 外部表 (defect_db 的实时映射)
+├── src_project_vehicle  ← FDW 外部表 (project_vehicle_db 的实时映射)
+├── ods                  ← 本地操作数据存储 (TRUNCATE + 全量 INSERT)
 │   ├── rb_position_data, process_areas, carrier_types,
 │   │   vehicle_body_types, vehicle_color_codes, vehicle_platforms
 │   ├── history_station_defect_summary
+│   ├── ods_fis_project_vehicle_orders (FIS 项目车订单, UPSERT 同步)
 │   └── carbody_history (Python ETL 增量追加, 不参与 TRUNCATE)
-├── dim           ← 维表 (在 FCT 之后重建)
+├── dim                  ← 维表 (在 FCT 之后重建)
 │   ├── dim_process_area
-│   ├── dim_vehicle_profile (tracking ∪ defect, 合并车辆画像)
+│   ├── dim_vehicle_profile (tracking ∪ defect ∪ carbody 三源并集)
 │   └── carbody_registry (Python ETL 触发 refresh_carbody_dim 维护)
-├── fct           ← 事实层物化视图
+├── fct                  ← 事实层物化视图
 │   ├── fct_position_current_all (全量占位)
 │   ├── fct_vehicle_position_current (正式产品车)
 │   ├── fct_abnormal_vehicle_current (异常车)
 │   ├── fct_vehicle_defect_detection (缺陷事件)
 │   └── fct_vehicle_defect_enriched (车身+缺陷富集宽表)
-├── mart          ← 分析汇总层物化视图
+├── mart                 ← 分析汇总层物化视图
 │   ├── mart_vehicle_quality_360
 │   ├── mart_abnormal_vehicle_current
 │   └── mart_position_current_overview
-└── meta          ← ETL 元数据
+└── meta                 ← ETL 元数据
     ├── sync_job_log (作业执行日志)
     └── refresh_watermark (水位快照)
 ```
 
 ## 6. 两种刷新模式对比
 
-| 维度 | FDW 路径 (rb / defect) | Python ETL 路径 (carbody) |
-|------|------------------------|---------------------------|
+| 维度 | FDW 路径 (rb / defect / project_vehicle) | Python ETL 路径 (carbody) |
+|------|------------------------------------------|---------------------------|
 | **源库类型** | PostgreSQL | SQL Server |
 | **连接方式** | `postgres_fdw` 外部表 | `pytds` Python 驱动直连 |
 | **写入方式** | TRUNCATE + 全量 INSERT | 增量追加 (WHERE ID > watermark) |
 | **触发时机** | `refresh_analytics_all()` 内部 | `scheduler` subprocess 独立执行 |
 | **频率** | 每 3 分钟全量快照 | 每 3 分钟增量同步 |
-| **数据量** | 98 行 (rb) + ~6 万行 (defect) | 依赖源库增量 |
+| **数据量** | 2748 行 (rb) + ~5 万行 (defect) + 332 行 (project_vehicle) | 依赖源库增量 |
 | **事务策略** | 存储过程内多语句事务 | Python 批量事务 (Atomic Sync) |
 | **并发控制** | 依赖调度器 IS_RUNNING | Advisory Lock + 调度器 IS_RUNNING |
 

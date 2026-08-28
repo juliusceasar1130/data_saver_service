@@ -1,8 +1,19 @@
 # Analytics DB 落地与刷新操作手册（最新已验证版）
 
-修改时间：2026-07-28 Asia/Shanghai
+修改时间：2026-08-27 Asia/Shanghai
 
 主要修改内容：
+- **对象现状对齐更新（2026-08-27 通过 pg MCP 直连实时 `analytics_db` 校验）**：确认数据库与本文档结构完全对齐（schema、表/物化视图定义、存储过程、索引、权限）；同步更新遗留对象现状描述：`src_carbody` schema 已清理（移除第 2 节中的旧版遗留描述）；FDW `carbody_srv` server 仍保留在库中但未挂载任何外部表（第 5.7 节补充现状说明）；`meta.refresh_watermark` 存在一条历史遗留水位 `dim.carbody_vehicle_profile.last_sync_at`（第 9.6 节补充说明）。
+
+历史修改时间：2026-07-29 Asia/Shanghai
+
+历史修改内容：
+- **车辆分类架构升级与直连 FIS 匹配**：将滚床当前位置三分类重构为`project_vehicle`（项目车，优先级最高）、`product_vehicle`（产品车/量产车）与`abnormal_vehicle`（异常车）；主基础视图 `fct.fct_position_current_all` 直连 `ods.ods_fis_project_vehicle_orders` 进行 13 位合成 PIN (`composite_pin_no`) 精确关联并透传 `project_vehicle_no`。
+- **物化视图与防护隔离更新**：更新 `fct.fct_vehicle_position_current` 过滤条件涵盖正常车 (`IN ('product_vehicle', 'project_vehicle')`)；优化异常类型 `abnormal_type` 计算逻辑防错防护，正常车 `abnormal_type` 恒为 NULL 彻底消解逻辑冲突。
+
+历史修改时间：2026-07-28 Asia/Shanghai
+
+历史修改内容：
 - **新增 FIS 项目车业务源库 FDW 映射与 ODS 贴源对齐**：新增 `project_vehicle_db` 源库的 FDW 外部连接挂载（`project_vehicle_srv`）、模式 `src_project_vehicle` 及外部表映射 `src_project_vehicle.project_vehicle_orders`；初始化本地物理 ODS 贴源表 `ods.ods_fis_project_vehicle_orders` 及其主键与 `composite_pin_no` 专属 B-Tree 索引。
 
 历史修改时间：2026-07-23 Asia/Shanghai
@@ -100,7 +111,6 @@
 - schema：
   - `src_rb`
   - `src_defect`
-  - `src_carbody (旧版 FDW 遗留，新版已由 Python ETL 直连取代)`
   - `ods`
   - `dim`
   - `fct`
@@ -161,9 +171,10 @@
   - **实时位置快照**：`current_position_id`, `current_carrier_id`, `current_carrier_type`, `current_process_area`, `current_full_rb_code`, `current_position_updated_at`
   - **物理车身过站历史**：`carbody_first_seen_at`, `carbody_last_seen_at`, `carbody_first_rw_station`, `carbody_last_rw_station`, `carbody_station_pass_count`, `is_rework`
   - **最新缺陷状态指标**：`has_defect_record`, `defect_last_seen_at`
-- `fct.fct_position_current_all` 的真实定义已按当前占位进行分类：
-  - `product_vehicle`
-  - `abnormal_vehicle`
+- `fct.fct_position_current_all` 的真实定义已按当前占位进行三分类（复用 entity_type 字段）：
+  - `project_vehicle` (项目车)
+  - `product_vehicle` (产品车/量产车)
+  - `abnormal_vehicle` (异常车)
 - `fct.fct_abnormal_vehicle_current` 当前实时分类结果为：
   - `empty_vehicle_id_with_carrier`：`8`
   - `non_product_prefix`：`4`
@@ -505,6 +516,8 @@ FROM SERVER project_vehicle_srv INTO src_project_vehicle;
 
 ---
 -- 注意：原 5.7 节 carbody FDW 已弃用，改由 Python ETL 直连 SQL Server。
+-- 现状说明（2026-08-27 校验）：遗留 FDW server `carbody_srv`（dbname=carbody_history）仍保留在库中，但 `src_carbody` 模式已清理、未挂载任何外部表；
+-- 该 server 不影响任何数据链路，可保留（无害）也可自行删除：DROP SERVER carbody_srv;
 ---
 
 ## 6. 本地 ODS / DIM / FCT / MART 对象初始化
@@ -968,39 +981,44 @@ DROP MATERIALIZED VIEW IF EXISTS fct.fct_position_current_all;
 ```sql
 CREATE MATERIALIZED VIEW IF NOT EXISTS fct.fct_position_current_all AS
 SELECT
-  id AS position_id,
-  plc,
-  tag,
-  rb_index,
-  COALESCE(plc, '') || COALESCE(rb_index, '') AS full_rb_code,
-  remark,
-  process_area,
-  carrier_id,
-  carrier_type,
-  NULLIF(trim(vehicle_id), '') AS vehicle_id,
-  body_type,
-  color_code,
-  platform_code,
-  black_roof_flag,
-  rework_flag,
-  raw_data,
-  position_created_at,
-  vehicle_updated_at,
+  rb.id AS position_id,
+  rb.plc,
+  rb.tag,
+  rb.rb_index,
+  COALESCE(rb.plc, '') || COALESCE(rb.rb_index, '') AS full_rb_code,
+  rb.remark,
+  rb.process_area,
+  rb.carrier_id,
+  rb.carrier_type,
+  NULLIF(trim(rb.vehicle_id), '') AS vehicle_id,
+  pvo.project_vehicle_no,
+  rb.body_type,
+  rb.color_code,
+  rb.platform_code,
+  rb.black_roof_flag,
+  rb.rework_flag,
+  rb.raw_data,
+  rb.position_created_at,
+  rb.vehicle_updated_at,
   CASE
-    WHEN NULLIF(trim(vehicle_id), '') LIKE '782026%'
-         AND COALESCE(body_type, '') <> '-----' THEN 'product_vehicle'
+    WHEN NULLIF(trim(pvo.project_vehicle_no), '') IS NOT NULL THEN 'project_vehicle'
+    WHEN NULLIF(trim(rb.vehicle_id), '') LIKE '782026%' 
+     AND NULLIF(trim(pvo.project_vehicle_no), '') IS NULL THEN 'product_vehicle'
     ELSE 'abnormal_vehicle'
   END AS entity_type,
   CASE
-    WHEN NULLIF(trim(vehicle_id), '') = '--------------' THEN 'empty_vehicle_id_with_carrier'
-    WHEN COALESCE(body_type, '') = '-----'
-         AND NULLIF(trim(vehicle_id), '') LIKE '782026%' THEN 'undefined_body_type_with_carrier'
-    WHEN NULLIF(trim(vehicle_id), '') IS NULL THEN 'blank_vehicle_id_with_carrier'
-    WHEN NULLIF(trim(vehicle_id), '') NOT LIKE '782026%' THEN 'non_product_prefix'
-    ELSE NULL
+    WHEN NULLIF(trim(pvo.project_vehicle_no), '') IS NOT NULL THEN NULL
+    WHEN NULLIF(trim(rb.vehicle_id), '') LIKE '782026%' THEN NULL
+    WHEN NULLIF(trim(rb.vehicle_id), '') = '--------------' THEN 'empty_vehicle_id_with_carrier'
+    WHEN NULLIF(trim(rb.vehicle_id), '') IS NULL THEN 'blank_vehicle_id_with_carrier'
+    ELSE 'non_product_prefix'
   END AS abnormal_type
-FROM ods.rb_position_data
-WHERE COALESCE(NULLIF(trim(carrier_id), ''), '0') <> '0'
+FROM ods.rb_position_data rb
+LEFT JOIN ods.ods_fis_project_vehicle_orders pvo
+  ON pvo.composite_pin_no IS NOT NULL 
+ AND pvo.composite_pin_no <> ''
+ AND LEFT(trim(rb.vehicle_id), 13) = pvo.composite_pin_no
+WHERE COALESCE(NULLIF(trim(rb.carrier_id), ''), '0') <> '0'
 WITH NO DATA;
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_fct_position_current_all_position_id
@@ -1030,6 +1048,7 @@ SELECT DISTINCT ON (vehicle_id)
   process_area,
   carrier_id,
   carrier_type,
+  project_vehicle_no,
   body_type,
   color_code,
   platform_code,
@@ -1039,8 +1058,7 @@ SELECT DISTINCT ON (vehicle_id)
   position_created_at,
   vehicle_updated_at
 FROM fct.fct_position_current_all
-WHERE entity_type = 'product_vehicle'
-  AND vehicle_id LIKE '782026%'
+WHERE entity_type IN ('product_vehicle', 'project_vehicle')
 ORDER BY vehicle_id, vehicle_updated_at DESC NULLS LAST, position_created_at DESC, position_id DESC
 WITH NO DATA;
 
@@ -1162,6 +1180,7 @@ SELECT
   carrier_id,
   carrier_type,
   vehicle_id,
+  project_vehicle_no,
   body_type,
   color_code,
   platform_code,
@@ -1173,11 +1192,10 @@ SELECT
   entity_type,
   abnormal_type,
   CASE abnormal_type
-    WHEN 'non_product_prefix' THEN 'carrier_id 非 0，但 vehicle_id 前缀不是 782026。'
+    WHEN 'non_product_prefix' THEN 'carrier_id 非 0，但 vehicle_id 前缀不是 782026 且无项目车编号。'
     WHEN 'empty_vehicle_id_with_carrier' THEN 'carrier_id 非 0，但 vehicle_id 为 --------------。'
     WHEN 'blank_vehicle_id_with_carrier' THEN 'carrier_id 非 0，但 vehicle_id 为空。'
-    WHEN 'undefined_body_type_with_carrier' THEN 'carrier_id 非 0，vehicle_id 为产品前缀，但 body_type 为 -----。'
-    ELSE 'carrier_id 非 0，但当前占位不满足正式产品车规则。'
+    ELSE 'carrier_id 非 0，但当前占位不满足正常车规则。'
   END AS abnormal_reason
 FROM fct.fct_position_current_all
 WHERE entity_type = 'abnormal_vehicle'
@@ -1281,6 +1299,7 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS mart.mart_abnormal_vehicle_current AS
 SELECT
   a.position_id,
   a.vehicle_id,
+  a.project_vehicle_no,
   a.abnormal_type,
   a.abnormal_reason,
   a.process_area,
@@ -1332,17 +1351,19 @@ CREATE MATERIALIZED VIEW IF NOT EXISTS mart.mart_position_current_overview AS
 SELECT
   p.position_id,
   p.entity_type,
-  CASE
-    WHEN p.entity_type = 'product_vehicle' THEN '正式产品车'
+  CASE p.entity_type
+    WHEN 'project_vehicle' THEN '项目车'
+    WHEN 'product_vehicle' THEN '产品车(量产车)'
     ELSE '异常车'
   END AS entity_type_name,
   CASE
-    WHEN p.entity_type = 'product_vehicle' THEN 'product_vehicle'
+    WHEN p.entity_type IN ('project_vehicle', 'product_vehicle') THEN p.entity_type
     ELSE COALESCE(a.abnormal_type, p.abnormal_type, 'unknown_abnormal')
   END AS vehicle_status_code,
   CASE
-    WHEN p.entity_type = 'product_vehicle' THEN '正式产品车'
-    ELSE COALESCE(a.abnormal_reason, 'carrier_id 非 0，但当前占位不满足正式产品车规则。')
+    WHEN p.entity_type = 'project_vehicle' THEN '项目车'
+    WHEN p.entity_type = 'product_vehicle' THEN '产品车(量产车)'
+    ELSE COALESCE(a.abnormal_reason, 'carrier_id 非 0，但当前占位不满足正常车规则。')
   END AS vehicle_status_name,
   COALESCE(a.abnormal_type, p.abnormal_type) AS abnormal_type,
   a.abnormal_reason,
@@ -1358,6 +1379,7 @@ SELECT
   p.full_rb_code,
   p.remark,
   p.vehicle_id,
+  p.project_vehicle_no,
   p.body_type,
   bt.type_name AS tracking_type_name,
   p.color_code,
@@ -1825,11 +1847,14 @@ WHERE source_name IN ('ods.carbody_history.max_id', 'dim.carbody_registry.last_s
 -- 对象存在性
 SELECT table_schema, table_name
 FROM information_schema.tables
-WHERE table_schema IN ('src_carbody','ods') AND table_name LIKE '%carbody%'
+WHERE table_schema = 'ods' AND table_name LIKE '%carbody%'
 UNION ALL
 SELECT table_schema, table_name
 FROM information_schema.tables
 WHERE table_schema = 'dim' AND table_name = 'carbody_registry';
+
+-- 遗留水位检查（2026-08-27 补充）：以下历史遗留水位已无对应刷新流程使用，属无害记录，可忽略或手动删除：
+-- dim.carbody_vehicle_profile.last_sync_at（2026-05-11 写入）
 
 -- 数据量（期待 ods ~101 万，dim ~1.3 万）
 SELECT 'ods.carbody_history' AS tbl, count(*) AS rows FROM ods.carbody_history
