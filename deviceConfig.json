@@ -492,6 +492,17 @@
         "id": "",
         "type": "advise",
         "plc": "L3F13",
+        "tag": ".L3F13_1D_1D235LT_1D235LT.IL.SD.M1003_BodyID",
+        "RBindex": "1D235LT",
+        "remark": "",
+        "process_area": "L2面漆储存线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F13_1D_1D235LT_1D235LT.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F13",
         "tag": ".L3F13_1E_1E285RB_1E285RB.IL.SD.M1003_BodyID",
         "RBindex": "1E285RB",
         "remark": "",
@@ -4257,6 +4268,17 @@
         "process_area": "L1面漆储存线",
         "carrier_type": "Topcoat Skid",
         "tag_carrier_id": ".L3F12_1D_1D260RB_1D260RB.IL.SD.I1030_RBDataSkidNo"
+      },
+      {
+        "id": "",
+        "type": "advise",
+        "plc": "L3F12",
+        "tag": ".L3F12_1D_1D235LT_1D235LT.IL.SD.M1003_BodyID",
+        "RBindex": "1D235LT",
+        "remark": "",
+        "process_area": "L1面漆储存线",
+        "carrier_type": "Topcoat Skid",
+        "tag_carrier_id": ".L3F12_1D_1D235LT_1D235LT.IL.SD.I1030_RBDataSkidNo"
       },
       {
         "id": "",
@@ -30287,7 +30309,7 @@
     ]
   },
   "metadata": {
-    "totalDevices": 2746,
+    "totalDevices": 2748,
     "deviceTypes": [
       "L3F01",
       "L3F02",
