@@ -1,5 +1,17 @@
 # Changelog
 
+## 2026-09-14 15:26 Asia/Shanghai
+
+简要概括：优化数仓与缺陷汇总定时调度器 Docker 挂载配置，精简 `docker-compose.yml` 架构，为 `refresh-scheduler` 挂载宿主机 `defect_summary_etl/model_map.json` 实现免重构镜像动态新增车型，并安全移除已废弃的历史遗留文件 `Dockerfile.defect-refresh` 与其服务定义。
+
+主要修改内容：
+
+- **挂载车型映射文件**：
+  - 在 `docker-compose.yml` 中的 `refresh-scheduler` 服务增加 `volumes` 挂载配置（`./defect_summary_etl/model_map.json:/app/defect_summary_etl/model_map.json:ro`），使宿主机新增/变更车型后由后台每 3 分钟自动同步到数据库，无需重新构建镜像。
+- **精简编排配置与清理废弃文件**：
+  - 移除 `docker-compose.yml` 中冗余的 `defect-refresh` 独立服务，统一由 `refresh-scheduler` 托管；
+  - 彻底删除已废弃的历史遗留镜像构建文件 `Dockerfile.defect-refresh`，并同步清理 `README.md` 项目结构说明。
+
 ## 2026-07-29 09:44 Asia/Shanghai
 
 简要概括：精简并更新文档 [06_vehicle_classification_rules_and_llm_prompt.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docs/06_vehicle_classification_rules_and_llm_prompt.md)，取消新增 `sub_entity_type` 冗余字段，统一复用并升级既有 `entity_type` 字段（取值：`project_vehicle` / `product_vehicle` / `abnormal_vehicle`），并简化对应 SQL 表达式与 LLM 提示词模板。

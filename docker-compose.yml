@@ -108,6 +108,9 @@ services:
       - DEFECT_SOURCE_DB_TYPE=sqlserver
       - DEFECT_SOURCE_DB_SCHEMA=dbo
       - SCHEDULER_INTERVAL_MINUTES=${SCHEDULER_INTERVAL_MINUTES:-3}
+    volumes:
+      # 挂载车型映射配置，允许宿主机直接新增/更新车型配置并实时生效
+      - ./defect_summary_etl/model_map.json:/app/defect_summary_etl/model_map.json:ro
     healthcheck:
       test:
         [

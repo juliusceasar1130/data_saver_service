@@ -56,6 +56,14 @@
 
 ## 变更记录
 
+### 2026-09-14 15:26 Asia/Shanghai
+
+主要修改内容：
+
+- 落地车型映射 `model_map.json` 的 Docker 挂载方案（方式 2），在 [docker-compose.yml](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docker-compose.yml) 中的 `refresh-scheduler` 服务增加只读卷挂载，支持后期免构建镜像即时新增车型。
+- 清理 [docker-compose.yml](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/docker-compose.yml) 中冗余的 `defect-refresh` 服务定义，统一收敛由 `refresh-scheduler` 托管，保持编排文件精简。
+- 彻底安全删除已废弃的历史遗留文件 `Dockerfile.defect-refresh`，并同步更新 [README.md](file:///f:/000_dev/Python/workplace/savedatabase-postgresql_v2/README.md) 项目文件结构说明。
+
 ### 2026-07-28 16:42 Asia/Shanghai
 
 主要修改内容：
